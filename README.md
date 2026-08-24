@@ -1,2 +1,2 @@
 # leitstand
-A lightweight, agentless terminal &amp; server telemetry cockpit written in Go.
+A lightweight, agentless server control center and telemetry cockpit for modern engineers.
