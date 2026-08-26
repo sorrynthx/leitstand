@@ -31,8 +31,13 @@ func NewClient(address string, config *ssh.ClientConfig) (*Client, error) {
 	}, nil
 }
 
-// Exec runs a non-interactive remote command and returns stdout, stderr.
+// Exec runs a non-interactive remote command and returns stdout, stderr with a 15-second default timeout.
 func (c *Client) Exec(cmd string) (stdout []byte, stderr []byte, err error) {
+	return c.ExecWithTimeout(cmd, 15*time.Second)
+}
+
+// ExecWithTimeout runs a non-interactive remote command with a strict timeout to prevent hangs.
+func (c *Client) ExecWithTimeout(cmd string, timeout time.Duration) (stdout []byte, stderr []byte, err error) {
 	c.mu.Lock()
 	if c.rawClient == nil {
 		c.mu.Unlock()
@@ -51,11 +56,22 @@ func (c *Client) Exec(cmd string) (stdout []byte, stderr []byte, err error) {
 	session.Stdout = &stdoutBuf
 	session.Stderr = &stderrBuf
 
-	if err := session.Run(cmd); err != nil {
-		return stdoutBuf.Bytes(), stderrBuf.Bytes(), fmt.Errorf("command execution error: %w", err)
-	}
+	done := make(chan error, 1)
+	go func() {
+		done <- session.Run(cmd)
+	}()
 
-	return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
+	select {
+	case <-time.After(timeout):
+		_ = session.Signal(ssh.SIGKILL)
+		_ = session.Close()
+		return stdoutBuf.Bytes(), stderrBuf.Bytes(), fmt.Errorf("command execution timed out after %v (possible interactive prompt or long-running task)", timeout)
+	case runErr := <-done:
+		if runErr != nil {
+			return stdoutBuf.Bytes(), stderrBuf.Bytes(), fmt.Errorf("command execution error: %w", runErr)
+		}
+		return stdoutBuf.Bytes(), stderrBuf.Bytes(), nil
+	}
 }
 
 // Ping checks if the SSH connection is still responsive and returns RTT latency.

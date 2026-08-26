@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"leitstand/internal/config"
+	"leitstand/internal/logger"
 	"leitstand/internal/ssh"
 	"leitstand/internal/storage"
 	"leitstand/internal/telemetry"
@@ -23,8 +24,12 @@ type App struct {
 
 // New creates and wires all subsystems together.
 func New(cfg *config.AppConfig) (*App, error) {
+	_ = logger.Init("leitstand.log")
+	logger.Infof("Initializing Leitstand application...")
+
 	store, err := storage.Open(cfg.Database.Path)
 	if err != nil {
+		logger.Errorf("Failed to open database: %v", err)
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 

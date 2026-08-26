@@ -236,12 +236,12 @@ func TestCollectorWithMockSSH(t *testing.T) {
 		t.Errorf("expected non-zero memory and disk totals: %+v", rec1)
 	}
 
-	// Verify persistence in SQLite
-	latest, err := store.GetLatestMetric(hostID)
-	if err != nil || latest == nil {
-		t.Fatalf("failed to retrieve latest metric from DB: %v", err)
+	// Verify in-memory state caching (Zero DB overhead)
+	state, exists := collector.GetHostState(hostID)
+	if !exists || state == nil || state.LastRecord == nil {
+		t.Fatalf("failed to retrieve latest in-memory metric state")
 	}
-	if latest.MemoryTotal != rec1.MemoryTotal {
-		t.Errorf("persisted metric mismatch")
+	if state.LastRecord.MemoryTotal != rec1.MemoryTotal {
+		t.Errorf("cached metric mismatch")
 	}
 }

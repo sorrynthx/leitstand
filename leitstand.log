@@ -1,0 +1,290 @@
+[2026/08/26 15:06:45.787] [INFO] ==================================================
+[2026/08/26 15:06:45.797] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:06:45
+[2026/08/26 15:06:45.797] [INFO] ==================================================
+[2026/08/26 15:06:45.797] [INFO] Initializing Leitstand application...
+[2026/08/26 15:06:56.437] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='docker ps'
+[2026/08/26 15:06:59.438] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:09.441] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:19.443] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:29.445] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:29.447] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; docker ps ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:07:29.523] [INFO] execRemoteCmd: host='Test Server1' cmd='docker ps' completed (stdout_len=685, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:07:39.451] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:49.454] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:07:59.457] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:09.458] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:19.461] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:29.464] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:39.467] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:49.469] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:08:59.472] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:09:09.475] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:09:19.477] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:09:29.480] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 15:13:14.733] [INFO] ==================================================
+[2026/08/26 15:13:14.743] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:13:14
+[2026/08/26 15:13:14.743] [INFO] ==================================================
+[2026/08/26 15:13:14.743] [INFO] Initializing Leitstand application...
+[2026/08/26 15:13:25.193] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 15:13:25.281] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 15:13:37.482] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='docker ps'
+[2026/08/26 15:13:37.484] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; docker ps ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:37.567] [INFO] execRemoteCmd: host='Test Server1' cmd='docker ps' completed (stdout_len=685, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:13:40.709] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='top'
+[2026/08/26 15:13:40.711] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; top -b -n 1 | head -n 35 ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:40.942] [INFO] execRemoteCmd: host='Test Server1' cmd='top' completed (stdout_len=2725, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:13:52.644] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls'
+[2026/08/26 15:13:52.646] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:52.654] [INFO] execRemoteCmd: host='Test Server1' cmd='ls' completed (stdout_len=67, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:13:54.285] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:13:54.289] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:54.305] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=249, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:13:55.830] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cd ..'
+[2026/08/26 15:13:55.832] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cd .. ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:55.839] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ..' completed (stdout_len=0, stderr_len=0, new_cwd='/home', err=<nil>)
+[2026/08/26 15:13:58.304] [INFO] execRemoteCmd: host='Test Server1', cwd='/home', input='ls -ll'
+[2026/08/26 15:13:58.309] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:13:58.317] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=440, stderr_len=0, new_cwd='/home', err=<nil>)
+[2026/08/26 15:14:01.336] [INFO] execRemoteCmd: host='Test Server1', cwd='/home', input='cd ..'
+[2026/08/26 15:14:01.338] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home" 2>/dev/null || cd "$HOME" ; cd .. ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:14:01.345] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ..' completed (stdout_len=0, stderr_len=0, new_cwd='/', err=<nil>)
+[2026/08/26 15:14:02.488] [INFO] execRemoteCmd: host='Test Server1', cwd='/', input='ls -ll'
+[2026/08/26 15:14:02.489] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:14:02.544] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=1558, stderr_len=0, new_cwd='/', err=<nil>)
+[2026/08/26 15:14:18.510] [INFO] execRemoteCmd: host='Test Server1', cwd='/', input='cd /home'
+[2026/08/26 15:14:18.512] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/" 2>/dev/null || cd "$HOME" ; cd /home ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:14:18.518] [INFO] execRemoteCmd: host='Test Server1' cmd='cd /home' completed (stdout_len=0, stderr_len=0, new_cwd='/home', err=<nil>)
+[2026/08/26 15:14:19.524] [INFO] execRemoteCmd: host='Test Server1', cwd='/home', input='ls'
+[2026/08/26 15:14:19.526] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home" 2>/dev/null || cd "$HOME" ; ls ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:14:19.534] [INFO] execRemoteCmd: host='Test Server1' cmd='ls' completed (stdout_len=52, stderr_len=0, new_cwd='/home', err=<nil>)
+[2026/08/26 15:17:42.932] [INFO] ==================================================
+[2026/08/26 15:17:42.941] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:17:42
+[2026/08/26 15:17:42.941] [INFO] ==================================================
+[2026/08/26 15:17:42.941] [INFO] Initializing Leitstand application...
+[2026/08/26 15:17:48.103] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 15:17:48.193] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 15:17:52.642] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='docker ps'
+[2026/08/26 15:17:52.645] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; docker ps ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:17:52.727] [INFO] execRemoteCmd: host='Test Server1' cmd='docker ps' completed (stdout_len=685, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:17:58.874] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:17:58.876] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:17:58.884] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=249, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:18:01.886] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cd ./tms-trip-generator-log-analyzer/'
+[2026/08/26 15:18:01.888] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cd ./tms-trip-generator-log-analyzer/ ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:01.894] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ./tms-trip-generator-log-analyzer/' completed (stdout_len=0, stderr_len=0, new_cwd='/home/kgkim/tms-trip-generator-log-analyzer', err=<nil>)
+[2026/08/26 15:18:03.105] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/tms-trip-generator-log-analyzer', input='ls -ll'
+[2026/08/26 15:18:03.108] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/tms-trip-generator-log-analyzer" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:03.117] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=407, stderr_len=0, new_cwd='/home/kgkim/tms-trip-generator-log-analyzer', err=<nil>)
+[2026/08/26 15:18:06.538] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/tms-trip-generator-log-analyzer', input='cd ..'
+[2026/08/26 15:18:06.540] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/tms-trip-generator-log-analyzer" 2>/dev/null || cd "$HOME" ; cd .. ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:06.546] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ..' completed (stdout_len=0, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:18:08.273] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:18:08.275] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:08.282] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=249, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:18:11.066] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cd ./db-analyzer/'
+[2026/08/26 15:18:11.068] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cd ./db-analyzer/ ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:11.074] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ./db-analyzer/' completed (stdout_len=0, stderr_len=0, new_cwd='/home/kgkim/db-analyzer', err=<nil>)
+[2026/08/26 15:18:12.195] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/db-analyzer', input='ls -ll'
+[2026/08/26 15:18:12.198] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/db-analyzer" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:12.254] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=115, stderr_len=0, new_cwd='/home/kgkim/db-analyzer', err=<nil>)
+[2026/08/26 15:18:16.768] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/db-analyzer', input='vi ./requirements.txt'
+[2026/08/26 15:18:16.770] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/db-analyzer" 2>/dev/null || cd "$HOME" ; vi ./requirements.txt ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:31.773] [INFO] execRemoteCmd: host='Test Server1' cmd='vi ./requirements.txt' completed (stdout_len=1846, stderr_len=85, new_cwd='/home/kgkim/db-analyzer', err=command execution timed out after 15s (possible interactive prompt or long-running task))
+[2026/08/26 15:18:38.355] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/db-analyzer', input='nano ./requirements.txt'
+[2026/08/26 15:18:38.357] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/db-analyzer" 2>/dev/null || cd "$HOME" ; nano ./requirements.txt ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:18:41.149] [INFO] execRemoteCmd: host='Test Server1' cmd='nano ./requirements.txt' completed (stdout_len=333, stderr_len=47, new_cwd='/home/kgkim/db-analyzer', err=command execution error: Process exited with status 1)
+[2026/08/26 15:26:54.041] [INFO] ==================================================
+[2026/08/26 15:26:54.051] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:26:54
+[2026/08/26 15:26:54.051] [INFO] ==================================================
+[2026/08/26 15:26:54.051] [INFO] Initializing Leitstand application...
+[2026/08/26 15:26:57.045] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 15:26:57.135] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 15:27:00.370] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='ls -l'
+[2026/08/26 15:27:00.372] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; ls -l ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:00.380] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -l' completed (stdout_len=249, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:27:03.250] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cd ./db-analyzer/'
+[2026/08/26 15:27:03.253] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cd ./db-analyzer/ ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:03.259] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ./db-analyzer/' completed (stdout_len=0, stderr_len=0, new_cwd='/home/kgkim/db-analyzer', err=<nil>)
+[2026/08/26 15:27:05.135] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/db-analyzer', input='ls -ll'
+[2026/08/26 15:27:05.137] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/db-analyzer" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:05.145] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=115, stderr_len=0, new_cwd='/home/kgkim/db-analyzer', err=<nil>)
+[2026/08/26 15:27:16.308] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim/db-analyzer', input='cd ..'
+[2026/08/26 15:27:16.310] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim/db-analyzer" 2>/dev/null || cd "$HOME" ; cd .. ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:16.317] [INFO] execRemoteCmd: host='Test Server1' cmd='cd ..' completed (stdout_len=0, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:27:18.313] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:27:18.315] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:18.323] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=249, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:27:43.330] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:27:43.332] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:43.340] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=301, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:27:47.310] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cat ./test.txt'
+[2026/08/26 15:27:47.313] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cat ./test.txt ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:47.326] [INFO] execRemoteCmd: host='Test Server1' cmd='cat ./test.txt' completed (stdout_len=117, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:27:55.597] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 15:27:55.600] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:27:55.608] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=301, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:30:28.724] [INFO] ==================================================
+[2026/08/26 15:30:28.734] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:30:28
+[2026/08/26 15:30:28.734] [INFO] ==================================================
+[2026/08/26 15:30:28.734] [INFO] Initializing Leitstand application...
+[2026/08/26 15:30:33.777] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 15:30:33.866] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 15:30:38.880] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='ls -ll'
+[2026/08/26 15:30:38.882] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:30:38.890] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=301, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:30:59.638] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='docker ps'
+[2026/08/26 15:30:59.640] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; docker ps ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 15:30:59.724] [INFO] execRemoteCmd: host='Test Server1' cmd='docker ps' completed (stdout_len=685, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 15:36:15.872] [INFO] ==================================================
+[2026/08/26 15:36:15.881] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 15:36:15
+[2026/08/26 15:36:15.881] [INFO] ==================================================
+[2026/08/26 15:36:15.881] [INFO] Initializing Leitstand application...
+[2026/08/26 16:18:39.286] [INFO] ==================================================
+[2026/08/26 16:18:39.297] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:18:39
+[2026/08/26 16:18:39.297] [INFO] ==================================================
+[2026/08/26 16:18:39.297] [INFO] Initializing Leitstand application...
+[2026/08/26 16:19:29.454] [INFO] ==================================================
+[2026/08/26 16:19:29.463] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:19:29
+[2026/08/26 16:19:29.463] [INFO] ==================================================
+[2026/08/26 16:19:29.463] [INFO] Initializing Leitstand application...
+[2026/08/26 16:19:49.847] [INFO] ==================================================
+[2026/08/26 16:19:49.857] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:19:49
+[2026/08/26 16:19:49.857] [INFO] ==================================================
+[2026/08/26 16:19:49.857] [INFO] Initializing Leitstand application...
+[2026/08/26 16:27:34.420] [INFO] ==================================================
+[2026/08/26 16:27:34.429] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:27:34
+[2026/08/26 16:27:34.429] [INFO] ==================================================
+[2026/08/26 16:27:34.429] [INFO] Initializing Leitstand application...
+[2026/08/26 16:30:37.765] [INFO] ==================================================
+[2026/08/26 16:30:37.774] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:30:37
+[2026/08/26 16:30:37.774] [INFO] ==================================================
+[2026/08/26 16:30:37.774] [INFO] Initializing Leitstand application...
+[2026/08/26 16:33:07.571] [INFO] ==================================================
+[2026/08/26 16:33:07.580] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:33:07
+[2026/08/26 16:33:07.580] [INFO] ==================================================
+[2026/08/26 16:33:07.580] [INFO] Initializing Leitstand application...
+[2026/08/26 16:33:37.057] [INFO] ==================================================
+[2026/08/26 16:33:37.066] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:33:37
+[2026/08/26 16:33:37.066] [INFO] ==================================================
+[2026/08/26 16:33:37.066] [INFO] Initializing Leitstand application...
+[2026/08/26 16:35:10.342] [INFO] ==================================================
+[2026/08/26 16:35:10.351] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:35:10
+[2026/08/26 16:35:10.352] [INFO] ==================================================
+[2026/08/26 16:35:10.352] [INFO] Initializing Leitstand application...
+[2026/08/26 16:35:40.491] [INFO] ==================================================
+[2026/08/26 16:35:40.500] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:35:40
+[2026/08/26 16:35:40.501] [INFO] ==================================================
+[2026/08/26 16:35:40.501] [INFO] Initializing Leitstand application...
+[2026/08/26 16:36:05.982] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='top'
+[2026/08/26 16:36:05.982] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 16:36:06.073] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 16:36:06.073] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; top -b -n 1 | head -n 35 ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:36:06.551] [INFO] execRemoteCmd: host='Test Server1' cmd='top' completed (stdout_len=2720, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:36:19.965] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ls -ll'
+[2026/08/26 16:36:19.967] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:36:19.975] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=301, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:36:39.518] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='cat ./test.txt'
+[2026/08/26 16:36:39.520] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; cat ./test.txt ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:36:39.534] [INFO] execRemoteCmd: host='Test Server1' cmd='cat ./test.txt' completed (stdout_len=211, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:39:16.945] [INFO] ==================================================
+[2026/08/26 16:39:16.953] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:39:16
+[2026/08/26 16:39:16.953] [INFO] ==================================================
+[2026/08/26 16:39:16.953] [INFO] Initializing Leitstand application...
+[2026/08/26 16:39:33.999] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='ls -ll'
+[2026/08/26 16:39:34.000] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 16:39:34.089] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 16:39:34.089] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; ls -ll ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:39:34.347] [INFO] execRemoteCmd: host='Test Server1' cmd='ls -ll' completed (stdout_len=301, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:46:07.223] [INFO] ==================================================
+[2026/08/26 16:46:07.233] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:46:07
+[2026/08/26 16:46:07.233] [INFO] ==================================================
+[2026/08/26 16:46:07.233] [INFO] Initializing Leitstand application...
+[2026/08/26 16:46:44.302] [INFO] ==================================================
+[2026/08/26 16:46:44.311] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:46:44
+[2026/08/26 16:46:44.311] [INFO] ==================================================
+[2026/08/26 16:46:44.311] [INFO] Initializing Leitstand application...
+[2026/08/26 16:49:06.674] [INFO] ==================================================
+[2026/08/26 16:49:06.684] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:49:06
+[2026/08/26 16:49:06.684] [INFO] ==================================================
+[2026/08/26 16:49:06.684] [INFO] Initializing Leitstand application...
+[2026/08/26 16:49:10.963] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 16:49:11.780] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 16:49:11.867] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 16:49:15.227] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='top'
+[2026/08/26 16:49:15.229] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; top -b -n 1 | head -n 35 ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:49:15.460] [INFO] execRemoteCmd: host='Test Server1' cmd='top' completed (stdout_len=2724, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:49:20.964] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 16:55:41.632] [INFO] ==================================================
+[2026/08/26 16:55:41.641] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 16:55:41
+[2026/08/26 16:55:41.641] [INFO] ==================================================
+[2026/08/26 16:55:41.641] [INFO] Initializing Leitstand application...
+[2026/08/26 16:55:43.797] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 16:55:53.798] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 16:55:55.020] [INFO] execRemoteCmd: host='dtg-api-1', cwd='~', input='ss -tulpn'
+[2026/08/26 16:56:02.447] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 16:56:02.533] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 16:56:21.327] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='systemctl list-units --type=service --state=running'
+[2026/08/26 16:56:21.329] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; systemctl list-units --type=service --state=running ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:21.388] [INFO] execRemoteCmd: host='Test Server1' cmd='systemctl list-units --type=service --state=running' completed (stdout_len=3640, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:56:30.325] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='systemctl list-units --type=service --state=running'
+[2026/08/26 16:56:30.328] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; systemctl list-units --type=service --state=running ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:30.338] [INFO] execRemoteCmd: host='Test Server1' cmd='systemctl list-units --type=service --state=running' completed (stdout_len=3640, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:56:41.004] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ufw status verbose'
+[2026/08/26 16:56:41.006] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ufw status verbose ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:41.054] [INFO] execRemoteCmd: host='Test Server1' cmd='ufw status verbose' completed (stdout_len=0, stderr_len=83, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 16:56:43.689] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='ufw status verbose'
+[2026/08/26 16:56:43.691] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; ufw status verbose ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:43.734] [INFO] execRemoteCmd: host='Test Server1' cmd='ufw status verbose' completed (stdout_len=0, stderr_len=83, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 16:56:50.320] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='su interpass'
+[2026/08/26 16:56:50.322] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; su interpass ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:51.382] [INFO] execRemoteCmd: host='Test Server1' cmd='su interpass' completed (stdout_len=0, stderr_len=32, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 16:56:56.422] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='sudo interpass'
+[2026/08/26 16:56:56.424] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; sudo interpass ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:56:56.447] [INFO] execRemoteCmd: host='Test Server1' cmd='sudo interpass' completed (stdout_len=0, stderr_len=199, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 16:57:01.636] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='su root'
+[2026/08/26 16:57:01.638] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; su root ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:57:02.649] [INFO] execRemoteCmd: host='Test Server1' cmd='su root' completed (stdout_len=0, stderr_len=32, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 16:57:20.835] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='docker system df'
+[2026/08/26 16:57:20.837] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; docker system df ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:57:21.016] [INFO] execRemoteCmd: host='Test Server1' cmd='docker system df' completed (stdout_len=279, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 16:57:21.901] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='docker system df'
+[2026/08/26 16:57:21.904] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; docker system df ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 16:57:22.007] [INFO] execRemoteCmd: host='Test Server1' cmd='docker system df' completed (stdout_len=279, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 17:00:00.791] [INFO] ==================================================
+[2026/08/26 17:00:00.799] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 17:00:00
+[2026/08/26 17:00:00.799] [INFO] ==================================================
+[2026/08/26 17:00:00.799] [INFO] Initializing Leitstand application...
+[2026/08/26 17:00:02.339] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:00:03.496] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 17:00:03.581] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 17:00:11.416] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='docker compose ps'
+[2026/08/26 17:00:11.419] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; docker compose ps ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 17:00:11.614] [INFO] execRemoteCmd: host='Test Server1' cmd='docker compose ps' completed (stdout_len=0, stderr_len=42, new_cwd='/home/kgkim', err=command execution error: Process exited with status 1)
+[2026/08/26 17:00:12.340] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:00:25.419] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='docker stats --no-stream'
+[2026/08/26 17:00:25.421] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; docker stats --no-stream ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 17:00:27.523] [INFO] execRemoteCmd: host='Test Server1' cmd='docker stats --no-stream' completed (stdout_len=449, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 17:00:52.913] [INFO] execRemoteCmd: host='Test Server1', cwd='/home/kgkim', input='docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"'
+[2026/08/26 17:00:52.915] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd "/home/kgkim" 2>/dev/null || cd "$HOME" ; docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}" ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 17:00:52.948] [INFO] execRemoteCmd: host='Test Server1' cmd='docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"' completed (stdout_len=443, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 17:04:50.771] [INFO] ==================================================
+[2026/08/26 17:04:50.780] [INFO] ⚡ Leitstand Log Initialized at 2026-08-26 17:04:50
+[2026/08/26 17:04:50.780] [INFO] ==================================================
+[2026/08/26 17:04:50.780] [INFO] Initializing Leitstand application...
+[2026/08/26 17:04:52.298] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:04:53.088] [DEBUG] Pool: Dialing SSH to host Test Server1 (192.168.14.119:22)...
+[2026/08/26 17:04:53.178] [INFO] Pool: Established live SSH connection to host Test Server1 (192.168.14.119:22)
+[2026/08/26 17:05:02.299] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:05:04.209] [INFO] execRemoteCmd: host='Test Server1', cwd='~', input='docker logs --tail 50 $(docker ps -q | head -1)'
+[2026/08/26 17:05:04.210] [DEBUG] execRemoteCmd: executing wrapped command on Test Server1: cd $HOME 2>/dev/null || cd "$HOME" ; docker logs --tail 50 $(docker ps -q | head -1) ; __LEITSTAND_RET=$? ; echo '' ; echo -n '___LEITSTAND_PWD___' ; pwd ; exit $__LEITSTAND_RET
+[2026/08/26 17:05:04.255] [INFO] execRemoteCmd: host='Test Server1' cmd='docker logs --tail 50 $(docker ps -q | head -1)' completed (stdout_len=1341, stderr_len=0, new_cwd='/home/kgkim', err=<nil>)
+[2026/08/26 17:05:24.416] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:05:24.964] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:05:25.199] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:05:26.778] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:05:27.076] [DEBUG] Pool: Dialing SSH to host dtg-api-1 (10.47.5.10:22)...
+[2026/08/26 17:05:34.418] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:05:34.964] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:05:35.200] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:05:36.778] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout
+[2026/08/26 17:05:37.077] [WARN] CollectHost: SSH connection failed for host dtg-api-1 (10): failed to connect to host dtg-api-1 (10.47.5.10:22): ssh dial failed to 10.47.5.10:22: dial tcp 10.47.5.10:22: i/o timeout

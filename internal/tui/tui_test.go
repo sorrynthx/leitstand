@@ -2,6 +2,7 @@ package tui
 
 import (
 	"leitstand/internal/config"
+	"leitstand/internal/i18n"
 	"leitstand/internal/storage"
 	"strings"
 	"testing"
@@ -59,7 +60,7 @@ func TestTUIModelView(t *testing.T) {
 	if !strings.Contains(rendered, "test-node-1") {
 		t.Errorf("expected view to render host name, got:\n%s", rendered)
 	}
-	if !strings.Contains(rendered, "CPU Usage") {
+	if !strings.Contains(rendered, i18n.T("cpu_usage")) {
 		t.Errorf("expected view to render CPU usage label, got:\n%s", rendered)
 	}
 }

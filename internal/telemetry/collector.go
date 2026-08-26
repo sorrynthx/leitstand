@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"leitstand/internal/logger"
 	"leitstand/internal/ssh"
 	"leitstand/internal/storage"
 	"leitstand/internal/vault"
@@ -13,6 +14,7 @@ import (
 // HostTelemetryState tracks historical tick snapshots to compute deltas.
 type HostTelemetryState struct {
 	LastCPUTick   *CPUTickSnapshot
+	LastNetwork   *NetworkStats
 	LastTimestamp time.Time
 	LastRecord    *storage.MetricRecord
 	SysInfo       *SysInfo
@@ -62,18 +64,21 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 
 	client, err := c.pool.GetOrCreate(host, secret, decrypted, nil)
 	if err != nil {
+		logger.Warnf("CollectHost: SSH connection failed for host %s (%d): %v", host.Name, host.ID, err)
 		c.recordHostError(host.ID, err)
 		return nil, fmt.Errorf("ssh connection failed: %w", err)
 	}
 
 	stdout, stderr, err := client.Exec(MetricExtractScript)
 	if err != nil {
+		logger.Warnf("CollectHost: Exec failed for host %s (%d): %v (stderr: %s)", host.Name, host.ID, err, string(stderr))
 		c.recordHostError(host.ID, fmt.Errorf("exec error: %w (stderr: %s)", err, string(stderr)))
 		return nil, err
 	}
 
 	bundle, err := ParseRawBundle(string(stdout))
 	if err != nil {
+		logger.Warnf("CollectHost: ParseRawBundle failed for host %s (%d): %v", host.Name, host.ID, err)
 		c.recordHostError(host.ID, err)
 		return nil, fmt.Errorf("telemetry parse error: %w", err)
 	}
@@ -89,7 +94,22 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 	if state.LastCPUTick != nil {
 		cpuPct = CalculateCPUPercent(state.LastCPUTick, bundle.CPUTick)
 	}
+
+	var rxRate, txRate uint64
+	if state.LastNetwork != nil && !state.LastTimestamp.IsZero() {
+		elapsed := bundle.Timestamp.Sub(state.LastTimestamp).Seconds()
+		if elapsed > 0 {
+			if bundle.Network.RxBytes >= state.LastNetwork.RxBytes {
+				rxRate = uint64(float64(bundle.Network.RxBytes-state.LastNetwork.RxBytes) / elapsed)
+			}
+			if bundle.Network.TxBytes >= state.LastNetwork.TxBytes {
+				txRate = uint64(float64(bundle.Network.TxBytes-state.LastNetwork.TxBytes) / elapsed)
+			}
+		}
+	}
+
 	state.LastCPUTick = bundle.CPUTick
+	state.LastNetwork = bundle.Network
 	state.LastTimestamp = bundle.Timestamp
 	state.SysInfo = bundle.SysInfo
 	state.LastError = nil
@@ -102,14 +122,11 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 		MemoryUsed:  bundle.Memory.Used,
 		DiskUsed:    bundle.Disk.Used,
 		DiskTotal:   bundle.Disk.Total,
-		NetRxBytes:  bundle.Network.RxBytes,
-		NetTxBytes:  bundle.Network.TxBytes,
+		NetRxBytes:  rxRate,
+		NetTxBytes:  txRate,
 	}
 	state.LastRecord = record
 	c.mu.Unlock()
-
-	// Persist to SQLite
-	_ = c.store.SaveMetric(record)
 
 	return record, nil
 }

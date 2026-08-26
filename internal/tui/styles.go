@@ -53,6 +53,19 @@ var (
 			Background(lipgloss.Color("#1E293B")).
 			Padding(0, 1)
 
+	MetricCardStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(ColorBorder).
+			Padding(0, 1)
+
+	MetricLabelStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("#90CAF9"))
+
+	MetricValueStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("#FFFFFF"))
+
 	WarningBoxStyle = lipgloss.NewStyle().
 			Border(lipgloss.DoubleBorder()).
 			BorderForeground(ColorWarning).

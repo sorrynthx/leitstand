@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"leitstand/internal/i18n"
 	"strconv"
 	"strings"
 
@@ -177,8 +178,35 @@ func (f *HostForm) View(termWidth, termHeight int) string {
 	var b strings.Builder
 
 	title := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("➕ REGISTER TARGET SERVER (SSH)")
-	b.WriteString(title + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("MobaXterm-style instant connection & monitoring") + "\n\n")
+	b.WriteString(title + "\n\n")
+
+	if IsCapsLockOn() {
+		capsBadge := lipgloss.NewStyle().
+			Bold(true).
+			Background(ColorWarning).
+			Foreground(lipgloss.Color("#000000")).
+			Padding(0, 1).
+			Render(i18n.T("badge_caps_lock"))
+		b.WriteString(capsBadge + "\n\n")
+	}
+
+	// Check password field for non-ASCII
+	hasNonASCII := false
+	if len(f.inputs) > 4 {
+		for _, r := range f.inputs[4].Value() {
+			if r > 127 {
+				hasNonASCII = true
+				break
+			}
+		}
+	}
+	if hasNonASCII {
+		warnBox := lipgloss.NewStyle().
+			Foreground(ColorDanger).
+			Bold(true).
+			Render(i18n.T("warn_non_ascii"))
+		b.WriteString(warnBox + "\n\n")
+	}
 
 	if f.errMessage != "" {
 		b.WriteString(lipgloss.NewStyle().Foreground(ColorDanger).Render("⚠️ "+f.errMessage) + "\n\n")

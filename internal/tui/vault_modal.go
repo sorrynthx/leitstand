@@ -2,6 +2,8 @@ package tui
 
 import (
 	"errors"
+	"fmt"
+	"leitstand/internal/i18n"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -12,7 +14,7 @@ import (
 type VaultModalType int
 
 const (
-	VaultModalInit   VaultModalType = iota // First time setup: Create & Confirm
+	VaultModalInit   VaultModalType = iota // First time setup: Select Lang + Create & Confirm
 	VaultModalUnlock                       // Subsequent runs: Unlock
 )
 
@@ -21,6 +23,7 @@ type VaultForm struct {
 	inputs     []textinput.Model
 	focusIndex int
 	errMessage string
+	selectedLangIndex int
 }
 
 func NewVaultForm(modalType VaultModalType) *VaultForm {
@@ -54,15 +57,34 @@ func NewVaultForm(modalType VaultModalType) *VaultForm {
 	}
 
 	return &VaultForm{
-		modalType:  modalType,
-		inputs:     inputs,
-		focusIndex: 0,
+		modalType:         modalType,
+		inputs:            inputs,
+		focusIndex:        0,
+		selectedLangIndex: 0, // English default
 	}
 }
 
 func (v *VaultForm) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// Quick language switcher in Init modal: F1/F2/F3 or Ctrl+L
+		if v.modalType == VaultModalInit {
+			switch msg.String() {
+			case "f1", "ctrl+1":
+				v.selectedLangIndex = 0
+				i18n.SetLang(i18n.LangEN)
+				return false, "", nil
+			case "f2", "ctrl+2":
+				v.selectedLangIndex = 1
+				i18n.SetLang(i18n.LangKO)
+				return false, "", nil
+			case "f3", "ctrl+3":
+				v.selectedLangIndex = 2
+				i18n.SetLang(i18n.LangDE)
+				return false, "", nil
+			}
+		}
+
 		switch msg.String() {
 		case "esc", "ctrl+c":
 			return true, "", nil // Exit
@@ -116,64 +138,112 @@ func (v *VaultForm) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 		}
 	}
 
-	cmds := make([]tea.Cmd, len(v.inputs))
-	for i := range v.inputs {
-		v.inputs[i], cmds[i] = v.inputs[i].Update(msg)
+	var cmd tea.Cmd
+	if v.focusIndex >= 0 && v.focusIndex < len(v.inputs) {
+		v.inputs[v.focusIndex], cmd = v.inputs[v.focusIndex].Update(msg)
 	}
-
-	return false, "", tea.Batch(cmds...)
+	return false, "", cmd
 }
 
 func (v *VaultForm) SetError(err error) {
-	if err != nil {
-		if errors.Is(err, errors.New("invalid master password")) || strings.Contains(err.Error(), "invalid") {
-			v.errMessage = "Incorrect master password. Try again."
-		} else {
-			v.errMessage = err.Error()
-		}
+	if errors.Is(err, errors.New("vault password incorrect")) {
+		v.errMessage = "❌ Incorrect password. Please try again."
+	} else {
+		v.errMessage = fmt.Sprintf("❌ %v", err)
+	}
+	if len(v.inputs) > 0 {
 		v.inputs[0].SetValue("")
 		if len(v.inputs) > 1 {
 			v.inputs[1].SetValue("")
-			v.focusIndex = 0
-			v.inputs[0].Focus()
-			v.inputs[1].Blur()
 		}
+		v.focusIndex = 0
+		v.inputs[0].Focus()
 	}
 }
 
-func (v *VaultForm) View(termWidth, termHeight int) string {
+func (v *VaultForm) View(screenWidth, screenHeight int) string {
 	var b strings.Builder
 
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(ColorPrimary).
+		Render(i18n.T("modal_vault_title"))
+	b.WriteString(title + "\n\n")
+
 	if v.modalType == VaultModalInit {
-		title := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("🔒 INITIALIZE SECURE LOCAL VAULT")
-		b.WriteString(title + "\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("Welcome! Create a master password to encrypt server credentials locally.") + "\n\n")
+		// Language selector badge bar
+		var langBadges []string
+		for i, opt := range i18n.SupportedLangs {
+			if i == v.selectedLangIndex {
+				langBadges = append(langBadges, lipgloss.NewStyle().Bold(true).Background(ColorPrimary).Foreground(lipgloss.Color("#000000")).Padding(0, 1).Render(fmt.Sprintf("[%d] %s", i+1, opt.Label)))
+			} else {
+				langBadges = append(langBadges, lipgloss.NewStyle().Foreground(ColorMuted).Padding(0, 1).Render(fmt.Sprintf("[%d] %s", i+1, opt.Label)))
+			}
+		}
+		b.WriteString(strings.Join(langBadges, " ") + "\n\n")
+
+		info := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#ECEFF1")).
+			Render(i18n.T("modal_vault_init") + "\n(Keys are encrypted with AES-256-GCM & Argon2id)\n")
+		b.WriteString(info + "\n")
 	} else {
-		title := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("🔓 UNLOCK LEITSTAND VAULT")
-		b.WriteString(title + "\n")
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("Enter your master password to unlock server credentials.") + "\n\n")
+		info := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#ECEFF1")).
+			Render(i18n.T("modal_vault_unlock") + "\n")
+		b.WriteString(info + "\n")
+	}
+
+	if IsCapsLockOn() {
+		capsBadge := lipgloss.NewStyle().
+			Bold(true).
+			Background(ColorWarning).
+			Foreground(lipgloss.Color("#000000")).
+			Padding(0, 1).
+			Render(i18n.T("badge_caps_lock"))
+		b.WriteString(capsBadge + "\n\n")
+	}
+
+	hasNonASCII := false
+	for _, input := range v.inputs {
+		for _, r := range input.Value() {
+			if r > 127 {
+				hasNonASCII = true
+				break
+			}
+		}
+	}
+
+	if hasNonASCII {
+		warnBox := lipgloss.NewStyle().
+			Foreground(ColorDanger).
+			Bold(true).
+			Render(i18n.T("warn_non_ascii"))
+		b.WriteString(warnBox + "\n\n")
 	}
 
 	if v.errMessage != "" {
-		b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("❌ "+v.errMessage) + "\n\n")
+		errBox := lipgloss.NewStyle().
+			Foreground(ColorDanger).
+			Bold(true).
+			Render(v.errMessage)
+		b.WriteString(errBox + "\n\n")
 	}
 
-	for i := range v.inputs {
-		b.WriteString(v.inputs[i].View() + "\n")
+	for _, input := range v.inputs {
+		b.WriteString(input.View() + "\n\n")
 	}
 
-	b.WriteString("\n")
+	hint := lipgloss.NewStyle().Foreground(ColorMuted).Render("[Enter] Submit    [Tab] Next Field    [Esc] Quit")
 	if v.modalType == VaultModalInit {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("[Tab/↓] Next  [Enter] Confirm & Launch  [Esc] Exit"))
-	} else {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("[Enter] Unlock & Launch Cockpit  [Esc] Exit"))
+		hint = lipgloss.NewStyle().Foreground(ColorMuted).Render("[F1/F2/F3] Switch Language    [Enter] Submit    [Tab] Next    [Esc] Quit")
 	}
+	b.WriteString(hint)
 
 	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.DoubleBorder()).
 		BorderForeground(ColorPrimary).
-		Padding(1, 2).
+		Padding(1, 3).
 		Width(65)
 
-	return lipgloss.Place(termWidth, termHeight, lipgloss.Center, lipgloss.Center, boxStyle.Render(b.String()))
+	return lipgloss.Place(screenWidth, screenHeight, lipgloss.Center, lipgloss.Center, boxStyle.Render(b.String()))
 }

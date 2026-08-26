@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"leitstand/internal/i18n"
 	"strings"
 	"time"
 
@@ -27,6 +28,29 @@ func (m *Model) View() string {
 
 	if m.showAddModal && m.addForm != nil {
 		return m.addForm.View(m.width, m.height)
+	}
+
+	if m.showEditorModal && m.editorModal != nil {
+		return m.editorModal.View(m.width, m.height)
+	}
+
+	if m.showSettingsModal && m.settingsModal != nil {
+		return m.settingsModal.View(m.width, m.height)
+	}
+
+	if m.showDrawer && m.drawer != nil {
+		drawerWidth := int(float64(m.width) * 0.58)
+		if drawerWidth < 55 {
+			drawerWidth = 55
+		}
+		if drawerWidth > m.width-4 {
+			drawerWidth = m.width - 4
+		}
+		drawerHeight := m.height - 2
+		if drawerHeight < 15 {
+			drawerHeight = 15
+		}
+		return lipgloss.Place(m.width, m.height, lipgloss.Right, lipgloss.Center, m.drawer.View(drawerWidth, drawerHeight))
 	}
 
 	header := m.renderHeader()
@@ -58,18 +82,25 @@ func (m *Model) View() string {
 	// Left pane: inner height = availableHeight - 2 (outer box = availableHeight)
 	leftPane := m.renderHostListPane(leftWidth, availableHeight-2)
 
-	// Right Top pane: inner height 6 (outer box = 8)
-	rightTopInnerHeight := 6
-	rightTopPane := m.renderTelemetryDeck(rightWidth, rightTopInnerHeight)
+	var rightSide string
+	if m.cfg.Telemetry.PollingInterval <= 0 {
+		// Telemetry is Off: Give entire right side to Remote Console
+		rightSide = m.renderRemoteConsole(rightWidth, availableHeight-2)
+	} else {
+		// Right Top pane: inner height 6 (outer box = 8)
+		rightTopInnerHeight := 6
+		rightTopPane := m.renderTelemetryDeck(rightWidth, rightTopInnerHeight)
 
-	// Right Bottom pane: inner height = availableHeight - 8 - 2 (outer box = availableHeight - 8)
-	rightBottomInnerHeight := availableHeight - 8 - 2
-	if rightBottomInnerHeight < 4 {
-		rightBottomInnerHeight = 4
+		// Right Bottom pane: inner height = availableHeight - 8 - 2 (outer box = availableHeight - 8)
+		rightBottomInnerHeight := availableHeight - 8 - 2
+		if rightBottomInnerHeight < 4 {
+			rightBottomInnerHeight = 4
+		}
+		rightBottomPane := m.renderRemoteConsole(rightWidth, rightBottomInnerHeight)
+
+		rightSide = lipgloss.JoinVertical(lipgloss.Left, rightTopPane, rightBottomPane)
 	}
-	rightBottomPane := m.renderRemoteConsole(rightWidth, rightBottomInnerHeight)
 
-	rightSide := lipgloss.JoinVertical(lipgloss.Left, rightTopPane, rightBottomPane)
 	content := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightSide)
 
 	return lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
@@ -78,21 +109,15 @@ func (m *Model) View() string {
 func (m *Model) renderDeleteConfirmationModal() string {
 	var b strings.Builder
 
-	title := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("⚠️  DELETE SERVER CONFIRMATION")
+	title := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(i18n.T("modal_delete_server"))
 	b.WriteString(title + "\n\n")
 
-	msg := fmt.Sprintf(
-		"Are you sure you want to remove host '%s' (%s)?\n\n"+
-			"All encrypted credentials and collected metrics for this host\n"+
-			"will be permanently deleted.\n\n",
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(m.hostToDelete.Name),
-		m.hostToDelete.Address,
-	)
-	b.WriteString(msg)
+	msg := i18n.Tf("modal_delete_warn", m.hostToDelete.Name, m.hostToDelete.Address)
+	b.WriteString(msg + "\n\n")
 
-	actions := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("[y / Enter] Yes, Delete") +
+	actions := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("[y / Enter] "+i18n.T("btn_delete")) +
 		"    " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render("[n / Esc] Cancel")
+		lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render("[n / Esc] "+i18n.T("btn_cancel"))
 	b.WriteString(actions)
 
 	boxStyle := lipgloss.NewStyle().
@@ -120,12 +145,12 @@ func (m *Model) renderResolutionGuard() string {
 }
 
 func (m *Model) renderHeader() string {
-	title := TitleStyle.Render("⚡ LEITSTAND COCKPIT")
+	title := TitleStyle.Render(i18n.T("app_title"))
 	var modeBadge string
 	if m.isDemo {
-		modeBadge = BadgeStyle.Copy().Background(ColorWarning).Foreground(lipgloss.Color("#000000")).Render("DEMO MODE")
+		modeBadge = BadgeStyle.Copy().Background(ColorWarning).Foreground(lipgloss.Color("#000000")).Render(i18n.T("demo_mode"))
 	} else {
-		modeBadge = BadgeStyle.Render("LIVE ENGINE")
+		modeBadge = BadgeStyle.Render(i18n.T("live_engine"))
 	}
 
 	timeStr := lipgloss.NewStyle().Foreground(ColorMuted).Render(time.Now().Format("2006-01-02 15:04:05 MST"))
@@ -146,10 +171,10 @@ func (m *Model) renderHostListPane(width, height int) string {
 	if m.activePane == PaneHostList {
 		titleColor = ColorPrimary
 	}
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(titleColor).Render("HOST EXPLORER") + "\n\n")
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(titleColor).Render(i18n.T("pane_host_explorer")) + "\n\n")
 
 	if len(m.hosts) == 0 {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("No hosts registered.\nPress 'a' to add a host."))
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("no_hosts")))
 	} else {
 		currentGroup := ""
 		for i, h := range m.hosts {
@@ -159,16 +184,33 @@ func (m *Model) renderHostListPane(width, height int) string {
 			}
 
 			isSelected := i == m.selectedIndex
-			dot := lipgloss.NewStyle().Foreground(ColorSuccess).Render("●")
-			if _, hasErr := m.errors[h.ID]; hasErr {
+			st := m.hostStatus[h.ID]
+			var dot string
+			var statusLabel string
+			switch st {
+			case HostStatusOnline:
+				dot = lipgloss.NewStyle().Foreground(ColorSuccess).Render("●")
+			case HostStatusConnecting:
+				dot = lipgloss.NewStyle().Foreground(ColorWarning).Render("◌")
+				statusLabel = lipgloss.NewStyle().Foreground(ColorWarning).Render(" (" + i18n.T("host_connecting") + ")")
+			case HostStatusOffline:
 				dot = lipgloss.NewStyle().Foreground(ColorDanger).Render("✖")
+				statusLabel = lipgloss.NewStyle().Foreground(ColorDanger).Render(" (" + i18n.T("host_offline") + ")")
+			default:
+				if _, hasErr := m.errors[h.ID]; hasErr {
+					dot = lipgloss.NewStyle().Foreground(ColorDanger).Render("✖")
+					statusLabel = lipgloss.NewStyle().Foreground(ColorDanger).Render(" (" + i18n.T("host_offline") + ")")
+				} else {
+					dot = lipgloss.NewStyle().Foreground(ColorSuccess).Render("●")
+				}
 			}
 
 			var hostLine string
+			hostText := fmt.Sprintf("%s %s (%s)%s", dot, h.Name, h.Address, statusLabel)
 			if isSelected {
-				hostLine = SelectedHostStyle.Width(width - 6).Render(fmt.Sprintf("%s %s (%s)", dot, h.Name, h.Address))
+				hostLine = SelectedHostStyle.Width(width - 6).Render(hostText)
 			} else {
-				hostLine = UnselectedHostStyle.Width(width - 6).Render(fmt.Sprintf("%s %s (%s)", dot, h.Name, h.Address))
+				hostLine = UnselectedHostStyle.Width(width - 6).Render(hostText)
 			}
 			b.WriteString(hostLine + "\n")
 		}
@@ -186,7 +228,7 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 	var b strings.Builder
 
 	if len(m.hosts) == 0 {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("Select a host from the left panel to inspect live telemetry."))
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("select_host_hint")))
 		return PaneStyle.Width(width).Height(height).Render(b.String())
 	}
 
@@ -201,14 +243,15 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 	}
 
 	// Host Header
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(deckTitleColor).Render("TELEMETRY DECK") + " ── " +
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(deckTitleColor).Render(i18n.T("pane_telemetry")) + " ── " +
 		lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render(selectedHost.Name) + " (" + selectedHost.Address + ")\n")
 
 	// System Specification Banner
 	if sysInfo != nil {
-		specLine := fmt.Sprintf("🐧 %s  |  ⚡ %d Cores  |  ⏱ %s\n",
+		specLine := fmt.Sprintf("🐧 %s  |  ⚡ %d %s  |  ⏱ %s\n",
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(sysInfo.OSDistro),
 			sysInfo.CPUCores,
+			i18n.T("cores"),
 			lipgloss.NewStyle().Foreground(ColorWarning).Render(sysInfo.Uptime),
 		)
 		b.WriteString(specLine)
@@ -227,22 +270,13 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		errStr := strings.ToLower(err.Error())
 		if strings.Contains(errStr, "authenticate") || strings.Contains(errStr, "password") {
 			errReason = "❌ Authentication Failed: Incorrect password or username rejected by server."
-		} else if strings.Contains(errStr, "timeout") {
-			errReason = "⏱️ Connection Timed Out: Server unreachable or firewall blocking port."
-		} else if strings.Contains(errStr, "refused") {
-			errReason = "🚫 Connection Refused: SSH daemon is not running on target port."
+		} else if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "i/o timeout") {
+			errReason = "⏳ Connection Timeout: Network unreachable or VPN required."
 		} else {
-			errReason = fmt.Sprintf("⚠️ SSH Error: %v", err)
+			errReason = fmt.Sprintf("⚠️ Connection Error: %v", err)
 		}
 
-		details := fmt.Sprintf(
-			"%s\n"+
-				"Target: %s@%s:%d  |  Suggestions: Press [r] to retry, or [d] to delete host",
-			lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(errReason),
-			selectedHost.Username, selectedHost.Address, selectedHost.Port,
-		)
-
-		b.WriteString(errBox.Render(details) + "\n")
+		b.WriteString(errBox.Render(errReason) + "\n")
 		paneBorder := PaneStyle
 		if m.activePane == PaneTelemetryDeck {
 			paneBorder = ActivePaneStyle
@@ -251,7 +285,7 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 	}
 
 	if !hasMetric || metric == nil {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("⏳ Connecting and waiting for initial telemetry sample...\n"))
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("⏳ Collecting telemetry data..."))
 		paneBorder := PaneStyle
 		if m.activePane == PaneTelemetryDeck {
 			paneBorder = ActivePaneStyle
@@ -259,61 +293,29 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		return paneBorder.Width(width).Height(height).Render(b.String())
 	}
 
-	// Safe gauge width to guarantee 0 line wrap on any screen width
-	gaugeWidth := width - 52
-	if gaugeWidth < 12 {
-		gaugeWidth = 12
-	} else if gaugeWidth > 24 {
-		gaugeWidth = 24
+	colWidth := (width - 12) / 4
+	if colWidth < 14 {
+		colWidth = 14
 	}
 
-	// 1. CPU Section
-	cpuColor := ColorSuccess
-	if metric.CPUPercent > 85.0 {
-		cpuColor = ColorDanger
-	} else if metric.CPUPercent > 60.0 {
-		cpuColor = ColorWarning
-	}
+	cpuGauge := m.renderMetricGauge(i18n.T("cpu_usage"), metric.CPUPercent, 100.0, "%", colWidth)
 
-	cpuBar := RenderProgressBar(gaugeWidth, metric.CPUPercent, cpuColor, ColorBorder)
-	cpuVal := fmt.Sprintf("%5.1f%%", metric.CPUPercent)
-	b.WriteString(fmt.Sprintf("%-10s [%s] %s\n", "CPU Usage", cpuBar, lipgloss.NewStyle().Bold(true).Foreground(cpuColor).Render(cpuVal)))
-
-	// 2. Memory Section
-	var memPercent float64
+	memPercent := 0.0
 	if metric.MemoryTotal > 0 {
-		memPercent = (float64(metric.MemoryUsed) / float64(metric.MemoryTotal)) * 100.0
+		memPercent = float64(metric.MemoryUsed) / float64(metric.MemoryTotal) * 100.0
 	}
-	memColor := ColorPrimary
-	if memPercent > 85.0 {
-		memColor = ColorDanger
-	}
-	memBar := RenderProgressBar(gaugeWidth, memPercent, memColor, ColorBorder)
-	memVal := fmt.Sprintf("%5.1f%% (%s / %s)", memPercent, formatBytes(metric.MemoryUsed), formatBytes(metric.MemoryTotal))
-	b.WriteString(fmt.Sprintf("%-10s [%s] %s\n", "Memory", memBar, lipgloss.NewStyle().Foreground(ColorPrimary).Render(memVal)))
+	memGauge := m.renderMetricGauge(i18n.T("mem_usage"), memPercent, 100.0, "%", colWidth)
 
-	// 3. Disk Section
-	var diskPercent float64
+	diskPercent := 0.0
 	if metric.DiskTotal > 0 {
-		diskPercent = (float64(metric.DiskUsed) / float64(metric.DiskTotal)) * 100.0
+		diskPercent = float64(metric.DiskUsed) / float64(metric.DiskTotal) * 100.0
 	}
-	diskColor := ColorSecondary
-	if diskPercent > 90.0 {
-		diskColor = ColorDanger
-	}
-	diskBar := RenderProgressBar(gaugeWidth, diskPercent, diskColor, ColorBorder)
-	diskVal := fmt.Sprintf("%5.1f%% (%s / %s)", diskPercent, formatBytes(metric.DiskUsed), formatBytes(metric.DiskTotal))
-	b.WriteString(fmt.Sprintf("%-10s [%s] %s\n", "Disk (/)", diskBar, lipgloss.NewStyle().Foreground(ColorSecondary).Render(diskVal)))
+	diskGauge := m.renderMetricGauge(i18n.T("disk_usage"), diskPercent, 100.0, "%", colWidth)
 
-	// 4. Network Section
-	rxStr := formatBytes(metric.NetRxBytes)
-	txStr := formatBytes(metric.NetTxBytes)
-	netLine := fmt.Sprintf("🌐 Net: ⬇ RX: %s   ⬆ TX: %s   ⏱ Tick: %s",
-		lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(rxStr),
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(txStr),
-		metric.Timestamp.Format("15:04:05"),
-	)
-	b.WriteString(netLine)
+	netCard := m.renderNetworkCard(i18n.T("network_io"), metric.NetRxBytes, metric.NetTxBytes, colWidth)
+
+	gauges := lipgloss.JoinHorizontal(lipgloss.Top, cpuGauge, " ", memGauge, " ", diskGauge, " ", netCard)
+	b.WriteString(gauges)
 
 	paneBorder := PaneStyle
 	if m.activePane == PaneTelemetryDeck {
@@ -321,6 +323,68 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 	}
 
 	return paneBorder.Width(width).Height(height).Render(b.String())
+}
+
+func (m *Model) renderMetricGauge(label string, value, maxVal float64, unit string, width int) string {
+	var b strings.Builder
+	b.WriteString(MetricLabelStyle.Render(label) + "\n")
+
+	valStr := fmt.Sprintf("%.1f%s", value, unit)
+	var valColor lipgloss.Color
+	switch {
+	case value > 85.0:
+		valColor = ColorDanger
+	case value > 65.0:
+		valColor = ColorWarning
+	default:
+		valColor = ColorSuccess
+	}
+	b.WriteString(MetricValueStyle.Foreground(valColor).Render(valStr) + "\n")
+
+	barWidth := width - 4
+	if barWidth < 6 {
+		barWidth = 6
+	}
+	filled := int((value / maxVal) * float64(barWidth))
+	if filled > barWidth {
+		filled = barWidth
+	}
+	if filled < 0 {
+		filled = 0
+	}
+
+	bar := lipgloss.NewStyle().Foreground(valColor).Render(strings.Repeat("█", filled)) +
+		lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("░", barWidth-filled))
+	b.WriteString(bar)
+
+	return MetricCardStyle.Width(width).Render(b.String())
+}
+
+func (m *Model) renderNetworkCard(label string, rxBytesPerSec, txBytesPerSec uint64, width int) string {
+	var b strings.Builder
+	b.WriteString(MetricLabelStyle.Render(label) + "\n")
+
+	rxStr := "↓ " + formatNetworkSpeed(rxBytesPerSec)
+	txStr := "↑ " + formatNetworkSpeed(txBytesPerSec)
+
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(rxStr) + "\n")
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(txStr))
+
+	return MetricCardStyle.Width(width).Render(b.String())
+}
+
+func formatNetworkSpeed(bytesPerSec uint64) string {
+	val := float64(bytesPerSec)
+	switch {
+	case val >= 1024*1024*1024:
+		return fmt.Sprintf("%.2f GB/s", val/(1024*1024*1024))
+	case val >= 1024*1024:
+		return fmt.Sprintf("%.1f MB/s", val/(1024*1024))
+	case val >= 1024:
+		return fmt.Sprintf("%.1f KB/s", val/1024)
+	default:
+		return fmt.Sprintf("%.0f B/s", val)
+	}
 }
 
 func (m *Model) renderRemoteConsole(width, height int) string {
@@ -331,22 +395,40 @@ func (m *Model) renderRemoteConsole(width, height int) string {
 		titleColor = ColorPrimary
 	}
 
-	modeHint := "[Tab] Focus  [Ctrl+O] Fullscreen"
+	modeHint := i18n.T("console_mode_hint")
 	if m.fullScreenConsole {
-		modeHint = "[Ctrl+O] Exit Fullscreen"
+		modeHint = i18n.T("console_mode_max_hint")
 	}
 
-	titleLine := lipgloss.NewStyle().Bold(true).Foreground(titleColor).Render("REMOTE COMMAND CONSOLE") + "  " +
+	titleLine := lipgloss.NewStyle().Bold(true).Foreground(titleColor).Render(i18n.T("pane_console")) + "  " +
 		lipgloss.NewStyle().Foreground(ColorMuted).Render(modeHint)
 	b.WriteString(titleLine + "\n")
 
 	if len(m.hosts) == 0 {
-		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("No host selected."))
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("console_no_host")))
 		paneBorder := PaneStyle
 		if m.activePane == PaneConsole {
 			paneBorder = ActivePaneStyle
 		}
 		return paneBorder.Width(width).Height(height).Render(b.String())
+	}
+
+	curHost := m.hosts[m.selectedIndex]
+	cwd := m.hostCWD[curHost.ID]
+	if cwd == "" {
+		cwd = "~"
+	}
+
+	st := m.hostStatus[curHost.ID]
+	if st == HostStatusOffline {
+		m.consoleInput.Placeholder = i18n.T("console_offline_ph")
+		m.consoleInput.Prompt = lipgloss.NewStyle().Foreground(ColorDanger).Render("[Offline] ❯ ")
+	} else if st == HostStatusConnecting {
+		m.consoleInput.Placeholder = i18n.T("console_connecting_ph")
+		m.consoleInput.Prompt = lipgloss.NewStyle().Foreground(ColorWarning).Render("[Connecting...] ❯ ")
+	} else {
+		m.consoleInput.Placeholder = i18n.T("console_placeholder")
+		m.consoleInput.Prompt = lipgloss.NewStyle().Foreground(ColorPrimary).Render(fmt.Sprintf("[%s] ❯ ", cwd))
 	}
 
 	// Total inner lines = height. Title = 1 line, Input = 1 line, Viewport = height - 2
@@ -372,13 +454,23 @@ func (m *Model) renderRemoteConsole(width, height int) string {
 }
 
 func (m *Model) renderStatusBar() string {
-	keys := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[Tab]") + " Focus  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[PgUp/Dn]") + " Scroll  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[Ctrl+O]") + " Maximize  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[a]") + " Add  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[d]") + " Del  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[r]") + " Refresh  " +
-		lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("[q]") + " Quit  "
+	var keys string
+	if m.activePane == PaneConsole {
+		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(i18n.T("status_complete")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_runbook")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_exit_console")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_history")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_maximize")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_quit")) + "  "
+	} else {
+		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_focus_console")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_runbook")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_reconnect")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_settings")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_add")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_del")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_quit")) + "  "
+	}
 
 	status := m.statusMessage
 	availWidth := (m.width - 1) - runewidth.StringWidth(keys) - runewidth.StringWidth(status) - 2
@@ -387,17 +479,4 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	return StatusBarStyle.Width(m.width - 1).Render(keys + strings.Repeat(" ", availWidth) + status)
-}
-
-func formatBytes(b uint64) string {
-	const unit = 1024
-	if b < unit {
-		return fmt.Sprintf("%d B", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }

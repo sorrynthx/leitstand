@@ -3,6 +3,7 @@ package tui
 import (
 	"context"
 	"leitstand/internal/config"
+	"leitstand/internal/i18n"
 	"leitstand/internal/storage"
 	"leitstand/internal/telemetry"
 	"leitstand/internal/vault"
@@ -36,10 +37,46 @@ const (
 type CmdResultMsg struct {
 	HostID  int64
 	Command string
+	CWD     string
+	NewCWD  string
 	Stdout  string
 	Stderr  string
 	Err     error
 }
+
+// TabCompletionMsg delivers remote tab completion results.
+type TabCompletionMsg struct {
+	HostID        int64
+	OriginalInput string
+	NewInput      string
+	Candidates    []string
+	Err           error
+}
+
+// OpenFileMsg opens the remote file in the in-app editor modal.
+type OpenFileMsg struct {
+	HostID   int64
+	HostName string
+	FilePath string
+	Content  string
+	Err      error
+}
+
+// FileSavedMsg indicates when remote file save finishes.
+type FileSavedMsg struct {
+	HostID   int64
+	FilePath string
+	Err      error
+}
+
+type HostConnStatus int
+
+const (
+	HostStatusUnknown HostConnStatus = iota
+	HostStatusConnecting
+	HostStatusOnline
+	HostStatusOffline
+)
 
 // Model is the main Bubbletea TUI model.
 type Model struct {
@@ -52,6 +89,8 @@ type Model struct {
 	metrics           map[int64]*storage.MetricRecord
 	sysInfos          map[int64]*telemetry.SysInfo
 	errors            map[int64]error
+	hostStatus        map[int64]HostConnStatus
+	pausedHosts       map[int64]bool
 	width             int
 	height            int
 	statusMessage     string
@@ -63,8 +102,17 @@ type Model struct {
 	vaultForm         *VaultForm
 	showDeleteModal   bool
 	hostToDelete      *storage.Host
+	showEditorModal   bool
+	editorModal       *EditorModal
+	showSettingsModal bool
+	settingsModal     *SettingsModal
+	showDrawer        bool
+	drawer            *RunbookDrawer
 	consoleInput      textinput.Model
 	consoleLogs       map[int64][]string
+	hostCWD           map[int64]string
+	cmdHistory        []string
+	historyIndex      int
 	viewport          viewport.Model
 	viewportReady     bool
 	fullScreenConsole bool
@@ -86,10 +134,24 @@ func NewModel(cfg *config.AppConfig, store *storage.Storage, v *vault.Vault, col
 		} else {
 			vForm = NewVaultForm(VaultModalUnlock)
 		}
+
+		// Load saved language if available
+		if savedLang, err := store.GetSetting("language"); err == nil && savedLang != "" {
+			i18n.SetLang(i18n.Lang(savedLang))
+		}
+
+		// Load saved telemetry polling interval if available
+		if savedInterval, err := store.GetSetting("polling_interval"); err == nil && savedInterval != "" {
+			if savedInterval == "0" || savedInterval == "0s" {
+				cfg.Telemetry.PollingInterval = 0
+			} else if d, err := time.ParseDuration(savedInterval); err == nil {
+				cfg.Telemetry.PollingInterval = d
+			}
+		}
 	}
 
 	ci := textinput.New()
-	ci.Placeholder = "Type remote command (e.g. uname -a, docker ps, free -m, top -b -n 1) and press Enter..."
+	ci.Placeholder = "Type command (e.g. docker ps, ls -la, df -h)..."
 	ci.Prompt = "❯ "
 	ci.Width = 60
 
@@ -103,13 +165,18 @@ func NewModel(cfg *config.AppConfig, store *storage.Storage, v *vault.Vault, col
 		metrics:        make(map[int64]*storage.MetricRecord),
 		sysInfos:       make(map[int64]*telemetry.SysInfo),
 		errors:         make(map[int64]error),
-		statusMessage:  "Press [Tab] to switch panel, [a] Add host, [d] Delete, [r] Refresh",
+		hostStatus:     make(map[int64]HostConnStatus),
+		pausedHosts:    make(map[int64]bool),
+		statusMessage:  "Press [r] Reconnect, [Tab/c] Console, [p] Settings, [a] Add Host",
 		isDemo:         isDemo,
 		activePane:     PaneHostList,
 		showVaultModal: showVault,
 		vaultForm:      vForm,
 		consoleInput:   ci,
 		consoleLogs:    make(map[int64][]string),
+		hostCWD:        make(map[int64]string),
+		cmdHistory:     make([]string, 0),
+		historyIndex:   -1,
 		ctx:            ctx,
 		cancel:         cancel,
 	}
@@ -121,37 +188,4 @@ func (m *Model) Init() tea.Cmd {
 		m.loadHostsCmd(),
 		m.tickCmd(),
 	)
-}
-
-func (m *Model) tickCmd() tea.Cmd {
-	interval := m.cfg.Telemetry.PollingInterval
-	if interval <= 0 {
-		interval = 3 * time.Second
-	}
-	return tea.Tick(interval, func(t time.Time) tea.Msg {
-		return TickMsg(t)
-	})
-}
-
-func (m *Model) loadHostsCmd() tea.Cmd {
-	return func() tea.Msg {
-		if m.isDemo {
-			return []*storage.Host{
-				{ID: 101, Name: "prod-api-01", Address: "10.0.1.11", Port: 22, Username: "ubuntu", GroupName: "Production (EU)"},
-				{ID: 102, Name: "prod-api-02", Address: "10.0.1.12", Port: 22, Username: "ubuntu", GroupName: "Production (EU)"},
-				{ID: 103, Name: "prod-db-master", Address: "10.0.2.10", Port: 22, Username: "postgres", GroupName: "Databases"},
-				{ID: 104, Name: "stage-k8s-node1", Address: "192.168.10.51", Port: 22, Username: "admin", GroupName: "Staging Cluster"},
-				{ID: 105, Name: "stage-k8s-node2", Address: "192.168.10.52", Port: 22, Username: "admin", GroupName: "Staging Cluster"},
-			}
-		}
-
-		if m.store == nil {
-			return nil
-		}
-		hosts, err := m.store.ListHosts()
-		if err != nil {
-			return nil
-		}
-		return hosts
-	}
 }

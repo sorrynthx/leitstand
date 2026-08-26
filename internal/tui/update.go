@@ -2,14 +2,12 @@ package tui
 
 import (
 	"fmt"
+	"leitstand/internal/i18n"
 	"leitstand/internal/storage"
-	"leitstand/internal/telemetry"
 	"leitstand/internal/vault"
-	"math/rand"
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -24,20 +22,91 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		// 1. Settings / Preferences Modal
+		if m.showSettingsModal && m.settingsModal != nil {
+			done, saveReq, lang, interval, currPass, newPass, cmd := m.settingsModal.Update(msg)
+			if done && !saveReq {
+				m.showSettingsModal = false
+				m.settingsModal = nil
+				m.statusMessage = "Settings closed."
+				return m, nil
+			}
+			if saveReq {
+				i18n.SetLang(lang)
+				if m.cfg != nil {
+					m.cfg.Telemetry.PollingInterval = interval
+				}
+				if m.store != nil {
+					_ = m.store.SetSetting("language", string(lang))
+					_ = m.store.SetSetting("polling_interval", interval.String())
+				}
+
+				if newPass != "" {
+					err := m.changeVaultPassword(currPass, newPass)
+					if err != nil {
+						m.settingsModal.SetError(err)
+						return m, nil
+					}
+				}
+
+				m.showSettingsModal = false
+				m.settingsModal = nil
+				m.statusMessage = i18n.T("settings_saved")
+				return m, m.tickCmd()
+			}
+			return m, cmd
+		}
+
+		// 2. Quick Command Runbook Drawer
+		if m.showDrawer && m.drawer != nil {
+			done, chosenCmd, cmd := m.drawer.Update(msg)
+			if done {
+				m.showDrawer = false
+				m.drawer = nil
+				if chosenCmd != "" {
+					m.consoleInput.SetValue(chosenCmd)
+					m.consoleInput.SetCursor(len(chosenCmd))
+					m.activePane = PaneConsole
+					m.consoleInput.Focus()
+					m.statusMessage = fmt.Sprintf("⌨️ Inserted: %s (Press Enter to run, or edit)", chosenCmd)
+				}
+				return m, nil
+			}
+			return m, cmd
+		}
+
+		// 2. In-app File Editor Modal
+		if m.showEditorModal && m.editorModal != nil {
+			done, saveReq, updatedContent, cmd := m.editorModal.Update(msg)
+			if done {
+				m.showEditorModal = false
+				m.editorModal = nil
+				m.statusMessage = "Editor closed."
+				return m, nil
+			}
+			if saveReq {
+				m.statusMessage = "⏳ Saving file to remote server..."
+				return m, m.saveRemoteFileCmd(m.editorModal.HostID, m.editorModal.FilePath, updatedContent)
+			}
+			return m, cmd
+		}
+
+		// 3. Vault Unlock/Init Modal
 		if m.showVaultModal && m.vaultForm != nil {
 			done, pass, cmd := m.vaultForm.Update(msg)
 			if done {
 				if pass == "" {
-					// User pressed Esc to quit
 					m.cancel()
 					return m, tea.Quit
 				}
 
-				// Attempt Init or Unlock
 				isInit, _ := m.store.IsVaultInitialized()
 				var err error
 				if !isInit {
 					err = m.store.InitVault(m.vault, pass)
+					if err == nil && m.store != nil {
+						_ = m.store.SetSetting("language", string(i18n.GetLang()))
+					}
 				} else {
 					err = m.store.UnlockVault(m.vault, pass)
 				}
@@ -47,7 +116,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 
-				// Success! Unlock cockpit
 				m.showVaultModal = false
 				m.statusMessage = "✨ Vault unlocked successfully!"
 				return m, tea.Batch(m.loadHostsCmd(), m.pollActiveHostsCmd())
@@ -55,6 +123,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 		}
 
+		// 3. Delete Host Confirmation Modal
 		if m.showDeleteModal {
 			switch msg.String() {
 			case "y", "Y", "enter":
@@ -80,39 +149,59 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		// 4. Add Host Modal
 		if m.showAddModal && m.addForm != nil {
 			done, data, cmd := m.addForm.Update(msg)
 			if done {
 				m.showAddModal = false
 				if data != nil {
-					// Save new host
 					return m, m.saveNewHostCmd(data)
 				}
 			}
 			return m, cmd
 		}
 
-		// Tab to switch between Host Explorer -> Telemetry Deck -> Remote Console
-		if msg.String() == "tab" {
-			switch m.activePane {
-			case PaneHostList:
-				m.activePane = PaneTelemetryDeck
-				m.consoleInput.Blur()
-			case PaneTelemetryDeck:
-				m.activePane = PaneConsole
-				m.consoleInput.Focus()
-			case PaneConsole:
-				m.activePane = PaneHostList
-				m.consoleInput.Blur()
-			}
-			return m, nil
-		}
-
+		// 5. Console Pane Active Key Handling
 		if m.activePane == PaneConsole {
 			switch msg.String() {
 			case "esc":
 				m.activePane = PaneHostList
 				m.consoleInput.Blur()
+				if m.fullScreenConsole {
+					m.fullScreenConsole = false
+					m.initOrResizeViewport()
+				}
+				m.statusMessage = "📋 Returned to Host Explorer. Press [c] to focus console."
+				return m, nil
+
+			case "tab":
+				return m, m.completeInputCmd()
+
+			case "up":
+				if len(m.cmdHistory) > 0 {
+					if m.historyIndex < 0 {
+						m.historyIndex = len(m.cmdHistory) - 1
+					} else if m.historyIndex > 0 {
+						m.historyIndex--
+					}
+					m.consoleInput.SetValue(m.cmdHistory[m.historyIndex])
+					m.consoleInput.SetCursor(len(m.consoleInput.Value()))
+					return m, nil
+				}
+				return m, nil
+
+			case "down":
+				if len(m.cmdHistory) > 0 && m.historyIndex >= 0 {
+					m.historyIndex++
+					if m.historyIndex >= len(m.cmdHistory) {
+						m.historyIndex = -1
+						m.consoleInput.SetValue("")
+					} else {
+						m.consoleInput.SetValue(m.cmdHistory[m.historyIndex])
+						m.consoleInput.SetCursor(len(m.consoleInput.Value()))
+					}
+					return m, nil
+				}
 				return m, nil
 
 			case "pgup", "ctrl+u":
@@ -137,10 +226,40 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.initOrResizeViewport()
 				return m, nil
 
+			case "ctrl+k", "f5":
+				var distro string
+				if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+					if si := m.sysInfos[m.hosts[m.selectedIndex].ID]; si != nil {
+						distro = si.OSDistro
+					}
+				}
+				m.showDrawer = true
+				m.drawer = NewRunbookDrawer(distro)
+				return m, nil
+
+			case "?":
+				if m.consoleInput.Value() == "" {
+					var distro string
+					if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+						if si := m.sysInfos[m.hosts[m.selectedIndex].ID]; si != nil {
+							distro = si.OSDistro
+						}
+					}
+					m.showDrawer = true
+					m.drawer = NewRunbookDrawer(distro)
+					return m, nil
+				}
+				var cmd tea.Cmd
+				m.consoleInput, cmd = m.consoleInput.Update(msg)
+				return m, cmd
+
 			case "enter":
 				cmdText := strings.TrimSpace(m.consoleInput.Value())
 				if cmdText != "" && len(m.hosts) > 0 {
 					m.consoleInput.SetValue("")
+					m.cmdHistory = append(m.cmdHistory, cmdText)
+					m.historyIndex = -1
+
 					curHost := m.hosts[m.selectedIndex]
 
 					// Built-in clear / cls command support
@@ -151,7 +270,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return m, nil
 					}
 
-					m.statusMessage = fmt.Sprintf("Running '%s' on %s...", cmdText, curHost.Name)
+					// Direct in-app file editor trigger
+					if strings.HasPrefix(cmdText, "edit ") || strings.HasPrefix(cmdText, "vi ") || strings.HasPrefix(cmdText, "vim ") || strings.HasPrefix(cmdText, "nano ") {
+						targetFile := strings.TrimSpace(cmdText[strings.Index(cmdText, " "):])
+						m.statusMessage = fmt.Sprintf("📖 Opening '%s' for editing on %s...", targetFile, curHost.Name)
+						return m, m.openRemoteFileCmd(curHost, targetFile)
+					}
+
+					m.statusMessage = fmt.Sprintf("⏳ Running '%s' on %s...", cmdText, curHost.Name)
 					return m, m.execRemoteCmd(curHost, cmdText)
 				}
 				return m, nil
@@ -163,10 +289,32 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		// 6. Navigation when outside Console
+		if msg.String() == "tab" {
+			switch m.activePane {
+			case PaneHostList:
+				m.activePane = PaneTelemetryDeck
+				m.consoleInput.Blur()
+			case PaneTelemetryDeck:
+				m.activePane = PaneConsole
+				m.consoleInput.Focus()
+			case PaneConsole:
+				m.activePane = PaneHostList
+				m.consoleInput.Blur()
+			}
+			return m, nil
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			m.cancel()
 			return m, tea.Quit
+
+		case "s", "c", "enter":
+			m.activePane = PaneConsole
+			m.consoleInput.Focus()
+			m.statusMessage = "⌨️ Remote console focused. Type commands and press Enter."
+			return m, nil
 
 		case "a", "n":
 			m.showAddModal = true
@@ -180,6 +328,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedIndex = len(m.hosts) - 1
 				}
 				m.updateViewportContent()
+				if m.cfg.Telemetry.PollingInterval > 0 {
+					curHost := m.hosts[m.selectedIndex]
+					return m, m.pollSingleHostCmd(curHost)
+				}
 			}
 			return m, nil
 
@@ -190,6 +342,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedIndex = 0
 				}
 				m.updateViewportContent()
+				if m.cfg.Telemetry.PollingInterval > 0 {
+					curHost := m.hosts[m.selectedIndex]
+					return m, m.pollSingleHostCmd(curHost)
+				}
 			}
 			return m, nil
 
@@ -201,9 +357,39 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		case "p", ",":
+			m.showSettingsModal = true
+			m.settingsModal = NewSettingsModal(i18n.GetLang(), m.cfg.Telemetry.PollingInterval)
+			return m, nil
+
+		case "?", "ctrl+k":
+			var distro string
+			if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+				if si := m.sysInfos[m.hosts[m.selectedIndex].ID]; si != nil {
+					distro = si.OSDistro
+				}
+			}
+			m.showDrawer = true
+			m.drawer = NewRunbookDrawer(distro)
+			return m, nil
+
 		case "r":
-			m.statusMessage = "⏳ Refreshing telemetry..."
-			return m, tea.Batch(m.loadHostsCmd(), m.pollActiveHostsCmd())
+			if len(m.hosts) > 0 {
+				curHost := m.hosts[m.selectedIndex]
+				m.hostStatus[curHost.ID] = HostStatusConnecting
+				m.pausedHosts[curHost.ID] = false
+				m.statusMessage = fmt.Sprintf("⏳ Connecting to '%s' (%s)...", curHost.Name, curHost.Address)
+				return m, m.pollSingleHostCmd(curHost)
+			}
+			return m, nil
+
+		case "R":
+			for _, h := range m.hosts {
+				m.pausedHosts[h.ID] = false
+				m.hostStatus[h.ID] = HostStatusConnecting
+			}
+			m.statusMessage = "⏳ Reconnecting all hosts..."
+			return m, m.pollActiveHostsCmd()
 		}
 
 	case []*storage.Host:
@@ -211,37 +397,105 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if len(m.hosts) > 0 && m.selectedIndex >= len(m.hosts) {
 			m.selectedIndex = 0
 		}
-		// Trigger initial poll
-		return m, m.pollActiveHostsCmd()
+		if len(m.hosts) > 0 && m.cfg.Telemetry.PollingInterval > 0 {
+			return m, m.pollSingleHostCmd(m.hosts[m.selectedIndex])
+		}
+		return m, nil
 
 	case MetricResultMsg:
+		var hostName string
+		for _, h := range m.hosts {
+			if h.ID == msg.HostID {
+				hostName = h.Name
+				break
+			}
+		}
+
 		if msg.Err != nil {
 			m.errors[msg.HostID] = msg.Err
-			m.statusMessage = fmt.Sprintf("⚠️ Connection error on host ID %d", msg.HostID)
+			m.hostStatus[msg.HostID] = HostStatusOffline
+			m.pausedHosts[msg.HostID] = true
+			if len(m.hosts) > 0 && m.hosts[m.selectedIndex].ID == msg.HostID {
+				m.statusMessage = fmt.Sprintf("🔴 Host '%s' offline. Turn on VPN and press [r] to connect.", hostName)
+			}
 		} else {
 			delete(m.errors, msg.HostID)
+			m.hostStatus[msg.HostID] = HostStatusOnline
+			m.pausedHosts[msg.HostID] = false
 			m.metrics[msg.HostID] = msg.Record
 			if msg.SysInfo != nil {
 				m.sysInfos[msg.HostID] = msg.SysInfo
 			}
-			m.statusMessage = fmt.Sprintf("✨ Telemetry updated (%s)", time.Now().Format("15:04:05"))
+			if len(m.hosts) > 0 && m.hosts[m.selectedIndex].ID == msg.HostID {
+				if strings.HasPrefix(m.statusMessage, "⏳ Connecting") {
+					m.statusMessage = fmt.Sprintf("🟢 Connected to '%s' successfully!", hostName)
+				}
+			}
+		}
+		return m, nil
+
+	case OpenFileMsg:
+		if msg.Err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to open file '%s': %v", msg.FilePath, msg.Err)
+			return m, nil
+		}
+		m.showEditorModal = true
+		m.editorModal = NewEditorModal(msg.HostID, msg.HostName, msg.FilePath, msg.Content, m.width, m.height)
+		m.statusMessage = fmt.Sprintf("✏️ Editing '%s' on %s. [Ctrl+S] Save, [Esc] Cancel.", msg.FilePath, msg.HostName)
+		return m, nil
+
+	case FileSavedMsg:
+		if msg.Err != nil {
+			if m.editorModal != nil {
+				m.editorModal.SetError(msg.Err)
+			}
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to save '%s': %v", msg.FilePath, msg.Err)
+		} else {
+			m.showEditorModal = false
+			m.editorModal = nil
+			m.statusMessage = fmt.Sprintf("✨ File '%s' saved to remote server successfully!", msg.FilePath)
 		}
 		return m, nil
 
 	case CmdResultMsg:
+		if msg.NewCWD != "" {
+			m.hostCWD[msg.HostID] = msg.NewCWD
+		}
+		cwdDisplay := msg.CWD
+		if cwdDisplay == "" {
+			cwdDisplay = "~"
+		}
 		if msg.Err != nil {
-			m.appendConsoleLog(msg.HostID, fmt.Sprintf("❌ Error: %v\n%s", msg.Err, msg.Stderr))
-			m.statusMessage = fmt.Sprintf("⚠️ Command '%s' failed", msg.Command)
+			m.appendConsoleLog(msg.HostID, fmt.Sprintf("[%s] ❌ Error (%v):\n%s", cwdDisplay, msg.Err, msg.Stderr))
+			m.statusMessage = fmt.Sprintf("⚠️ Command '%s' failed: %v", msg.Command, msg.Err)
 		} else {
-			m.appendConsoleLog(msg.HostID, fmt.Sprintf("❯ %s\n%s", msg.Command, msg.Stdout))
-			m.statusMessage = fmt.Sprintf("✅ Executed '%s'", msg.Command)
+			out := msg.Stdout
+			if out != "" {
+				m.appendConsoleLog(msg.HostID, fmt.Sprintf("[%s] ❯ %s\n%s", cwdDisplay, msg.Command, out))
+			} else {
+				m.appendConsoleLog(msg.HostID, fmt.Sprintf("[%s] ❯ %s\n(no output)", cwdDisplay, msg.Command))
+			}
+			m.statusMessage = fmt.Sprintf("✅ Executed '%s' successfully (%s)", msg.Command, time.Now().Format("15:04:05"))
 		}
 		m.updateViewportContent()
 		m.viewport.GotoBottom()
 		return m, nil
 
+	case TabCompletionMsg:
+		if msg.NewInput != "" && msg.NewInput != m.consoleInput.Value() {
+			m.consoleInput.SetValue(msg.NewInput)
+			m.consoleInput.SetCursor(len(msg.NewInput))
+		}
+		if len(msg.Candidates) > 1 {
+			m.statusMessage = fmt.Sprintf("🔍 Matches: %s", strings.Join(msg.Candidates, "  "))
+		} else if len(msg.Candidates) == 1 {
+			m.statusMessage = "✨ Completed"
+		} else {
+			m.statusMessage = "(no completion matches)"
+		}
+		return m, nil
+
 	case TickMsg:
-		// Schedule next tick and poll
 		return m, tea.Batch(
 			m.pollActiveHostsCmd(),
 			m.tickCmd(),
@@ -251,250 +505,28 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *Model) pollActiveHostsCmd() tea.Cmd {
-	if m.isDemo {
-		return func() tea.Msg {
-			m.generateDemoMetrics()
-			return nil
-		}
+func (m *Model) changeVaultPassword(currPassword, newPassword string) error {
+	if m.store == nil || m.vault == nil {
+		return fmt.Errorf("vault or storage not available")
 	}
 
-	if m.collector == nil || len(m.hosts) == 0 {
-		return nil
+	// Verify current password with a temporary verification vault
+	tempVerifyVault := vault.New()
+	err := m.store.UnlockVault(tempVerifyVault, currPassword)
+	if err != nil {
+		return fmt.Errorf("current password verification failed: %w", err)
+	}
+	tempVerifyVault.Lock()
+
+	// Perform full rekeying
+	newVault := vault.New()
+	err = m.store.RekeyVault(m.vault, newVault, newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to change master password: %w", err)
 	}
 
-	var cmds []tea.Cmd
-	for _, host := range m.hosts {
-		h := host
-		cmds = append(cmds, func() tea.Msg {
-			rec, err := m.collector.CollectHost(h)
-			var sysInfo *telemetry.SysInfo
-			if state, exists := m.collector.GetHostState(h.ID); exists && state != nil {
-				sysInfo = state.SysInfo
-			}
-			return MetricResultMsg{
-				HostID:  h.ID,
-				Record:  rec,
-				SysInfo: sysInfo,
-				Err:     err,
-			}
-		})
-	}
-	return tea.Batch(cmds...)
-}
-
-func (m *Model) generateDemoMetrics() {
-	now := time.Now()
-	distros := []string{"Ubuntu 24.04 LTS (Noble)", "Ubuntu 22.04.4 LTS (Jammy)", "Debian 12 (Bookworm)", "Rocky Linux 9.4 (Blue Onyx)", "Amazon Linux 2023"}
-	kernels := []string{"Linux 6.8.0-40-generic x86_64", "Linux 6.5.0-35-generic x86_64", "Linux 6.1.0-21-amd64 x86_64", "Linux 5.14.0-427.el9 x86_64", "Linux 6.1.84-99.169.amzn2023.x86_64"}
-
-	for i, h := range m.hosts {
-		prev := m.metrics[h.ID]
-		cpu := 25.0 + rand.Float64()*45.0
-		if prev != nil {
-			// Smooth transition
-			cpu = prev.CPUPercent*0.7 + (20.0+rand.Float64()*50.0)*0.3
-		}
-
-		memTotal := uint64(16 * 1024 * 1024 * 1024)
-		memUsed := uint64((float64(memTotal) * (0.45 + rand.Float64()*0.25)))
-		diskTotal := uint64(256 * 1024 * 1024 * 1024)
-		diskUsed := uint64(float64(diskTotal) * 0.58)
-
-		m.metrics[h.ID] = &storage.MetricRecord{
-			HostID:      h.ID,
-			Timestamp:   now,
-			CPUPercent:  cpu,
-			MemoryTotal: memTotal,
-			MemoryUsed:  memUsed,
-			DiskUsed:    diskUsed,
-			DiskTotal:   diskTotal,
-			NetRxBytes:  uint64(50000000 + rand.Intn(20000000)),
-			NetTxBytes:  uint64(25000000 + rand.Intn(10000000)),
-		}
-
-		m.sysInfos[h.ID] = &telemetry.SysInfo{
-			OSDistro: distros[i%len(distros)],
-			Kernel:   kernels[i%len(kernels)],
-			Uptime:   fmt.Sprintf("up %d days, %d hrs", (i+1)*3+2, i*4+1),
-			CPUCores: 4 + (i%3)*4,
-		}
-	}
-}
-
-func (m *Model) saveNewHostCmd(data *HostFormData) tea.Cmd {
-	return func() tea.Msg {
-		if m.store == nil || m.vault == nil {
-			return nil
-		}
-
-		// Encrypt password
-		passBytes := []byte(data.Password)
-		nonce, ciphertext, err := m.vault.Encrypt(passBytes)
-		vault.ZeroBytes(passBytes)
-		if err != nil {
-			m.statusMessage = fmt.Sprintf("⚠️ Vault encryption failed: %v", err)
-			return nil
-		}
-
-		h := &storage.Host{
-			Name:      data.Name,
-			Address:   data.Address,
-			Port:      data.Port,
-			Username:  data.Username,
-			GroupName: data.Group,
-		}
-
-		id, err := m.store.CreateHost(h)
-		if err != nil {
-			m.statusMessage = fmt.Sprintf("⚠️ Failed to save host: %v", err)
-			return nil
-		}
-
-		err = m.store.SaveHostSecret(&storage.HostSecret{
-			HostID:     id,
-			AuthMethod: "password",
-			Nonce:      nonce,
-			Ciphertext: ciphertext,
-		})
-		if err != nil {
-			m.statusMessage = fmt.Sprintf("⚠️ Failed to save credentials: %v", err)
-			return nil
-		}
-
-		m.statusMessage = fmt.Sprintf("✨ Host '%s' registered! Connecting...", data.Name)
-		hosts, _ := m.store.ListHosts()
-		return hosts
-	}
-}
-
-func (m *Model) execRemoteCmd(host *storage.Host, cmdText string) tea.Cmd {
-	return func() tea.Msg {
-		// Normalize commands that require TTY in non-interactive mode
-		actualCmd := cmdText
-		if strings.TrimSpace(cmdText) == "top" {
-			actualCmd = "top -b -n 1 | head -n 35"
-		}
-
-		if m.isDemo {
-			// Realistic demo simulation
-			out := simulateDemoCmd(actualCmd, host.Name)
-			return CmdResultMsg{
-				HostID:  host.ID,
-				Command: cmdText,
-				Stdout:  out,
-			}
-		}
-
-		if m.collector == nil || m.collector.Pool() == nil || m.vault == nil {
-			return CmdResultMsg{
-				HostID:  host.ID,
-				Command: cmdText,
-				Err:     fmt.Errorf("collector or vault not ready"),
-			}
-		}
-
-		secret, err := m.store.GetHostSecret(host.ID)
-		if err != nil {
-			return CmdResultMsg{HostID: host.ID, Command: cmdText, Err: err}
-		}
-
-		decrypted, err := m.vault.Decrypt(secret.Nonce, secret.Ciphertext)
-		if err != nil {
-			return CmdResultMsg{HostID: host.ID, Command: cmdText, Err: err}
-		}
-		defer vault.ZeroBytes(decrypted)
-
-		client, err := m.collector.Pool().GetOrCreate(host, secret, decrypted, nil)
-		if err != nil {
-			return CmdResultMsg{HostID: host.ID, Command: cmdText, Err: err}
-		}
-
-		stdout, stderr, err := client.Exec(actualCmd)
-		return CmdResultMsg{
-			HostID:  host.ID,
-			Command: cmdText,
-			Stdout:  string(stdout),
-			Stderr:  string(stderr),
-			Err:     err,
-		}
-	}
-}
-
-func (m *Model) appendConsoleLog(hostID int64, logEntry string) {
-	logs := m.consoleLogs[hostID]
-	logs = append(logs, logEntry)
-	// Keep last 50 lines per host
-	if len(logs) > 50 {
-		logs = logs[len(logs)-50:]
-	}
-	m.consoleLogs[hostID] = logs
-}
-
-func simulateDemoCmd(cmd string, hostname string) string {
-	cmdLower := strings.ToLower(cmd)
-	if strings.HasPrefix(cmdLower, "uname") {
-		return fmt.Sprintf("Linux %s 6.8.0-40-generic #40-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux", hostname)
-	}
-	if strings.HasPrefix(cmdLower, "docker ps") {
-		return "CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                    NAMES\n" +
-			"a1b2c3d4e5f6   nginx:alpine          \"/docker-entrypoint.…\"   2 days ago      Up 2 days      0.0.0.0:80->80/tcp       web-proxy\n" +
-			"9f8e7d6c5b4a   postgres:16-alpine    \"docker-entrypoint.s…\"   3 weeks ago     Up 3 weeks     0.0.0.0:5432->5432/tcp   db-primary"
-	}
-	if strings.HasPrefix(cmdLower, "free") {
-		return "               total        used        free      shared  buff/cache   available\n" +
-			"Mem:        16384000     8192000     4096000      256000     4096000     8192000\n" +
-			"Swap:        2097152           0     2097152"
-	}
-	return fmt.Sprintf("[%s]$ %s\nCommand executed successfully in demo simulation.", hostname, cmd)
-}
-
-func (m *Model) initOrResizeViewport() {
-	vpWidth := m.width - int(float64(m.width)*0.30) - 8
-	if vpWidth < 30 {
-		vpWidth = 30
-	}
-
-	availHeight := m.height - 5
-	if availHeight < 10 {
-		availHeight = 10
-	}
-
-	vpHeight := availHeight - 8 - 4
-	if m.fullScreenConsole {
-		vpWidth = m.width - 6
-		vpHeight = m.height - 7
-	}
-	if vpHeight < 4 {
-		vpHeight = 4
-	}
-
-	if !m.viewportReady {
-		m.viewport = viewport.New(vpWidth, vpHeight)
-		m.viewportReady = true
-	} else {
-		m.viewport.Width = vpWidth
-		m.viewport.Height = vpHeight
-	}
-
-	m.updateViewportContent()
-}
-
-func (m *Model) updateViewportContent() {
-	if len(m.hosts) == 0 {
-		m.viewport.SetContent("No host selected.")
-		return
-	}
-
-	selectedHost := m.hosts[m.selectedIndex]
-	logs := m.consoleLogs[selectedHost.ID]
-
-	if len(logs) == 0 {
-		welcomeMsg := fmt.Sprintf("Connected to %s (%s)\nType remote commands below and press Enter to execute.\nUse [PageUp/PageDown] or [Ctrl+U/Ctrl+D] to scroll output.", selectedHost.Name, selectedHost.Address)
-		m.viewport.SetContent(welcomeMsg)
-		return
-	}
-
-	content := strings.Join(logs, "\n\n")
-	m.viewport.SetContent(content)
+	// Replace memory vault
+	m.vault.Lock()
+	m.vault = newVault
+	return nil
 }
