@@ -12,8 +12,8 @@ func TestDefaultConfig(t *testing.T) {
 	if cfg.Telemetry.PollingInterval != 5*time.Second {
 		t.Errorf("expected 5s polling interval, got %v", cfg.Telemetry.PollingInterval)
 	}
-	if cfg.TUI.MinCols != 100 || cfg.TUI.MinRows != 28 {
-		t.Errorf("expected 100x28 resolution guard, got %dx%d", cfg.TUI.MinCols, cfg.TUI.MinRows)
+	if cfg.TUI.MinCols != 98 || cfg.TUI.MinRows != 24 {
+		t.Errorf("expected 98x24 resolution guard, got %dx%d", cfg.TUI.MinCols, cfg.TUI.MinRows)
 	}
 	if cfg.Database.Path == "" {
 		t.Errorf("expected default database path not to be empty")

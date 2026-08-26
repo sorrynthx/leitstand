@@ -12,8 +12,8 @@ import (
 
 // RunbookDrawer provides an OS-aware quick command runbook.
 type RunbookDrawer struct {
-	activeTab     quickcmd.OSTab
-	selectedIndex int
+	activeTab      quickcmd.OSTab
+	selectedIndex  int
 	detectedDistro string
 }
 

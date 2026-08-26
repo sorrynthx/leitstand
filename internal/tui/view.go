@@ -59,24 +59,25 @@ func (m *Model) View() string {
 	// Calculate exact available height for main content with safe terminal margin
 	headerHeight := 1
 	statusBarHeight := 1
-	availableHeight := m.height - headerHeight - statusBarHeight - 2
+	availableHeight := m.height - headerHeight - statusBarHeight - 1
 	if availableHeight < 14 {
 		availableHeight = 14
 	}
 
 	// Full-screen Console Mode
 	if m.fullScreenConsole {
-		consolePane := m.renderRemoteConsole(m.width-4, availableHeight-2)
-		return lipgloss.JoinVertical(lipgloss.Left, header, consolePane, statusBar)
+		consolePane := m.renderRemoteConsole(m.width-2, availableHeight-2)
+		mainView := lipgloss.JoinVertical(lipgloss.Left, header, consolePane, statusBar)
+		return lipgloss.Place(m.width, m.height, lipgloss.Left, lipgloss.Top, mainView)
 	}
 
 	leftWidth := int(float64(m.width) * 0.28)
-	if leftWidth < 25 {
-		leftWidth = 25
+	if leftWidth < 24 {
+		leftWidth = 24
 	}
-	rightWidth := m.width - leftWidth - 4
-	if rightWidth < 45 {
-		rightWidth = 50
+	rightWidth := m.width - leftWidth - 2
+	if rightWidth < 35 {
+		rightWidth = 35
 	}
 
 	// Left pane: inner height = availableHeight - 2 (outer box = availableHeight)
@@ -87,12 +88,12 @@ func (m *Model) View() string {
 		// Telemetry is Off: Give entire right side to Remote Console
 		rightSide = m.renderRemoteConsole(rightWidth, availableHeight-2)
 	} else {
-		// Right Top pane: inner height 6 (outer box = 8)
-		rightTopInnerHeight := 6
+		// Right Top pane: inner height 8 (outer box = 10)
+		rightTopInnerHeight := 8
 		rightTopPane := m.renderTelemetryDeck(rightWidth, rightTopInnerHeight)
 
-		// Right Bottom pane: inner height = availableHeight - 8 - 2 (outer box = availableHeight - 8)
-		rightBottomInnerHeight := availableHeight - 8 - 2
+		// Right Bottom pane: inner height = availableHeight - 10 - 2 (outer box = availableHeight - 10)
+		rightBottomInnerHeight := availableHeight - 10 - 2
 		if rightBottomInnerHeight < 4 {
 			rightBottomInnerHeight = 4
 		}
@@ -102,8 +103,9 @@ func (m *Model) View() string {
 	}
 
 	content := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightSide)
+	mainView := lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
 
-	return lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
+	return lipgloss.Place(m.width, m.height, lipgloss.Left, lipgloss.Top, mainView)
 }
 
 func (m *Model) renderDeleteConfirmationModal() string {
@@ -130,12 +132,26 @@ func (m *Model) renderDeleteConfirmationModal() string {
 }
 
 func (m *Model) renderResolutionGuard() string {
+	minCols := m.cfg.TUI.MinCols
+	if minCols <= 0 {
+		minCols = 92
+	}
+	minRows := m.cfg.TUI.MinRows
+	if minRows <= 0 {
+		minRows = 22
+	}
+
 	msg := fmt.Sprintf(
-		"⚠️  Terminal Window Too Small\n\n"+
-			"Current: %d cols × %d rows\n"+
-			"Required: %d cols × %d rows\n\n"+
-			"Please enlarge your terminal window.",
-		m.width, m.height, m.cfg.TUI.MinCols, m.cfg.TUI.MinRows,
+		"%s\n\n"+
+			"%s  %d cols × %d rows\n"+
+			"%s  %d cols × %d rows\n\n"+
+			"%s",
+		lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(i18n.T("guard_title")),
+		lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("guard_current")),
+		m.width, m.height,
+		lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(i18n.T("guard_required")),
+		minCols, minRows,
+		lipgloss.NewStyle().Foreground(ColorWarning).Render(i18n.T("guard_hint")),
 	)
 	return lipgloss.Place(
 		m.width, m.height,
@@ -248,15 +264,14 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 
 	// System Specification Banner
 	if sysInfo != nil {
-		specLine := fmt.Sprintf("🐧 %s  |  ⚡ %d %s  |  ⏱ %s\n",
+		specLine := fmt.Sprintf("🐧 %s  |  ⚡ %d %s  |  ⏱ %s",
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(sysInfo.OSDistro),
 			sysInfo.CPUCores,
 			i18n.T("cores"),
-			lipgloss.NewStyle().Foreground(ColorWarning).Render(sysInfo.Uptime),
+			lipgloss.NewStyle().Foreground(ColorWarning).Render(formatCompactUptime(sysInfo.Uptime)),
 		)
-		b.WriteString(specLine)
-	} else {
-		b.WriteString("\n")
+		specLine = runewidth.Truncate(specLine, width-6, "…")
+		b.WriteString(specLine + "\n")
 	}
 
 	if hasErr && err != nil {
@@ -293,26 +308,28 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		return paneBorder.Width(width).Height(height).Render(b.String())
 	}
 
-	colWidth := (width - 12) / 4
-	if colWidth < 14 {
-		colWidth = 14
+	innerAvail := width - 8
+	cardTotalWidth := (innerAvail - 3) / 4
+	cardContentWidth := cardTotalWidth - 4
+	if cardContentWidth < 8 {
+		cardContentWidth = 8
 	}
 
-	cpuGauge := m.renderMetricGauge(i18n.T("cpu_usage"), metric.CPUPercent, 100.0, "%", colWidth)
+	cpuGauge := m.renderMetricGauge(i18n.T("cpu_usage"), metric.CPUPercent, 100.0, "%", cardContentWidth)
 
 	memPercent := 0.0
 	if metric.MemoryTotal > 0 {
 		memPercent = float64(metric.MemoryUsed) / float64(metric.MemoryTotal) * 100.0
 	}
-	memGauge := m.renderMetricGauge(i18n.T("mem_usage"), memPercent, 100.0, "%", colWidth)
+	memGauge := m.renderMetricGauge(i18n.T("mem_usage"), memPercent, 100.0, "%", cardContentWidth)
 
 	diskPercent := 0.0
 	if metric.DiskTotal > 0 {
 		diskPercent = float64(metric.DiskUsed) / float64(metric.DiskTotal) * 100.0
 	}
-	diskGauge := m.renderMetricGauge(i18n.T("disk_usage"), diskPercent, 100.0, "%", colWidth)
+	diskGauge := m.renderMetricGauge(i18n.T("disk_usage"), diskPercent, 100.0, "%", cardContentWidth)
 
-	netCard := m.renderNetworkCard(i18n.T("network_io"), metric.NetRxBytes, metric.NetTxBytes, colWidth)
+	netCard := m.renderNetworkCard(i18n.T("network_io"), metric.NetRxBytes, metric.NetTxBytes, cardContentWidth)
 
 	gauges := lipgloss.JoinHorizontal(lipgloss.Top, cpuGauge, " ", memGauge, " ", diskGauge, " ", netCard)
 	b.WriteString(gauges)
@@ -325,7 +342,7 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 	return paneBorder.Width(width).Height(height).Render(b.String())
 }
 
-func (m *Model) renderMetricGauge(label string, value, maxVal float64, unit string, width int) string {
+func (m *Model) renderMetricGauge(label string, value, maxVal float64, unit string, contentWidth int) string {
 	var b strings.Builder
 	b.WriteString(MetricLabelStyle.Render(label) + "\n")
 
@@ -341,9 +358,9 @@ func (m *Model) renderMetricGauge(label string, value, maxVal float64, unit stri
 	}
 	b.WriteString(MetricValueStyle.Foreground(valColor).Render(valStr) + "\n")
 
-	barWidth := width - 4
-	if barWidth < 6 {
-		barWidth = 6
+	barWidth := contentWidth - 2
+	if barWidth < 4 {
+		barWidth = 4
 	}
 	filled := int((value / maxVal) * float64(barWidth))
 	if filled > barWidth {
@@ -357,12 +374,13 @@ func (m *Model) renderMetricGauge(label string, value, maxVal float64, unit stri
 		lipgloss.NewStyle().Foreground(ColorMuted).Render(strings.Repeat("░", barWidth-filled))
 	b.WriteString(bar)
 
-	return MetricCardStyle.Width(width).Render(b.String())
+	return MetricCardStyle.Width(contentWidth).Height(3).Render(b.String())
 }
 
-func (m *Model) renderNetworkCard(label string, rxBytesPerSec, txBytesPerSec uint64, width int) string {
+func (m *Model) renderNetworkCard(label string, rxBytesPerSec, txBytesPerSec uint64, contentWidth int) string {
 	var b strings.Builder
-	b.WriteString(MetricLabelStyle.Render(label) + "\n")
+	cleanLabel := runewidth.Truncate(label, contentWidth, "")
+	b.WriteString(MetricLabelStyle.Render(cleanLabel) + "\n")
 
 	rxStr := "↓ " + formatNetworkSpeed(rxBytesPerSec)
 	txStr := "↑ " + formatNetworkSpeed(txBytesPerSec)
@@ -370,7 +388,16 @@ func (m *Model) renderNetworkCard(label string, rxBytesPerSec, txBytesPerSec uin
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(rxStr) + "\n")
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(txStr))
 
-	return MetricCardStyle.Width(width).Render(b.String())
+	return MetricCardStyle.Width(contentWidth).Height(3).Render(b.String())
+}
+
+func formatCompactUptime(u string) string {
+	u = strings.TrimPrefix(u, "up ")
+	parts := strings.Split(u, ",")
+	if len(parts) > 2 {
+		return strings.TrimSpace(parts[0]) + ", " + strings.TrimSpace(parts[1])
+	}
+	return strings.TrimSpace(u)
 }
 
 func formatNetworkSpeed(bytesPerSec uint64) string {
@@ -402,6 +429,7 @@ func (m *Model) renderRemoteConsole(width, height int) string {
 
 	titleLine := lipgloss.NewStyle().Bold(true).Foreground(titleColor).Render(i18n.T("pane_console")) + "  " +
 		lipgloss.NewStyle().Foreground(ColorMuted).Render(modeHint)
+	titleLine = runewidth.Truncate(titleLine, width-6, "…")
 	b.WriteString(titleLine + "\n")
 
 	if len(m.hosts) == 0 {
@@ -473,10 +501,13 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	status := m.statusMessage
-	availWidth := (m.width - 1) - runewidth.StringWidth(keys) - runewidth.StringWidth(status) - 2
+	keysLen := runewidth.StringWidth(keys)
+	statusLen := runewidth.StringWidth(status)
+	availWidth := (m.width - 4) - keysLen - statusLen
 	if availWidth < 1 {
 		availWidth = 1
 	}
 
-	return StatusBarStyle.Width(m.width - 1).Render(keys + strings.Repeat(" ", availWidth) + status)
+	content := keys + strings.Repeat(" ", availWidth) + status
+	return StatusBarStyle.Width(m.width - 2).Render(content)
 }

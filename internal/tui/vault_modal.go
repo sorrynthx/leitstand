@@ -19,10 +19,10 @@ const (
 )
 
 type VaultForm struct {
-	modalType  VaultModalType
-	inputs     []textinput.Model
-	focusIndex int
-	errMessage string
+	modalType         VaultModalType
+	inputs            []textinput.Model
+	focusIndex        int
+	errMessage        string
 	selectedLangIndex int
 }
 

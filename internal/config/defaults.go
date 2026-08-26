@@ -14,8 +14,8 @@ const (
 
 	DefaultPollingInterval = 5 * time.Second
 	DefaultSSHTimeout      = 10 * time.Second
-	DefaultMinCols         = 100
-	DefaultMinRows         = 28
+	DefaultMinCols         = 98
+	DefaultMinRows         = 24
 	DefaultLanguage        = "en"
 )
 
