@@ -1,0 +1,16 @@
+# Leitstand Configuration Example
+database:
+  path: "~/.leitstand/leitstand.db"
+
+telemetry:
+  polling_interval: "5s"
+  raw_retention_days: 7
+
+ssh:
+  timeout: "10s"
+  keep_alive_secs: 30
+
+tui:
+  language: "en" # Options: en, de, ko
+  min_cols: 100
+  min_rows: 28

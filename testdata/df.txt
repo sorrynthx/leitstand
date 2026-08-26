@@ -1,0 +1,2 @@
+Filesystem     1K-blocks      Used Available Use% Mounted on
+/dev/root      102400000  40960000  61440000  40% /
