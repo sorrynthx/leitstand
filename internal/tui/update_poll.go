@@ -6,7 +6,6 @@ import (
 	"leitstand/internal/telemetry"
 	"leitstand/internal/vault"
 	"math/rand"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -148,10 +147,20 @@ func (m *Model) saveNewHostCmd(data *HostFormData) tea.Cmd {
 			return nil
 		}
 
-		// Encrypt password
-		passBytes := []byte(data.Password)
-		nonce, ciphertext, err := m.vault.Encrypt(passBytes)
-		vault.ZeroBytes(passBytes)
+		payload := &storage.SecretPayload{
+			Password:   data.Password,
+			PrivateKey: data.KeyContent,
+			Passphrase: data.Passphrase,
+		}
+
+		rawJSON, err := payload.Encode()
+		if err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to encode secret: %v", err)
+			return nil
+		}
+
+		nonce, ciphertext, err := m.vault.Encrypt(rawJSON)
+		vault.ZeroBytes(rawJSON)
 		if err != nil {
 			m.statusMessage = fmt.Sprintf("⚠️ Vault encryption failed: %v", err)
 			return nil
@@ -173,7 +182,7 @@ func (m *Model) saveNewHostCmd(data *HostFormData) tea.Cmd {
 
 		err = m.store.SaveHostSecret(&storage.HostSecret{
 			HostID:     id,
-			AuthMethod: "password",
+			AuthMethod: data.AuthMethod,
 			Nonce:      nonce,
 			Ciphertext: ciphertext,
 		})
@@ -182,26 +191,73 @@ func (m *Model) saveNewHostCmd(data *HostFormData) tea.Cmd {
 			return nil
 		}
 
-		m.statusMessage = fmt.Sprintf("✨ Host '%s' registered! Connecting...", data.Name)
+		m.statusMessage = fmt.Sprintf("✨ Host '%s' (%s) registered! Connecting...", data.Name, data.AuthMethod)
 		hosts, _ := m.store.ListHosts()
 		return hosts
 	}
 }
 
-func simulateDemoCmd(cmd string, hostname string) string {
-	cmdLower := strings.ToLower(cmd)
-	if strings.HasPrefix(cmdLower, "uname") {
-		return fmt.Sprintf("Linux %s 6.8.0-40-generic #40-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux", hostname)
+func (m *Model) updateExistingHostCmd(hostID int64, data *HostFormData) tea.Cmd {
+	return func() tea.Msg {
+		if m.store == nil || m.vault == nil {
+			return nil
+		}
+
+		payload := &storage.SecretPayload{
+			Password:   data.Password,
+			PrivateKey: data.KeyContent,
+			Passphrase: data.Passphrase,
+		}
+
+		rawJSON, err := payload.Encode()
+		if err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to encode secret: %v", err)
+			return nil
+		}
+
+		nonce, ciphertext, err := m.vault.Encrypt(rawJSON)
+		vault.ZeroBytes(rawJSON)
+		if err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Vault encryption failed: %v", err)
+			return nil
+		}
+
+		h := &storage.Host{
+			ID:        hostID,
+			Name:      data.Name,
+			Address:   data.Address,
+			Port:      data.Port,
+			Username:  data.Username,
+			GroupName: data.Group,
+		}
+
+		err = m.store.UpdateHost(h)
+		if err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to update host: %v", err)
+			return nil
+		}
+
+		err = m.store.SaveHostSecret(&storage.HostSecret{
+			HostID:     hostID,
+			AuthMethod: data.AuthMethod,
+			Nonce:      nonce,
+			Ciphertext: ciphertext,
+		})
+		if err != nil {
+			m.statusMessage = fmt.Sprintf("⚠️ Failed to update credentials: %v", err)
+			return nil
+		}
+
+		// Close existing stale connection in pool
+		if m.collector != nil && m.collector.Pool() != nil {
+			m.collector.Pool().CloseHost(hostID)
+		}
+
+		m.pausedHosts[hostID] = false
+		m.hostStatus[hostID] = HostStatusConnecting
+		m.statusMessage = fmt.Sprintf("✨ Host '%s' updated! Reconnecting...", data.Name)
+
+		hosts, _ := m.store.ListHosts()
+		return hosts
 	}
-	if strings.HasPrefix(cmdLower, "docker ps") {
-		return "CONTAINER ID   IMAGE                 COMMAND                  CREATED         STATUS         PORTS                    NAMES\n" +
-			"a1b2c3d4e5f6   nginx:alpine          \"/docker-entrypoint.…\"   2 days ago      Up 2 days      0.0.0.0:80->80/tcp       web-proxy\n" +
-			"9f8e7d6c5b4a   postgres:16-alpine    \"docker-entrypoint.s…\"   3 weeks ago     Up 3 weeks     0.0.0.0:5432->5432/tcp   db-primary"
-	}
-	if strings.HasPrefix(cmdLower, "free") {
-		return "               total        used        free      shared  buff/cache   available\n" +
-			"Mem:        16384000     8192000     4096000      256000     4096000     8192000\n" +
-			"Swap:        2097152           0     2097152"
-	}
-	return fmt.Sprintf("[%s]$ %s\nCommand executed successfully in demo simulation.", hostname, cmd)
 }

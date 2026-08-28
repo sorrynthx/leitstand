@@ -1,6 +1,9 @@
 package storage
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // Host represents a registered target server.
 type Host struct {
@@ -20,6 +23,32 @@ type HostSecret struct {
 	AuthMethod string `json:"auth_method"` // "password", "private_key", "agent"
 	Nonce      []byte `json:"nonce"`
 	Ciphertext []byte `json:"ciphertext"`
+}
+
+// SecretPayload represents the decrypted sensitive credentials for a host.
+type SecretPayload struct {
+	Password   string `json:"password,omitempty"`
+	PrivateKey string `json:"private_key,omitempty"`
+	Passphrase string `json:"passphrase,omitempty"`
+}
+
+// Encode marshals the SecretPayload to JSON bytes.
+func (s *SecretPayload) Encode() ([]byte, error) {
+	return json.Marshal(s)
+}
+
+// ParseSecretPayload decodes decrypted raw bytes into a SecretPayload with fallback for legacy plain secrets.
+func ParseSecretPayload(raw []byte, authMethod string) (*SecretPayload, error) {
+	var payload SecretPayload
+	if err := json.Unmarshal(raw, &payload); err == nil && (payload.Password != "" || payload.PrivateKey != "") {
+		return &payload, nil
+	}
+
+	// Backward compatibility fallback for legacy plain text passwords/keys
+	if authMethod == "private_key" {
+		return &SecretPayload{PrivateKey: string(raw)}, nil
+	}
+	return &SecretPayload{Password: string(raw)}, nil
 }
 
 // MetricRecord represents a single telemetry snapshot for a host.

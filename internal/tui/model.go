@@ -36,12 +36,34 @@ const (
 // CmdResultMsg carries remote command execution results back to TUI.
 type CmdResultMsg struct {
 	HostID  int64
+	TabID   string
 	Command string
 	CWD     string
 	NewCWD  string
 	Stdout  string
 	Stderr  string
 	Err     error
+}
+
+// StreamChunkMsg delivers a real-time streaming output chunk to a specific tab.
+type StreamChunkMsg struct {
+	HostID  int64
+	TabID   string
+	Chunk   string
+	msgChan <-chan tea.Msg
+}
+
+// StreamFinishedMsg signals that a background streaming task has finished or stopped.
+type StreamFinishedMsg struct {
+	HostID int64
+	TabID  string
+	Err    error
+}
+
+// TerminalExitedMsg indicates when an interactive SSH PTY session exits.
+type TerminalExitedMsg struct {
+	HostID int64
+	Err    error
 }
 
 // TabCompletionMsg delivers remote tab completion results.
@@ -98,17 +120,27 @@ type Model struct {
 	activePane        PaneType
 	showAddModal      bool
 	addForm           *HostForm
+	showEditModal     bool
+	editForm          *HostForm
+	hostToEdit        *storage.Host
 	showVaultModal    bool
 	vaultForm         *VaultForm
 	showDeleteModal   bool
 	hostToDelete      *storage.Host
 	showEditorModal   bool
 	editorModal       *EditorModal
+	showSudoModal     bool
+	sudoModal         *SudoModal
+	pendingSudoCmd    string
+	sudoCache         map[int64]string
 	showSettingsModal bool
 	settingsModal     *SettingsModal
+	showFileManager   bool
+	fileManager       *FileManagerModal
 	showDrawer        bool
 	drawer            *RunbookDrawer
 	consoleInput      textinput.Model
+	hostTabs          map[int64]*HostTabState
 	consoleLogs       map[int64][]string
 	hostCWD           map[int64]string
 	cmdHistory        []string
@@ -173,13 +205,42 @@ func NewModel(cfg *config.AppConfig, store *storage.Storage, v *vault.Vault, col
 		showVaultModal: showVault,
 		vaultForm:      vForm,
 		consoleInput:   ci,
+		hostTabs:       make(map[int64]*HostTabState),
 		consoleLogs:    make(map[int64][]string),
 		hostCWD:        make(map[int64]string),
+		sudoCache:      make(map[int64]string),
 		cmdHistory:     make([]string, 0),
 		historyIndex:   -1,
 		ctx:            ctx,
 		cancel:         cancel,
 	}
+}
+
+// GetOrCreateHostTabs gets or initializes the multi-tab state for a host.
+func (m *Model) GetOrCreateHostTabs(hostID int64, hostName string) *HostTabState {
+	if m.hostTabs == nil {
+		m.hostTabs = make(map[int64]*HostTabState)
+	}
+	hts, ok := m.hostTabs[hostID]
+	if !ok {
+		cwd := m.hostCWD[hostID]
+		if cwd == "" {
+			cwd = "~"
+		}
+		hts = NewHostTabState(hostID, hostName, cwd)
+		m.hostTabs[hostID] = hts
+	}
+	return hts
+}
+
+// CurrentActiveTab returns the focused tab for the currently selected host.
+func (m *Model) CurrentActiveTab() *ConsoleTab {
+	if len(m.hosts) == 0 || m.selectedIndex < 0 || m.selectedIndex >= len(m.hosts) {
+		return nil
+	}
+	curHost := m.hosts[m.selectedIndex]
+	hts := m.GetOrCreateHostTabs(curHost.ID, curHost.Name)
+	return hts.ActiveTab()
 }
 
 // Init starts the Bubbletea program lifecycle.

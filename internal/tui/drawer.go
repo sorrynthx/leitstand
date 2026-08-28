@@ -131,29 +131,38 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 	}
 	b.WriteString(strings.Join(tabButtons, " ") + "\n\n")
 
-	// Items list
+	// Items list with smooth sliding window scroll
 	items := quickcmd.Catalog[d.activeTab]
-	var currentCat string
 
-	// Available list lines (deduct header, tabs, preview box, and footer)
-	listMaxLines := drawerHeight - 14
-	if listMaxLines < 6 {
-		listMaxLines = 6
+	maxVisible := 7
+	if drawerHeight > 28 {
+		maxVisible = 10
+	} else if drawerHeight < 20 {
+		maxVisible = 5
 	}
 
-	lineCount := 0
-	for i, item := range items {
-		if lineCount >= listMaxLines {
-			b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("  ... (more commands)") + "\n")
-			break
-		}
+	startIdx := 0
+	if d.selectedIndex >= maxVisible {
+		startIdx = d.selectedIndex - maxVisible + 1
+	}
+	endIdx := startIdx + maxVisible
+	if endIdx > len(items) {
+		endIdx = len(items)
+	}
+
+	if startIdx > 0 {
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("  ▲ (%d more above)", startIdx)) + "\n")
+	}
+
+	var lastCat string
+	for i := startIdx; i < endIdx; i++ {
+		item := items[i]
 
 		// Category Header
-		if item.CategoryKey != currentCat {
-			currentCat = item.CategoryKey
-			catHeader := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("── " + i18n.T(currentCat) + " ──")
+		if item.CategoryKey != lastCat {
+			lastCat = item.CategoryKey
+			catHeader := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("── " + i18n.T(item.CategoryKey) + " ──")
 			b.WriteString(catHeader + "\n")
-			lineCount++
 		}
 
 		// Command Item
@@ -167,7 +176,10 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 			itemLine = lipgloss.NewStyle().Foreground(lipgloss.Color("#ECEFF1")).Render(cursor + itemTitle)
 		}
 		b.WriteString(itemLine + "\n")
-		lineCount++
+	}
+
+	if endIdx < len(items) {
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("  ▼ (%d more below)", len(items)-endIdx)) + "\n")
 	}
 
 	b.WriteString("\n")

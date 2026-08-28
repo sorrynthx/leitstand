@@ -3,6 +3,8 @@ package ssh
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"leitstand/internal/storage"
@@ -15,8 +17,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// startMockSSHServer launches an in-process SSH server for testing.
-func startMockSSHServer(t *testing.T, expectedUser, expectedPass string) (string, func()) {
+// startMockSSHServer launches an in-process SSH server supporting password and public key auth.
+func startMockSSHServer(t *testing.T, expectedUser, expectedPass string, expectedPublicKey ssh.PublicKey) (string, func()) {
 	// Generate host key
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -29,10 +31,18 @@ func startMockSSHServer(t *testing.T, expectedUser, expectedPass string) (string
 
 	serverConfig := &ssh.ServerConfig{
 		PasswordCallback: func(conn ssh.ConnMetadata, password []byte) (*ssh.Permissions, error) {
-			if conn.User() == expectedUser && string(password) == expectedPass {
+			if expectedPass != "" && conn.User() == expectedUser && string(password) == expectedPass {
 				return nil, nil
 			}
 			return nil, fmt.Errorf("password rejected for user %s", conn.User())
+		},
+		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+			if expectedPublicKey != nil && conn.User() == expectedUser {
+				if string(key.Marshal()) == string(expectedPublicKey.Marshal()) {
+					return nil, nil
+				}
+			}
+			return nil, fmt.Errorf("public key rejected for user %s", conn.User())
 		},
 	}
 	serverConfig.AddHostKey(signer)
@@ -119,7 +129,7 @@ func handleMockConn(nConn net.Conn, config *ssh.ServerConfig) {
 }
 
 func TestSSHPoolAndExec(t *testing.T) {
-	mockAddr, cleanup := startMockSSHServer(t, "leitstand-user", "secret-pass")
+	mockAddr, cleanup := startMockSSHServer(t, "leitstand-user", "secret-pass", nil)
 	defer cleanup()
 
 	hostStr, portStr, _ := net.SplitHostPort(mockAddr)
@@ -188,5 +198,81 @@ func TestSSHPoolAndExec(t *testing.T) {
 	pool.CloseHost(1)
 	if pool.ActiveCount() != 0 {
 		t.Errorf("expected 0 active clients after CloseHost, got %d", pool.ActiveCount())
+	}
+}
+
+func TestSSHPrivateKeyAuth(t *testing.T) {
+	// Generate RSA key pair for testing
+	rawKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("failed to generate rsa key: %v", err)
+	}
+
+	signer, err := ssh.NewSignerFromKey(rawKey)
+	if err != nil {
+		t.Fatalf("failed to create signer: %v", err)
+	}
+	publicKey := signer.PublicKey()
+
+	// Encode private key to PEM format
+	keyDER := x509.MarshalPKCS1PrivateKey(rawKey)
+	keyPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: keyDER,
+	})
+
+	mockAddr, cleanup := startMockSSHServer(t, "key-user", "", publicKey)
+	defer cleanup()
+
+	hostStr, portStr, _ := net.SplitHostPort(mockAddr)
+	port, _ := strconv.Atoi(portStr)
+
+	host := &storage.Host{
+		ID:        10,
+		Name:      "key-server",
+		Address:   hostStr,
+		Port:      port,
+		Username:  "key-user",
+		GroupName: "Cloud",
+	}
+
+	secret := &storage.HostSecret{
+		HostID:     10,
+		AuthMethod: "private_key",
+	}
+
+	payload := &storage.SecretPayload{
+		PrivateKey: string(keyPEM),
+	}
+
+	pool := NewPool(5 * time.Second)
+	defer pool.CloseAll()
+
+	// Connect using GetOrCreateFromPayload
+	client, err := pool.GetOrCreateFromPayload(host, secret, payload)
+	if err != nil {
+		t.Fatalf("failed to connect via private key: %v", err)
+	}
+
+	stdout, stderr, err := client.Exec("echo key-auth-success")
+	if err != nil {
+		t.Fatalf("exec error: %v (stderr: %s)", err, string(stderr))
+	}
+	if strings.TrimSpace(string(stdout)) != "key-auth-success" {
+		t.Errorf("unexpected output: %s", string(stdout))
+	}
+
+	// Check reject wrong user or wrong key
+	wrongHost := &storage.Host{
+		ID:        11,
+		Name:      "wrong-server",
+		Address:   hostStr,
+		Port:      port,
+		Username:  "wrong-user",
+		GroupName: "Cloud",
+	}
+	_, err = pool.GetOrCreateFromPayload(wrongHost, secret, payload)
+	if err == nil {
+		t.Error("expected failure for wrong username with private key")
 	}
 }

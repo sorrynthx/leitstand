@@ -62,7 +62,12 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 	}
 	defer vault.ZeroBytes(decrypted)
 
-	client, err := c.pool.GetOrCreate(host, secret, decrypted, nil)
+	payload, err := storage.ParseSecretPayload(decrypted, secret.AuthMethod)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse secret payload for host %d: %w", host.ID, err)
+	}
+
+	client, err := c.pool.GetOrCreateFromPayload(host, secret, payload)
 	if err != nil {
 		logger.Warnf("CollectHost: SSH connection failed for host %s (%d): %v", host.Name, host.ID, err)
 		c.recordHostError(host.ID, err)

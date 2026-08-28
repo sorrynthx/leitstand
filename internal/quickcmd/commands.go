@@ -55,6 +55,28 @@ func DetectOSTab(distro string) OSTab {
 // Catalog holds all curated commands categorized by OS tab.
 var Catalog = map[OSTab][]CommandItem{
 	OSTabCommon: {
+		// Interactive Terminal & Privileges
+		{
+			ID:          "com_su_root",
+			CategoryKey: "cat_interactive",
+			TitleKey:    "cmd_su_root_title",
+			DescKey:     "cmd_su_root_desc",
+			Command:     "su -",
+		},
+		{
+			ID:          "com_sudo_i",
+			CategoryKey: "cat_interactive",
+			TitleKey:    "cmd_sudo_i_title",
+			DescKey:     "cmd_sudo_i_desc",
+			Command:     "sudo -i",
+		},
+		{
+			ID:          "com_htop",
+			CategoryKey: "cat_interactive",
+			TitleKey:    "cmd_htop_title",
+			DescKey:     "cmd_htop_desc",
+			Command:     "htop",
+		},
 		// Resources
 		{
 			ID:          "com_top_cpu",

@@ -38,6 +38,23 @@ func (p *Pool) Get(hostID int64) (*Client, bool) {
 	return client, true
 }
 
+// GetOrCreateFromPayload retrieves an active SSH client or dials a new one using the decrypted SecretPayload.
+func (p *Pool) GetOrCreateFromPayload(host *storage.Host, secret *storage.HostSecret, payload *storage.SecretPayload) (*Client, error) {
+	if payload == nil {
+		return nil, fmt.Errorf("empty secret payload for host %d", host.ID)
+	}
+
+	if secret.AuthMethod == "private_key" {
+		var pass []byte
+		if payload.Passphrase != "" {
+			pass = []byte(payload.Passphrase)
+		}
+		return p.GetOrCreate(host, secret, []byte(payload.PrivateKey), pass)
+	}
+
+	return p.GetOrCreate(host, secret, []byte(payload.Password), nil)
+}
+
 // GetOrCreate returns an existing live client or establishes a new SSH connection.
 // IMPORTANT: Network Dialing (ssh.Dial) is performed OUTSIDE the pool mutex
 // so that a slow/unreachable host does NOT block connections to other hosts.

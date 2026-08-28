@@ -3,6 +3,7 @@ package tui
 import (
 	"leitstand/internal/config"
 	"leitstand/internal/i18n"
+	"leitstand/internal/ssh"
 	"leitstand/internal/storage"
 	"strings"
 	"testing"
@@ -62,5 +63,176 @@ func TestTUIModelView(t *testing.T) {
 	}
 	if !strings.Contains(rendered, i18n.T("cpu_usage")) {
 		t.Errorf("expected view to render CPU usage label, got:\n%s", rendered)
+	}
+}
+
+func TestMultiTabManagement(t *testing.T) {
+	hts := NewHostTabState(101, "prod-server", "/var/www")
+	if len(hts.Tabs) != 1 {
+		t.Fatalf("expected 1 initial tab, got %d", len(hts.Tabs))
+	}
+	if hts.ActiveTab() == nil {
+		t.Fatal("expected non-nil active tab")
+	}
+	if hts.ActiveTab().CWD != "/var/www" {
+		t.Errorf("expected initial CWD '/var/www', got '%s'", hts.ActiveTab().CWD)
+	}
+
+	// Add 2nd and 3rd tabs
+	tab2 := hts.AddNewTab(80, 20)
+	if len(hts.Tabs) != 2 || hts.ActiveIndex != 1 {
+		t.Errorf("expected 2 tabs and activeIndex 1, got %d tabs, index %d", len(hts.Tabs), hts.ActiveIndex)
+	}
+
+	tab3 := hts.AddNewTab(80, 20)
+	if len(hts.Tabs) != 3 || hts.ActiveIndex != 2 {
+		t.Errorf("expected 3 tabs and activeIndex 2, got %d tabs, index %d", len(hts.Tabs), hts.ActiveIndex)
+	}
+
+	// Tab-specific command history and auto title
+	tab2.SetAutoTitle(1, "docker logs -f app")
+	if !strings.Contains(tab2.Title, "docker logs") {
+		t.Errorf("expected title to contain 'docker logs', got '%s'", tab2.Title)
+	}
+
+	tab3.SetAutoTitle(2, "tail -f /var/log/syslog")
+	if !strings.Contains(tab3.Title, "tail") {
+		t.Errorf("expected title to contain 'tail', got '%s'", tab3.Title)
+	}
+
+	// Switch tabs
+	hts.SwitchTab(0)
+	if hts.ActiveIndex != 0 {
+		t.Errorf("expected activeIndex 0, got %d", hts.ActiveIndex)
+	}
+
+	hts.NextTab()
+	if hts.ActiveIndex != 1 {
+		t.Errorf("expected activeIndex 1 after NextTab, got %d", hts.ActiveIndex)
+	}
+
+	hts.PrevTab()
+	if hts.ActiveIndex != 0 {
+		t.Errorf("expected activeIndex 0 after PrevTab, got %d", hts.ActiveIndex)
+	}
+
+	// Close tab
+	hts.SwitchTab(1)
+	closed := hts.CloseActiveTab()
+	if !closed {
+		t.Fatal("expected CloseActiveTab to succeed")
+	}
+	if len(hts.Tabs) != 2 {
+		t.Errorf("expected 2 tabs remaining, got %d", len(hts.Tabs))
+	}
+
+	// Cannot close beyond 1 tab
+	hts.CloseActiveTab()
+	if len(hts.Tabs) != 1 {
+		t.Errorf("expected 1 tab remaining, got %d", len(hts.Tabs))
+	}
+	closedLast := hts.CloseActiveTab()
+	if closedLast {
+		t.Error("expected closing last tab to return false")
+	}
+}
+
+func TestStreamingCommandDetection(t *testing.T) {
+	cases := []struct {
+		cmd      string
+		expected bool
+	}{
+		{"tail -f /var/log/syslog", true},
+		{"docker logs -f my-container", true},
+		{"docker-compose logs -f", true},
+		{"journalctl -f -u nginx", true},
+		{"ping 8.8.8.8", true},
+		{"watch -n 1 df -h", true},
+		{"ls -la", false},
+		{"cat /etc/hosts", false},
+		{"df -h", false},
+		{"docker ps", false},
+	}
+
+	for _, c := range cases {
+		got := IsStreamingCommand(c.cmd)
+		if got != c.expected {
+			t.Errorf("IsStreamingCommand(%q) = %v, expected %v", c.cmd, got, c.expected)
+		}
+	}
+}
+
+func TestFileManagerModal(t *testing.T) {
+	i18n.SetLang(i18n.LangEN)
+	fm := NewFileManagerModal(101, "prod-server", ".", "/var/www")
+	if fm.FocusLocal {
+		t.Error("expected initial focus on Remote pane")
+	}
+
+	// Mock file items
+	fm.LocalItems = []*ssh.FileItem{
+		{Name: "..", Path: "..", IsDir: true},
+		{Name: "app.py", Path: "app.py", Size: 1024, IsDir: false},
+		{Name: "config.yaml", Path: "config.yaml", Size: 512, IsDir: false},
+	}
+	fm.RemoteItems = GetDemoRemoteFiles("/var/www")
+
+	// Test multi selection
+	fm.LocalSelected["app.py"] = true
+	fm.LocalSelected["config.yaml"] = true
+
+	selected := fm.GetSelectedPaths(true)
+	if len(selected) != 2 {
+		t.Errorf("expected 2 selected files, got %d", len(selected))
+	}
+
+	// Test rendering
+	viewStr := fm.View(120, 30)
+	if !strings.Contains(viewStr, "SFTP Dual-Pane File Manager") {
+		t.Errorf("expected title in view, got:\n%s", viewStr)
+	}
+	if !strings.Contains(viewStr, "My PC (Local)") {
+		t.Errorf("expected Local PC header, got:\n%s", viewStr)
+	}
+	if !strings.Contains(viewStr, "prod-server") {
+		t.Errorf("expected remote server name in view, got:\n%s", viewStr)
+	}
+
+	// Test transfer progress rendering
+	fm.IsTransferring = true
+	fm.TransferIsUpload = true
+	fm.CurrentFileName = "app.py"
+	fm.CurrentBytes = 512
+	fm.CurrentTotal = 1024
+	fm.BytesPerSec = 2048000
+
+	transferView := fm.View(120, 30)
+	if !strings.Contains(transferView, "UPLOADING") {
+		t.Errorf("expected UPLOADING indicator in transfer bar, got:\n%s", transferView)
+	}
+
+	// Test Runbook overlay
+	fm.ShowRunbook = true
+	runbookView := fm.View(120, 30)
+	if !strings.Contains(runbookView, "Keyboard Shortcut Runbook") {
+		t.Errorf("expected Runbook title in view, got:\n%s", runbookView)
+	}
+	// Test Clipboard (Cut / Copy)
+	fm.ShowCmdOutput = false
+	fm.ClipboardPaths = []string{"app.py", "config.yaml"}
+	fm.ClipboardIsCut = true
+	clipView := fm.View(120, 30)
+	if !strings.Contains(clipView, "대기") && !strings.Contains(clipView, "Cut") && !strings.Contains(clipView, "2") {
+		t.Errorf("expected clipboard banner in view, got:\n%s", clipView)
+	}
+}
+
+func TestLocalDirectoryListing(t *testing.T) {
+	items, err := ssh.ListLocalDirectory(".", false)
+	if err != nil {
+		t.Fatalf("ListLocalDirectory failed: %v", err)
+	}
+	if len(items) == 0 {
+		t.Error("expected non-empty directory listing for '.'")
 	}
 }

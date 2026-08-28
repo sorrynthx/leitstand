@@ -15,6 +15,7 @@ var (
 	ColorBorder    = lipgloss.Color("#37474F") // Dark Slate Border
 	ColorHighlight = lipgloss.Color("#263238") // Dark Teal Highlight
 	ColorBg        = lipgloss.Color("#121212") // Deep Dark Background
+	ColorText      = lipgloss.Color("#E0E0E0") // Light Gray Text
 
 	// Styles
 	TitleStyle = lipgloss.NewStyle().
