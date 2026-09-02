@@ -7,9 +7,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// updateActiveModals processes events for any currently open modal dialogs.
-// Returns (updatedModel, teaCmd, wasModalActive).
 func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
+	// Only intercept UI inputs (KeyMsg, MouseMsg, WindowSizeMsg) for modals.
+	// Allow background stream messages (StreamChunkMsg, StreamFinishedMsg, TelemetryMsg, etc.) to pass through!
+	switch msg.(type) {
+	case tea.KeyMsg, tea.MouseMsg, tea.WindowSizeMsg:
+		// Modal UI event processing continues below
+	default:
+		return m, nil, false
+	}
+
 	keyMsg, isKey := msg.(tea.KeyMsg)
 	keyStr := ""
 	if isKey {
@@ -18,25 +25,31 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 
 	// 1. Settings / Preferences Modal
 	if m.showSettingsModal && m.settingsModal != nil {
-		done, saveReq, lang, interval, currPass, newPass, cmd := m.settingsModal.Update(msg)
-		if done && !saveReq {
+		res, cmd := m.settingsModal.Update(msg)
+		if res.Done && !res.SaveReq {
 			m.showSettingsModal = false
 			m.settingsModal = nil
 			m.statusMessage = "Settings closed."
 			return m, nil, true
 		}
-		if saveReq {
-			i18n.SetLang(lang)
+		if res.SaveReq {
+			i18n.SetLang(res.Lang)
 			if m.cfg != nil {
-				m.cfg.Telemetry.PollingInterval = interval
+				m.cfg.Telemetry.PollingInterval = res.Interval
+				m.cfg.Telemetry.CPUThreshold = res.CPUThresh
+				m.cfg.Telemetry.RAMThreshold = res.RAMThresh
+				m.cfg.Telemetry.DiskThreshold = res.DiskThresh
 			}
 			if m.store != nil {
-				_ = m.store.SetSetting("language", string(lang))
-				_ = m.store.SetSetting("polling_interval", interval.String())
+				_ = m.store.SetSetting("language", string(res.Lang))
+				_ = m.store.SetSetting("polling_interval", res.Interval.String())
+				_ = m.store.SetSetting("cpu_threshold", fmt.Sprintf("%.0f", res.CPUThresh))
+				_ = m.store.SetSetting("ram_threshold", fmt.Sprintf("%.0f", res.RAMThresh))
+				_ = m.store.SetSetting("disk_threshold", fmt.Sprintf("%.0f", res.DiskThresh))
 			}
 
-			if newPass != "" {
-				err := m.changeVaultPassword(currPass, newPass)
+			if res.NewPass != "" {
+				err := m.changeVaultPassword(res.CurrPass, res.NewPass)
 				if err != nil {
 					m.settingsModal.SetError(err)
 					return m, nil, true
@@ -45,19 +58,8 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 
 			m.showSettingsModal = false
 			m.settingsModal = nil
-			m.statusMessage = i18n.T("settings_saved")
-			return m, m.tickCmd(), true
-		}
-		return m, cmd, true
-	}
-
-	// 1.1 Dual-Pane SFTP File Manager Modal
-	if m.showFileManager && m.fileManager != nil {
-		done, cmd := m.fileManager.Update(msg)
-		if done {
-			m.showFileManager = false
-			m.fileManager = nil
-			m.statusMessage = "📂 File manager closed."
+			m.statusMessage = "✨ " + i18n.T("settings_saved_msg")
+			m.updateViewportContent()
 			return m, nil, true
 		}
 		return m, cmd, true
@@ -65,7 +67,7 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 
 	// 2. In-app File Editor Modal
 	if m.showEditorModal && m.editorModal != nil {
-		done, saveReq, updatedContent, cmd := m.editorModal.Update(msg)
+		done, saveReq, saveContent, cmd := m.editorModal.Update(msg)
 		if done {
 			m.showEditorModal = false
 			m.editorModal = nil
@@ -73,42 +75,56 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 			return m, nil, true
 		}
 		if saveReq {
-			m.statusMessage = "⏳ Saving file to remote server..."
-			return m, m.saveRemoteFileCmd(m.editorModal.HostID, m.editorModal.FilePath, updatedContent), true
+			m.statusMessage = fmt.Sprintf("💾 Saving '%s'...", m.editorModal.FilePath)
+			return m, m.saveRemoteFileCmd(m.editorModal.HostID, m.editorModal.FilePath, saveContent), true
 		}
 		return m, cmd, true
 	}
 
 	// 3. Vault Unlock/Init Modal
-	if m.showVaultModal && m.vaultForm != nil {
-		done, pass, cmd := m.vaultForm.Update(msg)
-		if done {
-			if pass == "" {
-				m.cancel()
-				return m, tea.Quit, true
+	if m.showVaultModal {
+		vf := m.vaultModal
+		if vf == nil {
+			vf = m.vaultForm
+		}
+		if vf != nil {
+			prevLang := i18n.GetLang()
+			done, pass, cmd := vf.Update(msg)
+			if i18n.GetLang() != prevLang && m.store != nil {
+				_ = m.store.SetSetting("language", string(i18n.GetLang()))
 			}
+			if done {
+				if pass == "" {
+					m.cancel()
+					return m, tea.Quit, true
+				}
 
-			isInit, _ := m.store.IsVaultInitialized()
-			var err error
-			if !isInit {
-				err = m.store.InitVault(m.vault, pass)
+				isInit, _ := m.store.IsVaultInitialized()
+				var err error
+				if !isInit {
+					err = m.store.InitVault(m.vault, pass)
+				} else {
+					err = m.store.UnlockVault(m.vault, pass)
+				}
+
 				if err == nil && m.store != nil {
 					_ = m.store.SetSetting("language", string(i18n.GetLang()))
 				}
-			} else {
-				err = m.store.UnlockVault(m.vault, pass)
-			}
 
-			if err != nil {
-				m.vaultForm.SetError(err)
-				return m, nil, true
-			}
+				if err != nil {
+					vf.SetError(err)
+					return m, nil, true
+				}
 
-			m.showVaultModal = false
-			m.statusMessage = "✨ Vault unlocked successfully!"
-			return m, tea.Batch(m.loadHostsCmd(), m.pollActiveHostsCmd()), true
+				m.showVaultModal = false
+				m.activePane = PaneHostList
+				m.selectedIndex = 0
+				m.userHasNavigated = true
+				m.statusMessage = "✨ Vault unlocked successfully!"
+				return m, tea.Batch(m.loadHostsCmd(), m.pollActiveHostsCmd()), true
+			}
+			return m, cmd, true
 		}
-		return m, cmd, true
 	}
 
 	// 4. Delete Host Confirmation Modal
@@ -120,7 +136,6 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 					_ = m.store.DeleteHost(m.hostToDelete.ID)
 					delete(m.metrics, m.hostToDelete.ID)
 					delete(m.errors, m.hostToDelete.ID)
-					delete(m.consoleLogs, m.hostToDelete.ID)
 					delete(m.hostTabs, m.hostToDelete.ID)
 					m.statusMessage = fmt.Sprintf("🗑️ Host '%s' removed successfully.", m.hostToDelete.Name)
 					m.showDeleteModal = false
@@ -128,68 +143,99 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 					return m, m.loadHostsCmd(), true
 				}
 				m.showDeleteModal = false
+				m.hostToDelete = nil
 				return m, nil, true
 
 			case "n", "N", "esc":
 				m.showDeleteModal = false
 				m.hostToDelete = nil
-				m.statusMessage = "Delete cancelled."
+				m.statusMessage = "Deletion canceled."
 				return m, nil, true
 			}
 		}
 		return m, nil, true
 	}
 
-	// 5. Add Host Modal
+	// 5. Add / Edit Host Modal
 	if m.showAddModal && m.addForm != nil {
-		done, data, cmd := m.addForm.Update(msg)
+		done, formData, cmd := m.addForm.Update(msg)
 		if done {
+			if formData == nil {
+				m.showAddModal = false
+				m.addForm = nil
+				m.statusMessage = "Add host canceled."
+				return m, nil, true
+			}
 			m.showAddModal = false
-			if data != nil {
-				return m, m.saveNewHostCmd(data), true
-			}
+			m.addForm = nil
+			m.statusMessage = fmt.Sprintf("⏳ Saving host '%s'...", formData.Name)
+			return m, m.saveNewHostCmd(formData), true
 		}
 		return m, cmd, true
 	}
 
-	// 6. Edit Host Modal
 	if m.showEditModal && m.editForm != nil {
-		done, data, cmd := m.editForm.Update(msg)
+		done, formData, cmd := m.editForm.Update(msg)
 		if done {
-			m.showEditModal = false
-			if data != nil && m.hostToEdit != nil {
-				return m, m.updateExistingHostCmd(m.hostToEdit.ID, data), true
+			if formData == nil {
+				m.showEditModal = false
+				m.editForm = nil
+				m.hostToEdit = nil
+				m.statusMessage = "Edit host canceled."
+				return m, nil, true
 			}
+			hostID := m.hostToEdit.ID
+			m.showEditModal = false
+			m.editForm = nil
+			m.hostToEdit = nil
+			m.statusMessage = fmt.Sprintf("⏳ Updating host '%s'...", formData.Name)
+			return m, m.updateExistingHostCmd(hostID, formData), true
 		}
 		return m, cmd, true
 	}
 
-	// 7. Sudo Password Modal
+	// 6. Root/Sudo Elevation Password Modal
 	if m.showSudoModal && m.sudoModal != nil {
-		done, pass, remember, cmd := m.sudoModal.Update(msg)
+		done, pass, _, remember, cmd := m.sudoModal.Update(msg)
 		if done {
 			m.showSudoModal = false
-			if pass != "" && len(m.hosts) > 0 {
-				curHost := m.hosts[m.selectedIndex]
-				if remember {
-					m.sudoCache[curHost.ID] = pass
-				}
-				if m.pendingSudoCmd == "su" {
-					tab := m.CurrentActiveTab()
-					if tab != nil {
-						tab.IsRoot = true
-						hts := m.GetOrCreateHostTabs(curHost.ID, curHost.Name)
-						tab.SetAutoTitle(hts.ActiveIndex, "")
-						tab.AppendLog(fmt.Sprintf("✨ [ROOT Session] Authenticated with root privileges on %s.\nCommands in this tab run as root (root#). Type 'exit' to log out.", curHost.Name))
-						m.updateViewportContent()
-						m.statusMessage = "👑 Root session activated for this tab."
-						return m, nil, true
-					}
-				}
-				m.statusMessage = fmt.Sprintf("⏳ Executing with elevated privilege: '%s'...", m.pendingSudoCmd)
-				return m, m.execSudoCmd(curHost, m.pendingSudoCmd, pass), true
+			m.sudoModal = nil
+
+			if pass == "" {
+				m.statusMessage = "Elevation canceled."
+				return m, nil, true
 			}
-			m.statusMessage = "Sudo command cancelled."
+
+			if remember && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+				curHost := m.hosts[m.selectedIndex]
+				m.sudoCache[curHost.ID] = pass
+			}
+
+			if m.pendingSudoCmd == "su" {
+				curHost := m.hosts[m.selectedIndex]
+				hts := m.GetOrCreateHostTabs(curHost.ID, curHost.Name)
+				activeTab := hts.ActiveTab()
+				m.statusMessage = fmt.Sprintf("⏳ [접속 및 권한 검증 중...] Authenticating root credentials on %s...", curHost.Name)
+				return m, m.execSudoValidateAndElevateCmd(curHost, activeTab, pass, remember), true
+			}
+
+			cmdToRun := m.pendingSudoCmd
+			m.pendingSudoCmd = ""
+			curHost := m.hosts[m.selectedIndex]
+			m.statusMessage = fmt.Sprintf("⏳ Executing: '%s'...", cmdToRun)
+			return m, m.execSudoCmd(curHost, cmdToRun, pass), true
+		}
+		return m, cmd, true
+	}
+
+	// 7. File Manager Modal
+	if m.showFileManager && m.fileManager != nil {
+		done, cmd := m.fileManager.Update(msg)
+		if done {
+			m.showFileManager = false
+			m.fileManager = nil
+			m.statusMessage = "📂 File manager closed."
+			return m, nil, true
 		}
 		return m, cmd, true
 	}

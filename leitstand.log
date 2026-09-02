@@ -1,0 +1,373 @@
+[2026/09/02 16:06:13.953] [INFO] ==================================================
+[2026/09/02 16:06:13.962] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:06:13
+[2026/09/02 16:06:13.962] [INFO] ==================================================
+[2026/09/02 16:06:13.962] [INFO] Initializing Leitstand application...
+[2026/09/02 16:06:18.379] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:18.379] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:06:18.420] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:06:20.233] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:23.305] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:24.890] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:26.193] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:26.252] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:31.896] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:33.296] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:34.615] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:37.935] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:38.270] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:38.287] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:39.571] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:42.891] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:43.609] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:43.623] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:44.842] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:45.893] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:48.382] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:49.367] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:49.407] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:06:53.052] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:33.729] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:33.765] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:47.112] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:47.142] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:53.534] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:07:53.560] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:36.744] [INFO] ==================================================
+[2026/09/02 16:10:36.754] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:10:36
+[2026/09/02 16:10:36.754] [INFO] ==================================================
+[2026/09/02 16:10:36.754] [INFO] Initializing Leitstand application...
+[2026/09/02 16:10:43.251] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:43.251] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:10:43.291] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:10:46.274] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:10:46.274] [DEBUG] Pool: Dialing SSH to host test-server1 (192.168.14.119:22)...
+[2026/09/02 16:10:46.312] [INFO] Pool: Established live SSH connection to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:10:47.086] [DEBUG] getSSHClient: connecting to host test1 (192.168.14.119:22)
+[2026/09/02 16:10:47.086] [DEBUG] Pool: Dialing SSH to host test1 (192.168.14.119:22)...
+[2026/09/02 16:10:47.172] [INFO] Pool: Established live SSH connection to host test1 (192.168.14.119:22)
+[2026/09/02 16:10:47.718] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:10:47.852] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:48.019] [DEBUG] getSSHClient: connecting to host test1 (192.168.14.119:22)
+[2026/09/02 16:10:48.470] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:48.654] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:10:48.956] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:49.958] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:10:53.867] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:16.140] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:16.231] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:41.772] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:41.857] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:50.852] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:50.926] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:59.092] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:11:59.266] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:02.494] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:02.580] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:17.675] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:18.757] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:19.903] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:21.434] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:23.217] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:23.782] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:24.682] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:25.869] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:25.884] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:26.967] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:33.427] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:33.475] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:37.914] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:37.943] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:45.541] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:46.057] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:46.554] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:47.557] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:47.708] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:47.892] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:48.042] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:54.130] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:54.145] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:12:56.801] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:00.722] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:00.729] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:03.327] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:03.340] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:28.871] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:28.877] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:39.166] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:39.170] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:48.077] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:48.088] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:55.568] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:13:55.593] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:20:46.177] [INFO] ==================================================
+[2026/09/02 16:20:46.186] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:20:46
+[2026/09/02 16:20:46.186] [INFO] ==================================================
+[2026/09/02 16:20:46.186] [INFO] Initializing Leitstand application...
+[2026/09/02 16:20:52.476] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:20:52.476] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:20:52.517] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:20:54.201] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:22:34.919] [INFO] ==================================================
+[2026/09/02 16:22:34.928] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:22:34
+[2026/09/02 16:22:34.928] [INFO] ==================================================
+[2026/09/02 16:22:34.928] [INFO] Initializing Leitstand application...
+[2026/09/02 16:22:36.826] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:22:36.826] [DEBUG] Pool: Dialing SSH to host test-server1 (192.168.14.119:22)...
+[2026/09/02 16:22:36.866] [INFO] Pool: Established live SSH connection to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:22:37.336] [DEBUG] getSSHClient: connecting to host test1 (192.168.14.119:22)
+[2026/09/02 16:22:37.336] [DEBUG] Pool: Dialing SSH to host test1 (192.168.14.119:22)...
+[2026/09/02 16:22:37.420] [INFO] Pool: Established live SSH connection to host test1 (192.168.14.119:22)
+[2026/09/02 16:22:37.895] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:22:38.109] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:22:38.109] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:22:38.147] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:22:39.487] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:22:39.636] [DEBUG] getSSHClient: connecting to host test1 (192.168.14.119:22)
+[2026/09/02 16:22:39.949] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:22:40.097] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:27:24.203] [INFO] ==================================================
+[2026/09/02 16:27:24.212] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:27:24
+[2026/09/02 16:27:24.212] [INFO] ==================================================
+[2026/09/02 16:27:24.212] [INFO] Initializing Leitstand application...
+[2026/09/02 16:27:39.637] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:27:39.637] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:27:39.681] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:27:42.190] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:27:44.492] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:27:44.492] [DEBUG] Pool: Dialing SSH to host test-server1 (192.168.14.119:22)...
+[2026/09/02 16:27:44.534] [INFO] Pool: Established live SSH connection to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:27:46.129] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:27:49.081] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:27:50.217] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:27:58.912] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:29:46.980] [INFO] ==================================================
+[2026/09/02 16:29:46.989] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:29:46
+[2026/09/02 16:29:46.989] [INFO] ==================================================
+[2026/09/02 16:29:46.989] [INFO] Initializing Leitstand application...
+[2026/09/02 16:29:51.252] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:29:51.252] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:29:51.290] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:29:52.960] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:29:57.154] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:30:00.310] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:30:03.059] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:30:04.868] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:30:04.868] [DEBUG] Pool: Dialing SSH to host test-server1 (192.168.14.119:22)...
+[2026/09/02 16:30:04.907] [INFO] Pool: Established live SSH connection to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:30:07.865] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:30:08.234] [DEBUG] getSSHClient: connecting to host test-server1 (192.168.14.119:22)
+[2026/09/02 16:30:08.466] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:33:54.134] [INFO] ==================================================
+[2026/09/02 16:33:54.143] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:33:54
+[2026/09/02 16:33:54.143] [INFO] ==================================================
+[2026/09/02 16:33:54.143] [INFO] Initializing Leitstand application...
+[2026/09/02 16:34:03.668] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:34:03.668] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:34:03.714] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:36:43.329] [INFO] ==================================================
+[2026/09/02 16:36:43.338] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:36:43
+[2026/09/02 16:36:43.338] [INFO] ==================================================
+[2026/09/02 16:36:43.338] [INFO] Initializing Leitstand application...
+[2026/09/02 16:36:50.678] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:36:50.679] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:36:50.722] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:41:41.371] [INFO] ==================================================
+[2026/09/02 16:41:41.380] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:41:41
+[2026/09/02 16:41:41.380] [INFO] ==================================================
+[2026/09/02 16:41:41.380] [INFO] Initializing Leitstand application...
+[2026/09/02 16:41:49.896] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:41:49.896] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:41:49.935] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:41:52.665] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:41:53.360] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:41:57.852] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:41:59.499] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:43:35.328] [INFO] ==================================================
+[2026/09/02 16:43:35.337] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:43:35
+[2026/09/02 16:43:35.337] [INFO] ==================================================
+[2026/09/02 16:43:35.337] [INFO] Initializing Leitstand application...
+[2026/09/02 16:43:53.908] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:43:53.908] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:43:53.953] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:44:00.966] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:46:18.595] [INFO] ==================================================
+[2026/09/02 16:46:18.604] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:46:18
+[2026/09/02 16:46:18.604] [INFO] ==================================================
+[2026/09/02 16:46:18.604] [INFO] Initializing Leitstand application...
+[2026/09/02 16:46:22.538] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:46:22.538] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:46:22.584] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:47:00.078] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:48:51.981] [INFO] ==================================================
+[2026/09/02 16:48:51.990] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:48:51
+[2026/09/02 16:48:51.990] [INFO] ==================================================
+[2026/09/02 16:48:51.990] [INFO] Initializing Leitstand application...
+[2026/09/02 16:48:55.631] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:48:55.631] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:48:55.672] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:50:24.360] [INFO] ==================================================
+[2026/09/02 16:50:24.368] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:50:24
+[2026/09/02 16:50:24.368] [INFO] ==================================================
+[2026/09/02 16:50:24.368] [INFO] Initializing Leitstand application...
+[2026/09/02 16:50:27.614] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:50:27.614] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:50:27.658] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:50:33.099] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:50:45.244] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:54:39.258] [INFO] ==================================================
+[2026/09/02 16:54:39.267] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:54:39
+[2026/09/02 16:54:39.267] [INFO] ==================================================
+[2026/09/02 16:54:39.267] [INFO] Initializing Leitstand application...
+[2026/09/02 16:54:44.673] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:54:44.674] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:54:44.716] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:55:08.367] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:57:38.650] [INFO] ==================================================
+[2026/09/02 16:57:38.660] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 16:57:38
+[2026/09/02 16:57:38.660] [INFO] ==================================================
+[2026/09/02 16:57:38.660] [INFO] Initializing Leitstand application...
+[2026/09/02 16:57:49.644] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:57:49.644] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:57:49.672] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:57:49.672] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 16:57:49.691] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 16:58:05.654] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:58:41.540] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 16:58:49.706] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:01:06.673] [INFO] ==================================================
+[2026/09/02 17:01:06.681] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:01:06
+[2026/09/02 17:01:06.681] [INFO] ==================================================
+[2026/09/02 17:01:06.681] [INFO] Initializing Leitstand application...
+[2026/09/02 17:01:09.248] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:01:09.248] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:01:09.291] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:01:09.687] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:01:42.834] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:01:52.119] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:01:53.951] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:02:09.725] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:05:27.772] [INFO] ==================================================
+[2026/09/02 17:05:27.781] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:05:27
+[2026/09/02 17:05:27.781] [INFO] ==================================================
+[2026/09/02 17:05:27.781] [INFO] Initializing Leitstand application...
+[2026/09/02 17:08:06.151] [INFO] ==================================================
+[2026/09/02 17:08:06.160] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:08:06
+[2026/09/02 17:08:06.160] [INFO] ==================================================
+[2026/09/02 17:08:06.160] [INFO] Initializing Leitstand application...
+[2026/09/02 17:08:52.321] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:08:52.321] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:08:52.364] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:08:53.189] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:09:49.589] [INFO] ==================================================
+[2026/09/02 17:09:49.599] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:09:49
+[2026/09/02 17:09:49.599] [INFO] ==================================================
+[2026/09/02 17:09:49.599] [INFO] Initializing Leitstand application...
+[2026/09/02 17:09:53.265] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:09:53.265] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:09:53.304] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:09:53.603] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:09:57.565] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:10:23.619] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:10:42.630] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:10:47.634] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:10:52.634] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:10:57.639] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:02.642] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:07.644] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:12.648] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:17.650] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:22.652] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:27.658] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:32.660] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:37.663] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:42.664] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:11:47.668] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:13:48.852] [INFO] ==================================================
+[2026/09/02 17:13:48.862] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:13:48
+[2026/09/02 17:13:48.862] [INFO] ==================================================
+[2026/09/02 17:13:48.862] [INFO] Initializing Leitstand application...
+[2026/09/02 17:13:56.973] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:13:56.973] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:13:57.015] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:13:57.871] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:02.872] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:07.875] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:12.879] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:17.881] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:22.887] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:27.889] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:32.889] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:37.894] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:42.895] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:47.898] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:52.899] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:14:57.903] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:02.904] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:07.908] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:12.909] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:17.913] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:22.916] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:27.919] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:32.920] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:15:37.924] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:25.367] [INFO] ==================================================
+[2026/09/02 17:19:25.376] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:19:25
+[2026/09/02 17:19:25.376] [INFO] ==================================================
+[2026/09/02 17:19:25.376] [INFO] Initializing Leitstand application...
+[2026/09/02 17:19:28.922] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:28.922] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:19:28.967] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:19:29.384] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:34.386] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:39.388] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:44.392] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:49.392] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:19:54.396] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:20:49.184] [INFO] ==================================================
+[2026/09/02 17:20:49.193] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:20:49
+[2026/09/02 17:20:49.193] [INFO] ==================================================
+[2026/09/02 17:20:49.193] [INFO] Initializing Leitstand application...
+[2026/09/02 17:20:55.841] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:20:55.841] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:20:55.883] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:20:56.199] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:01.203] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:06.207] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:11.208] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:16.213] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:21.213] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:26.218] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:31.219] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:36.224] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:41.225] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:46.228] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:21:51.232] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:01.061] [INFO] ==================================================
+[2026/09/02 17:23:01.071] [INFO] ⚡ Leitstand Log Initialized at 2026-09-02 17:23:01
+[2026/09/02 17:23:01.071] [INFO] ==================================================
+[2026/09/02 17:23:01.071] [INFO] Initializing Leitstand application...
+[2026/09/02 17:23:03.770] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:03.771] [DEBUG] Pool: Dialing SSH to host te (192.168.14.119:22)...
+[2026/09/02 17:23:03.817] [INFO] Pool: Established live SSH connection to host te (192.168.14.119:22)
+[2026/09/02 17:23:04.077] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:09.080] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:14.083] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:19.087] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:24.089] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:29.091] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:34.094] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:39.097] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:41.601] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:44.100] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:49.104] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:54.106] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:23:59.110] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:04.111] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:09.118] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:14.114] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:19.119] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:24.120] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:29.124] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:34.128] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:39.130] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)
+[2026/09/02 17:24:44.134] [DEBUG] getSSHClient: connecting to host te (192.168.14.119:22)

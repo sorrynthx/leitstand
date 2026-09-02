@@ -33,10 +33,13 @@ type ConsoleTab struct {
 // HostTabState holds all tabs and the active tab index for a specific host.
 type HostTabState struct {
 	HostID      int64
+	HostName    string
 	Tabs        []*ConsoleTab
 	ActiveIndex int
 	mu          sync.RWMutex
 }
+
+type HostTabs = HostTabState
 
 // NewHostTabState creates an initial HostTabState with one default tab.
 func NewHostTabState(hostID int64, hostName string, initialCWD string) *HostTabState {
@@ -91,7 +94,10 @@ func (hts *HostTabState) AddNewTab(vpWidth, vpHeight int) *ConsoleTab {
 
 	baseCWD := "~"
 	if len(hts.Tabs) > 0 && hts.ActiveIndex >= 0 && hts.ActiveIndex < len(hts.Tabs) {
-		baseCWD = hts.Tabs[hts.ActiveIndex].CWD
+		active := hts.Tabs[hts.ActiveIndex]
+		if active != nil && active.CWD != "" && active.CWD != "/root" && !strings.HasPrefix(active.CWD, "/root/") {
+			baseCWD = active.CWD
+		}
 	}
 
 	vp := viewport.New(vpWidth, vpHeight)
@@ -181,59 +187,4 @@ func (hts *HostTabState) PrevTab() {
 	if hts.ActiveIndex < 0 {
 		hts.ActiveIndex = len(hts.Tabs) - 1
 	}
-}
-
-// AppendLog adds a log line to a tab and updates its viewport.
-func (tab *ConsoleTab) AppendLog(entry string) {
-	tab.Logs = append(tab.Logs, entry)
-	if len(tab.Logs) > 100 {
-		tab.Logs = tab.Logs[len(tab.Logs)-100:]
-	}
-	tab.UpdateViewportContent()
-}
-
-// SetFrame replaces the tab content with a fresh live screen frame (top/htop/watch).
-func (tab *ConsoleTab) SetFrame(frame string) {
-	tab.Logs = []string{frame}
-	tab.Viewport.SetContent(frame)
-}
-
-// UpdateViewportContent refreshes the tab's viewport content.
-func (tab *ConsoleTab) UpdateViewportContent() {
-	if len(tab.Logs) == 0 {
-		welcomeMsg := fmt.Sprintf("Terminal Session Tab [%s]\nType remote commands below and press Enter to execute.\n[Ctrl+N] New Tab  [Ctrl+W] Close Tab  [Alt+1~9] Switch Tab", tab.Title)
-		tab.Viewport.SetContent(welcomeMsg)
-		return
-	}
-	tab.Viewport.SetContent(strings.Join(tab.Logs, "\n\n"))
-	tab.Viewport.GotoBottom()
-}
-
-// SetAutoTitle automatically updates tab title based on running command or cwd.
-func (tab *ConsoleTab) SetAutoTitle(tabIndex int, cmdText string) {
-	trimmed := strings.TrimSpace(cmdText)
-	if trimmed == "" {
-		if tab.IsRoot {
-			tab.Title = fmt.Sprintf("%d: root#", tabIndex+1)
-		} else {
-			tab.Title = fmt.Sprintf("%d: bash", tabIndex+1)
-		}
-		return
-	}
-
-	fields := strings.Fields(trimmed)
-	shortCmd := fields[0]
-	if len(fields) > 1 && (shortCmd == "sudo" || shortCmd == "tail" || shortCmd == "docker" || shortCmd == "journalctl" || shortCmd == "su") {
-		shortCmd = fmt.Sprintf("%s %s", fields[0], fields[1])
-	}
-
-	if tab.IsRoot && !strings.HasPrefix(shortCmd, "root") {
-		shortCmd = fmt.Sprintf("root: %s", shortCmd)
-	}
-
-	if len(shortCmd) > 18 {
-		shortCmd = shortCmd[:18] + "…"
-	}
-
-	tab.Title = fmt.Sprintf("%d: %s", tabIndex+1, shortCmd)
 }

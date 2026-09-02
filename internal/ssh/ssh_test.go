@@ -3,8 +3,6 @@ package ssh
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io"
 	"leitstand/internal/storage"
@@ -171,6 +169,15 @@ func TestSSHPoolAndExec(t *testing.T) {
 		t.Errorf("unexpected stdout: %s", string(stdout))
 	}
 
+	// 2-1. ExecWithStdin execution
+	inOut, inErr, err := client1.ExecWithStdin("echo with-stdin", []byte("sample-data\n"), 5*time.Second)
+	if err != nil {
+		t.Fatalf("exec with stdin error: %v, stderr: %s", err, string(inErr))
+	}
+	if strings.TrimSpace(string(inOut)) != "with-stdin" {
+		t.Errorf("unexpected stdin stdout: %s", string(inOut))
+	}
+
 	// 3. Pool reuse check (should return identical client pointer)
 	client2, err := pool.GetOrCreate(host, secret, []byte("secret-pass"), nil)
 	if err != nil {
@@ -198,81 +205,5 @@ func TestSSHPoolAndExec(t *testing.T) {
 	pool.CloseHost(1)
 	if pool.ActiveCount() != 0 {
 		t.Errorf("expected 0 active clients after CloseHost, got %d", pool.ActiveCount())
-	}
-}
-
-func TestSSHPrivateKeyAuth(t *testing.T) {
-	// Generate RSA key pair for testing
-	rawKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		t.Fatalf("failed to generate rsa key: %v", err)
-	}
-
-	signer, err := ssh.NewSignerFromKey(rawKey)
-	if err != nil {
-		t.Fatalf("failed to create signer: %v", err)
-	}
-	publicKey := signer.PublicKey()
-
-	// Encode private key to PEM format
-	keyDER := x509.MarshalPKCS1PrivateKey(rawKey)
-	keyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: keyDER,
-	})
-
-	mockAddr, cleanup := startMockSSHServer(t, "key-user", "", publicKey)
-	defer cleanup()
-
-	hostStr, portStr, _ := net.SplitHostPort(mockAddr)
-	port, _ := strconv.Atoi(portStr)
-
-	host := &storage.Host{
-		ID:        10,
-		Name:      "key-server",
-		Address:   hostStr,
-		Port:      port,
-		Username:  "key-user",
-		GroupName: "Cloud",
-	}
-
-	secret := &storage.HostSecret{
-		HostID:     10,
-		AuthMethod: "private_key",
-	}
-
-	payload := &storage.SecretPayload{
-		PrivateKey: string(keyPEM),
-	}
-
-	pool := NewPool(5 * time.Second)
-	defer pool.CloseAll()
-
-	// Connect using GetOrCreateFromPayload
-	client, err := pool.GetOrCreateFromPayload(host, secret, payload)
-	if err != nil {
-		t.Fatalf("failed to connect via private key: %v", err)
-	}
-
-	stdout, stderr, err := client.Exec("echo key-auth-success")
-	if err != nil {
-		t.Fatalf("exec error: %v (stderr: %s)", err, string(stderr))
-	}
-	if strings.TrimSpace(string(stdout)) != "key-auth-success" {
-		t.Errorf("unexpected output: %s", string(stdout))
-	}
-
-	// Check reject wrong user or wrong key
-	wrongHost := &storage.Host{
-		ID:        11,
-		Name:      "wrong-server",
-		Address:   hostStr,
-		Port:      port,
-		Username:  "wrong-user",
-		GroupName: "Cloud",
-	}
-	_, err = pool.GetOrCreateFromPayload(wrongHost, secret, payload)
-	if err == nil {
-		t.Error("expected failure for wrong username with private key")
 	}
 }

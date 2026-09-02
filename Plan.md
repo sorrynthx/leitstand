@@ -10,8 +10,8 @@
 * **Target Users**: Backend/DevOps/SRE engineers managing multiple Linux/Unix remote servers across various environments.
 * **Core Philosophy**:
   * **Zero-Agent**: No daemons or agents installed on target servers. Pure SSH protocol and POSIX-compliant data extraction.
-  * **Zero-Knowledge Local Vault**: Server credentials and private keys are encrypted locally using master-key derivation.
-  * **Single Binary & Ultra-Low Footprint**: Cross-platform (macOS Apple Silicon/Intel, Windows, Linux) with pure Go dependencies (no CGO).
+  * **Local Encrypted Vault**: Server credentials and private keys are encrypted locally using master-key derivation (Argon2id + AES-256-GCM).
+  * **Single Binary & Low Footprint**: Cross-platform (macOS Apple Silicon/Intel, Windows, Linux) with pure Go dependencies (no CGO).
   * **Native TUI Cockpit**: Sub-millisecond responsive Terminal UI with interactive PTY session multiplexing and real-time telemetry.
 
 ---

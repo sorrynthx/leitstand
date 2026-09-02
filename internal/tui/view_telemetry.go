@@ -13,7 +13,7 @@ import (
 func (m *Model) renderTelemetryDeck(width, height int) string {
 	var b strings.Builder
 
-	if len(m.hosts) == 0 {
+	if len(m.hosts) == 0 || m.selectedIndex < 0 {
 		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("select_host_hint")))
 		return PaneStyle.Width(width).Height(height).Render(b.String())
 	}
@@ -44,7 +44,14 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		b.WriteString(specLine + "\n")
 	}
 
-	if hasErr && err != nil {
+	st := m.hostStatus[selectedHost.ID]
+	if st == HostStatusConnecting {
+		connBox := lipgloss.NewStyle().
+			Foreground(ColorWarning).
+			Padding(0, 1).
+			Render(fmt.Sprintf("⏳ [서버 접속 확인 중...] %s (%s:%d)", selectedHost.Name, selectedHost.Address, selectedHost.Port))
+		b.WriteString(connBox + "\n")
+	} else if hasErr && err != nil && st == HostStatusOffline {
 		errBox := lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(ColorDanger).
@@ -56,12 +63,15 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		if strings.Contains(errStr, "authenticate") || strings.Contains(errStr, "password") {
 			errReason = "❌ Authentication Failed: Incorrect password or username rejected by server."
 		} else if strings.Contains(errStr, "timeout") || strings.Contains(errStr, "i/o timeout") {
-			errReason = "⏳ Connection Timeout: Network unreachable or VPN required."
+			errReason = "🔌 Connection Timeout: Network unreachable or VPN required."
 		} else {
 			errReason = fmt.Sprintf("⚠️ Connection Error: %v", err)
 		}
 
 		b.WriteString(errBox.Render(errReason) + "\n")
+	}
+
+	if st == HostStatusConnecting || (hasErr && err != nil && st == HostStatusOffline) {
 		paneBorder := PaneStyle
 		if m.activePane == PaneTelemetryDeck {
 			paneBorder = ActivePaneStyle

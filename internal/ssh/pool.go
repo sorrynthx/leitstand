@@ -1,9 +1,13 @@
 package ssh
 
 import (
+	"bytes"
 	"fmt"
 	"leitstand/internal/logger"
 	"leitstand/internal/storage"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -49,10 +53,36 @@ func (p *Pool) GetOrCreateFromPayload(host *storage.Host, secret *storage.HostSe
 		if payload.Passphrase != "" {
 			pass = []byte(payload.Passphrase)
 		}
-		return p.GetOrCreate(host, secret, []byte(payload.PrivateKey), pass)
+
+		keyData := []byte(payload.PrivateKey)
+		trimmed := bytes.TrimSpace(keyData)
+		if len(trimmed) > 0 && !bytes.HasPrefix(trimmed, []byte("-----BEGIN ")) {
+			pathStr := strings.Trim(string(trimmed), "\"'` ")
+			if expanded := expandHomePath(pathStr); expanded != "" {
+				if content, readErr := os.ReadFile(expanded); readErr == nil {
+					keyData = content
+				}
+			}
+		}
+
+		return p.GetOrCreate(host, secret, keyData, pass)
 	}
 
 	return p.GetOrCreate(host, secret, []byte(payload.Password), nil)
+}
+
+func expandHomePath(p string) string {
+	p = strings.Trim(p, "\"'` ")
+	if strings.HasPrefix(p, "~/") || strings.HasPrefix(p, "~\\") || p == "~" {
+		home, err := os.UserHomeDir()
+		if err == nil {
+			if p == "~" {
+				return home
+			}
+			return filepath.Join(home, p[2:])
+		}
+	}
+	return p
 }
 
 // GetOrCreate returns an existing live client or establishes a new SSH connection.

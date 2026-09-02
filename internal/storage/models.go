@@ -29,6 +29,7 @@ type HostSecret struct {
 type SecretPayload struct {
 	Password   string `json:"password,omitempty"`
 	PrivateKey string `json:"private_key,omitempty"`
+	KeyPath    string `json:"key_path,omitempty"`
 	Passphrase string `json:"passphrase,omitempty"`
 }
 

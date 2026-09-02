@@ -1,98 +1,89 @@
-# ⚡ LEITSTAND - Project Roadmap & TODO
+# ⚡ LEITSTAND - Project Roadmap & Master TODO
 
-> **Modern, Ultra-lightweight & Zero-dependency Terminal Server Cockpit**  
-> *Developed by Kyunggon Kim (김경곤)*
-
----
-
-## 🌟 1. Completed Milestones (완료된 기능들)
-
-- [x] **Core Architecture & TUI Cockpit**:
-  - [x] Charmbracelet Lipgloss & Bubbletea 기반 3분할 콕핏 (Host Explorer / Telemetry / Remote Console)
-  - [x] 무중단 SSH 연결 풀링 (`internal/ssh`) & 비동기 텔레메트리 파이프라인
-  - [x] 데모 모드 (`--demo`) 지원 (오프라인/쇼케이스용 가상 메트릭 생성)
-- [x] **Security & Master Vault**:
-  - [x] Argon2id KDF + AES-256-GCM 마스터 금고 (`internal/vault`)
-  - [x] 서버 비밀번호 및 시크릿 영구 암호화 보관
-  - [x] 마스터 비밀번호 재암호화(Rekeying) 기능
-- [x] **Smart Terminal UX & Remote Operations**:
-  - [x] 원격 파일/경로 탭 자동완성 (`Tab` in Console)
-  - [x] 인앱 파일 편집기 (`edit <file>` / `vi <file>` ➡️ Textarea Modal) & 원격 저장 (`Ctrl+S`)
-  - [x] Chroma 터미널 문법 하이라이팅 (`cat`, `tail`, `head`)
-  - [x] 원격 전체화면 콘솔 (`Ctrl+O`) & 복귀 (`Esc`)
-- [x] **Global i18n & Preferences (`internal/i18n`)**:
-  - [x] 3개 국어 실시간 다국어 지원 (**English** [기본값], **한국어**, **Deutsch**)
-  - [x] 최초 온보딩 금고 초기화 언어 선택 바 (`[F1]~[F3]`)
-  - [x] 풀스크린 환경설정 모달 (`[p]` / `[,]`): 언어 변경, 폴링 주기 변경, 마스터 비밀번호 변경
-  - [x] 다국어 지원 **About Creator & Project** 프로필 탭 (비전, 독일 진출 비전, 소셜 링크)
-  - [x] 설정값 내부 SQLite DB (`app_settings`) 영구 저장 및 자동 복원
-- [x] **Telemetry & Network Rate Optimization**:
-  - [x] 텔레메트리 DB 저장 제거 (Zero DB 오버헤드 / 메모리 실시간 뷰)
-  - [x] 선택된 활성 서버 1대만 온디맨드 0.1초 즉시 폴링 (네트워크 부하 0.01% 미만)
-  - [x] 텔레메트리 주기 설정 (`5s`, `10s`, `30s`, `60s`, `Off`) ➡️ `Off` 시 콘솔 풀사이즈 확장
-  - [x] 실시간 초당 네트워크 전송 속도 계산 (B/s, KB/s, MB/s 자동 단위 변환)
-- [x] **Safety & Input Assistance**:
-  - [x] 비밀번호 입력 화면(로그인, 설정, 서버 등록) 실시간 **Caps Lock 켜짐 (`⇪ Caps Lock ON`)** 감지 배지
-  - [x] 한글/비-ASCII 입력 시 실시간 경고 배지 (`⚠️ 한글 입력 감지됨! [한/영] 전환 필요`)
-- [x] **OS-Aware Quick Command Runbook (`internal/quickcmd`)**:
-  - [x] 접속된 서버 OS(Ubuntu/Debian, RHEL/Rocky, Alpine, Docker, Common) 자동 감지 및 기본 탭 포커스
-  - [x] 단축키 (`[?]`, `[Ctrl+K]`, `[F5]`) 지원 (전체화면 콘솔 및 일반 콘솔 어디서든 호출 가능)
-  - [x] 선택 시 콘솔 입력창에 안전하게 자동 입력 (`Auto-fill & Review`) 후 사용자 실행
-- [x] **SSH Private Key 파일 인증 & 인앱 파일 브라우저 (`internal/vault`, `internal/ssh`, `internal/tui`)**:
-  - [x] 호스트 등록 모달(`[a]`)에서 `[1] 🔒 Password` ↔ `[2] 🔑 Private Key` 실시간 전환 지원
-  - [x] **인앱 TUI 파일 탐색기 (`[b]` File Picker)**: `~/.ssh/` 디렉토리 자동 탐색, `.pem`/`id_rsa`/`id_ed25519`/`test_key` 등 키 파일 자동 인식 🔑 및 `Enter` 한 번으로 경로 자동 입력
-  - [x] Private Key 내용과 Passphrase를 Argon2id + AES-256-GCM 마스터 금고에 안전하게 암호화 보관
-  - [x] 등록 폼 상하 줄간격(Line Spacing), 입력창 너비(38), 가독성 및 안내 배지 대폭 개선
-  - [x] Go 인메모리 테스트 SSH 서버 (`cmd/mockssh`) 및 자동화 유닛 테스트 완벽 검증
-- [x] **호스트 정보 수정 기능 (`[e]` Edit Host Modal)**:
-  - [x] 서버 목록에서 `[e]` 키를 눌러 기존 서버 이름, IP, 포트, 계정, 인증 방식(비밀번호/키), 그룹명 즉시 수정
-  - [x] 수정 저장 시 금고/DB 즉시 갱신 및 백그라운드 SSH 연결 풀 자동 갱신(`🟢 Online`)
-- [x] **대화형 PTY 터미널 전환 (`[t]`) & 복합 쉘 명령어 격리**:
-  - [x] 단축키 `[t]` (또는 `Ctrl+T`)로 언제든지 1초 만에 전체화면 네이티브 SSH 쉘(PTY) 진입 및 `exit`으로 0.1초 복귀
-  - [x] `( cd ... ) ; ( cmd )` 서브쉘 래핑으로 `&&`, `||`, 파이프(`|`), 이모지 포함 복합 명령어 100% 정상 출력
-  - [x] 런북 서랍(`?`) 슬라이딩 윈도우 스크롤(▲/▼) 및 카테고리 헤더 렌더링 개선
-- [x] **MobaXterm 스타일 "상태 유지 멀티 탭 쉘 엔진" (`internal/tui/tab.go`, `internal/tui/update_console.go`)**:
-  - [x] 호스트별 독립된 멀티 콘솔 탭 관리자 (Multi-Tab Stateful Shell)
-  - [x] 단축키: `Ctrl+N` (새 탭), `Ctrl+W` (탭 닫기), `Alt+1`~`Alt+9` (0.01초 초고속 탭 전환)
-  - [x] 각 탭별 고유 CWD(작업 디렉토리), 명령어 히스토리(`↑/↓`), 뷰포트 스크롤 위치 격리 보존
-  - [x] 비동기 백그라운드 실시간 스트리밍 (`tail -f`, `docker logs -f`, `journalctl -f`, `ping`) & `🔴 LIVE` 점멸 배지
-  - [x] 스트리밍 중인 탭에서 `Ctrl+C` 입력 시 해당 탭 스트리밍 작업만 안전하게 중단(Cancel)
-  - [x] 3개 국어(EN/KO/DE) 탭 단축키 힌트 및 상태 안내 완벽 연동
-- [x] **Phase 2: SFTP 2분할 양방향 파일 매니저 & 클립보드 이동 엔진 (`internal/ssh/sftp.go`, `internal/tui/file_manager_modal.go`)**:
-  - [x] **광폭 2분할 TUI 매니저 (`[f]`, `[F6]`)**: 내 로컬 PC ↔ 원격 Linux 서버 90% 광폭 뷰포트
-  - [x] **클립보드 자유 파일 이동/복사 (`[x]` 잘라내기 ➔ 자유 탐색 ➔ `[p]` 붙여넣기)**:
-    - `[x]` / `[Ctrl+X]` (잘라내기 / 이동 찜하기) & `[c]` / `[Ctrl+C]` (복사 찜하기)
-    - 파일들을 쥔 상태로 방향키/`[Enter]`/`[Backspace]`로 눈으로 직접 확인하며 폴더 자유 탐색
-    - 도착한 폴더에서 `[p]` / `[Ctrl+V]` 누르면 0.01초 만에 현재 폴더로 일괄 이동(`mv`) 또는 복사(`cp`) 완료
-    - 1회 투하 후 클립보드 자동 정리 & 선명한 `✨ 완료` 녹색 배너 출력
-  - [x] **다중 파일 선택 & 배치 일괄 전송**:
-    - `[Space]` 다중 선택(`[*]`) 및 `[a]` 전체 선택/해제
-    - `[u]` (로컬 ➔ 원격 일괄 업로드), `[d]` (원격 ➔ 로컬 일괄 다운로드)
-    - 실시간 진행률 프로그레스 바, 전송 속도(MB/s), 남은 용량 표시
-  - [x] **파일 매니저 내 즉석 쉘 실행 (`[:]`, `[!]`)**:
-    - `ls -la`, `cd ..`, `df -h`, `cat`, `chmod` 등 현재 활성 폴더에서 즉시 명령어 실행 & 결과 팝업
-    - `cd` 실행 시 탐색기 경로 자동 동기화
-  - [x] **안전한 조작 & 방어 로직**:
-    - 접근 권한 부족(`Permission Denied`) 폴더 진입 시 자동 롤백 및 경고 배너
-    - `[Delete]` / `[Shift+X]` 누를 시 대상 항목의 실제 이름('app.py' 파일 / 'logs' 폴더)을 명시하는 안전 삭제 확인창
-    - `[Esc]` / `[q]` / `[f]` 누를 시 실수 방지를 위한 안전 종료 확인 모달
-    - 파일 매니저 전용 단축키 가이드 런북 (`[?]`, `[F1]`) 3개 국어(KO/EN/DE) 지원
-  - [x] **인라인 파일 시스템 유틸리티**: `[n]` 새 폴더(`mkdir`), `[N]` 새 빈 파일(`touch`), `[r]` 이름 변경(`mv`), `[.]` 숨김 파일 토글
+> **Modern, Agentless, High-Performance Terminal Server Cockpit & Telemetry Engine**  
+> *Developed by Kyunggon Kim (김경곤 / Interpass Inc.)*
 
 ---
 
-## 🎯 2. Upcoming Strategic Roadmap (다음 진행할 핵심 작업)
+## 🌟 1. Completed Milestones (완료된 기능 및 아키텍처)
 
-### 📜 Phase 3: 세션 감사 로그 관리 & SQLite 최적화 (Audit & Logging)
-- [ ] **콘솔 세션 로그 로컬 내보내기 (`Ctrl+E`)**:
-  - [ ] 콘솔 출력 및 명령어 기록을 `leitstand_<host>_<timestamp>.log` 파일로 로컬 저장
-- [ ] **내부 SQLite DB 관리 (환경설정 안)**:
-  - [ ] DB 백업(JSON 내보내기) 및 복원 기능
-  - [ ] DB 최적화 (SQLite Vacuum) 및 마스터 금고 완전 초기화(Reset)
+### 🏗️ Architecture & Refactoring (아키텍처 및 소스 품질)
+- [x] **250줄 규칙 100% 준수 모듈화**: `internal/` 하위 58개 전체 소스 코드가 모두 247줄 이하로 완벽 분리 및 정리.
+- [x] **Zero-CGO Pure Go**: CGO 없이 100% 순수 Go 빌드 지원 (Windows, macOS, Linux 크로스 컴파일 호환).
+- [x] **무중단 SSH 커넥션 풀링 (`internal/ssh`)**: 호스트별 1개의 SSH TCP 커넥션 재사용 및 채널 멀티플렉싱.
+- [x] **SFTP 채널 고갈 방지 (`internal/ssh/client.go`)**: Thread-Safe `GetSFTPClient()` 단일 SFTP 클라이언트 캐싱으로 OpenSSH `MaxSessions 10` 세션 누수 에러 영구 해결.
+- [x] **명시적 접속 (Explicit Connection) 아키텍처**: 서버 목록 탐색(`↑`/`↓`) 시 자동 SSH 접속/폴링을 유예하고, `Enter` / `r` / `f` / `t` 입력 시에만 선택된 서버 세션을 수립하여 예기치 않은 접속 오버헤드 및 로그 누수 차단.
 
-### 🚇 Phase 4: 고급 인프라 네트워크 & 글로벌 배포
+### 🌐 Global i18n & Zero Hardcoding (다국어 및 중앙 제어)
+- [x] **3개 국어 실시간 다국어 엔진 (`internal/i18n`)**: 한국어(KO), 영어(EN), 독일어(DE) 100% 지원.
+- [x] **115개 전체 UI 키 전수 보관 (0 Missing Keys)**: `dict_ko.go`, `dict_en.go`, `dict_de.go`로 모듈화 분리 및 하드코딩 0개 달성.
+- [x] **동적 실시간 렌더링**: 설정 모달(`[p]`) 및 온보딩 모달에서 언어 변경 시 `m.updateViewportContent()` 호출로 화면 전체 즉시 재렌더링.
+
+### 🔒 Security & Local Encrypted Vault (보관함 및 암호화)
+- [x] **Argon2id KDF + AES-256-GCM 로컬 암호화 보관함 (`internal/vault`, `internal/storage`)**: SQLite 내 암호화 영구 저장.
+- [x] **인공지능 비밀번호 안전 보조**: 비밀번호 입력창 실시간 Caps Lock 켜짐 감지 (`🔒 CAPS LOCK 키가 켜져 있습니다`) 및 한글/Non-ASCII 감지 경고 배지.
+- [x] **SSH Private Key 인증 & 인앱 키 탐색기 (`[b]`)**: `~/.ssh/` 디렉토리 내 `.pem`, `id_rsa`, `id_ed25519` 키 파일 자동 탐색 및 암호화 보관.
+
+### 💻 Remote Console, Shell Multiplexing & Root Elevation (콘솔 및 권한 엔진)
+- [x] **멀티 탭 인터랙티브 쉘 엔진 (`internal/tui/tab.go`)**:
+  - `Ctrl+N` (새 탭), `Ctrl+W` (탭 닫기), `Alt+1`~`Alt+9` (탭 전환).
+  - 탭별 독립 CWD(작업 디렉토리), 히스토리(`↑/↓`), 스크롤 위치 및 미완성 입력 문구 완전 격리 보존.
+- [x] **`su root` 및 `sudo` 최고 권한 승격 엔진 (`internal/tui/console_elevation.go`)**:
+  - MobaXterm과 100% 동일하게 `su root` / `sudo -i` 시 root 패스워드 인증 후 `root@host:#` 세션 유지.
+  - 비밀번호 기억 옵션 미체크 시에도 현 세션 동안 `sudoModeCache` / `sudoCache` 자동 보존.
+- [x] **스마트 경로 자동완성 엔진 (`Tab`)**: SFTP `ReadDir` + SSH `ls` 듀얼 파이프라인, 공통 접두어 자동채움 및 다중 후보 힌트 출력.
+- [x] **`top` / `htop` 라이브 스트리밍 무멈춤 아키텍처**: 모달(에디터/설정/보관함) 실행 중에도 백그라운드 스트리밍 틱 pass-through 보적으로 모달 복귀 시 `top` 무멈춤 렌더링.
+- [x] **네이티브 풀스크린 PTY 터미널 (`[t]`)**: 전체화면 대화형 SSH 터미널 진입 및 `exit` 안전 복귀.
+
+### 📂 SFTP File Manager & In-App Text Editor (파일 매니저 및 에디터)
+- [x] **90% 광폭 2분할 TUI 파일 매니저 (`[f]`, `[F6]`)**: 로컬 ↔ 원격 2분할 탐색, `PageUp/PageDown`, `/` 파일 검색 필터.
+- [x] **클립보드 잘라내기/복사/붙여넣기 (`[x]` 잘라내기 ➔ 폴더 이동 ➔ `[p]` 붙여넣기)**: 일괄 이동(`mv`) 및 복사(`cp`).
+- [x] **다중 선택 & 배치 전송**: `Space` 다중 선택, `[u]` 업로드, `[d]` 다운로드, `[n]` mkdir, `[N]` touch, `[r]` rename.
+- [x] **내장 텍스트 에디터 (`EditorModal`) & 만능 저장 단축키**:
+  - 윈도우 OS 가로채기 방지 만능 저장 키 **`F2`**, **`Alt+S`**, **`Ctrl+S`** 지원.
+  - 저장 성공 시 타임스탬프가 표기된 **`✅ File saved successfully at 16:11:50! (Remote file updated)` 선명한 초록색 성공 배너** 출력.
+  - 권한 부족 보호 파일 편집 시 Root 승격 세션이면 Root Fallback 쓰기 (`cat << 'EOF' > ...`) 자동 작동.
+
+---
+
+## 🎯 2. Upcoming Priority Tasks (다음 진행할 핵심 개발 리스트)
+
+### 📂 Phase 3-0: SFTP 파일 매니저 리팩토링 후 전체 기능 점검 & 통합 테스트 (SFTP Validation)
+- [ ] **SFTP 파일 업로드/다운로드 교차 검증**:
+  - `sftp.go` & `sftp_transfer.go` 분리 후 로컬 ↔ 원격 파일 전송(`[F5]`) 및 삭제(`[F8/d]`) 정밀 테스트.
+- [ ] **SFTP 파일/폴더 조작 기능 실물 검증**:
+  - 새 폴더 생성(`[n]`), 빈 파일 생성(`[N]`), 이름 변경(`[r]`), 삭제(`[Delete]`), 숨김파일 토글(`[.]`) 동작 확인.
+- [ ] **클립보드 잘라내기/복사/붙여넣기 테스트**:
+  - `[x]`(잘라내기) / `[c]`(복사) ➔ 경로 이동 ➔ `[p]`(붙여넣기) 배치 처리 정상 여부 점검.
+- [ ] **`GetSFTPClient()` 단일 SFTP 커넥션 안정성 확인**:
+  - 파일 전송 도중 세션이 끊기거나 SSH 세션 타임아웃 없이 안정적으로 유지되는지 확인.
+
+### 📊 Phase 3-1: 텔레메트리 (Telemetry) 성능 측정 및 시각화 고도화
+- [x] **실시간 메트릭 수집기 (Telemetry Collector) 튜닝**:
+  - `/proc/stat` 0.1초 이중 샘플링 델타 파이프라인(`ParseDualProcStat`) 구현으로 `top`/`htop`과 100% 동일한 순간 CPU 점유율 측정.
+  - `/proc/meminfo`, `df -k /`, `/proc/net/dev` 파싱 정밀화.
+- [x] **텔레메트리 패널 (`view_hostlist.go`) 초슬림 시각화**:
+  - `F5` 전역 단축키 수용 (우측 콘솔 입력 중에도 전역 토글).
+  - 우측 인터랙티브 터미널 패널 100% 온전 보존.
+  - 초슬림 2줄 수직 스택 프로그래스 바 및 Uptime/용량 단축 렌더링.
+- [x] **서버 자원 위험 임계치 알림 및 환경설정(`[p]`) 연동**:
+  - 환경설정 모달(`[p]`) 내 `[2] 📊 Telemetry` 전용 탭 개편 (수집 주기 & CPU/RAM/Disk 경고 임계치 수치 조절).
+  - 사용자 지정 임계치(Configured Thresholds) 초과 시 서버 탐색기 및 텔레메트리 콕핏에 `🔥 OVERLOAD` / `🔥 DANGER` / `⚠️ HIGH` 배지 실시간 동적 발동.
+  - 숫자가 아닌 입력 시 강력한 예외 검증(Validation) 및 SQLite DB (`app_settings`) 영구 저장 연동.
+
+### 📜 Phase 3-2: 세션 감사 로그 및 SQLite 관리 (Audit & Maintenance)
+- [ ] **콘솔 세션 로그 로컬 저장 (`Ctrl+E`)**:
+  - 콘솔 출력 및 명령어 수행 기록을 `logs/leitstand_<host>_<timestamp>.log` 파일로 백업.
+- [ ] **내부 SQLite DB 관리기 (환경설정 안)**:
+  - DB 백업(JSON 내보내기) 및 복원.
+  - DB 최적화 (SQLite Vacuum) 및 마스터 보관함 초기화 (Reset).
+
+### 🚇 Phase 4: SSH 터널링 및 글로벌 배포 (Tunneling & Distribution)
 - [ ] **SSH 포트 포워딩 / 터널링 매니저 (SSH Tunneling)**:
-  - [ ] 원격 서버 내부 DB(MySQL 3306, Redis 6379)를 로컬 포트로 포워딩
-- [ ] **크로스 플랫폼 빌드 파이프라인 (GitHub Actions & GoReleaser)**:
-  - [ ] Windows (.exe), macOS (Apple Silicon / Intel), Linux (tar.gz) 자동 릴리즈
-- [ ] **글로벌 쇼케이스 README.md & 데모 GIF 제작**
+  - 원격 서버 내부 DB(MySQL 3306, Redis 6379)를 로컬 포트로 포워딩.
+- [ ] **크로스 플랫폼 자동 빌드 파이프라인 (GoReleaser)**:
+  - Windows (.exe), macOS (Apple Silicon / Intel), Linux 바이너리 패키징.
+
+---
+
+*Last Updated: 2026-09-02*

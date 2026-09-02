@@ -1,7 +1,7 @@
 # ⚡ LEITSTAND (라이트슈탄트)
 
-> **Modern, Ultra-lightweight & Zero-dependency Terminal Server Cockpit & SFTP Dual-Pane Manager**  
-> *A next-generation, agentless server control center engineered for developers, DevOps, and system engineers.*
+> **Modern, Lightweight & Zero-dependency Terminal Server Cockpit & SFTP Dual-Pane Manager**  
+> *An agentless server control center engineered for developers, DevOps, and system engineers.*
 
 ---
 
@@ -9,7 +9,7 @@
 
 **LEITSTAND** (*German for "Control Station / Dispatch Center"*) is a high-performance terminal user interface (TUI) application written in **Go** and powered by the **Charmbracelet Lipgloss & Bubbletea** ecosystem.
 
-It replaces bulky desktop tools like MobaXterm, Termius, and FileZilla with an **ultra-fast (sub-millisecond), single-binary, keyboard-driven cockpit** that connects to any remote Linux/Unix server via standard SSH **without requiring any agent or daemon installation**.
+It replaces bulky desktop tools with a **fast, single-binary, keyboard-driven cockpit** that connects to any remote Linux/Unix server via standard SSH **without requiring any agent or daemon installation**.
 
 ---
 
@@ -20,17 +20,18 @@ It replaces bulky desktop tools like MobaXterm, Termius, and FileZilla with an *
 - **Telemetry Deck (Top-Right)**: Real-time gauges for **CPU Utilization**, **Memory Usage**, **Disk Space**, and **Live Network I/O Speed** (B/s, KB/s, MB/s) polled on-demand with zero database overhead.
 - **Stateful Remote Console (Bottom-Right)**: Full-featured remote shell with working directory tracking, command history, and syntax highlighting.
 
-### 2. 📑 MobaXterm-style Multi-Tab Stateful Shell
+### 2. 📑 Multi-Tab Stateful Shell
 - **Host-Isolated Multi-Tabs**: Open and manage multiple terminal tabs per server (`Ctrl+T` / `Ctrl+N`, `Ctrl+W`, `Alt+1`~`Alt+9`).
 - **Independent State Preservation**: Each tab preserves its own working directory (`CWD`), command history (`↑/↓`), and scroll viewport.
 - **Asynchronous Live Streaming**: Run streaming jobs (`tail -f /var/log/syslog`, `docker logs -f`, `journalctl -f`, `ping`) in the background with `🔴 LIVE` blinking badges. Cancelling a stream (`Ctrl+C`) stops only that specific job.
 
 ### 3. 📂 SFTP Dual-Pane File Manager & Clipboard Movement (`[f]`)
 - **90% Wide Dual-Pane View**: Local PC (Left) ↔ Remote Server (Right) with instant focus switching (`[Tab]`).
+- **Rapid Navigation & Search**: Fast page scrolling (`[PgUp]`/`[PgDn]`, `[Home]`/`[End]`) and real-time filename filter (`[/]`).
 - **Clipboard Cut & Paste Movement (`[x]` ➔ Free Navigation ➔ `[p]`)**:
   - **`[x]` / `[Ctrl+X]` (Cut / Stage for Move)**: Stage files into clipboard with `[✂]` badge.
   - **Free Navigation**: Browse anywhere using arrow keys, `[Enter]` (folder entry), and `[Backspace]` (parent directory).
-  - **`[p]` / `[Ctrl+V]` (Paste / Drop)**: Instant 0.01-second disk-level `os.Rename` or SFTP move into the currently viewed folder!
+  - **`[p]` / `[Ctrl+V]` (Paste / Drop)**: Fast disk-level `os.Rename` or SFTP move into the currently viewed folder!
   - **`[c]` / `[Ctrl+C]` (Copy)**: Stage files for duplication into any target folder.
 - **Batch Transfer with Live Progress**: Multi-select files (`[Space]`, `[a]`) and trigger batch **Upload (`[u]`)** or **Download (`[d]`)** with chunked streaming, progress bars, and MB/s throughput meters.
 - **In-Manager Quick Shell Execution (`[:]` / `[!]`)**:
@@ -41,8 +42,8 @@ It replaces bulky desktop tools like MobaXterm, Termius, and FileZilla with an *
   - **Clear Delete Confirmation**: Prompts with the exact filename and type (`🗑️ 'production.db' (file) permanently delete? [y/n]`).
   - **Exit Confirmation Modal**: Guards against accidental exit on `[Esc]`, `[q]`, or `[f]`.
 
-### 4. 🔐 Zero-Knowledge Master Vault
-- **Argon2id KDF + AES-256-GCM**: Military-grade encryption for all server passwords, sudo secrets, and SSH private keys.
+### 4. 🔐 Local Encrypted Master Vault
+- **Argon2id KDF + AES-256-GCM**: Industry-standard encryption for all server passwords, sudo secrets, and SSH private keys.
 - **SSH Private Key Management (`[b]` File Picker)**: In-app browser to discover and load `id_rsa`, `id_ed25519`, and `.pem` keys from `~/.ssh/`.
 - **Master Password Rekeying**: Seamlessly re-encrypt all stored credentials with a new master password from the Settings modal.
 
@@ -83,7 +84,10 @@ It replaces bulky desktop tools like MobaXterm, Termius, and FileZilla with an *
 | Shortcut | Action |
 |---|---|
 | **`[Tab]`**, **`[◄/►]`** | Switch Active Pane (Local PC ↔ Remote Server) |
-| **`[↑/↓]`**, **`[j/k]`** | Navigate File / Folder List |
+| **`[↑/↓]`**, **`[j/k]`** | Navigate File / Folder List (1 row) |
+| **`[PgUp/PgDn]`**, **`[Ctrl+U/D]`** | Fast Page Scroll (Skip whole screen) |
+| **`[Home/End]`**, **`[g/G]`** | Jump to Top (First item) / Bottom (Last item) |
+| **`[/]`** | Real-time Filename Search / Filter |
 | **`[Enter]`** | Open Directory (Protected with Auto-Rollback) |
 | **`[Backspace]`** | Go to Parent Directory (`..`) |
 | **`[Space]`** | Toggle Multi-selection Badge (`[*]`) |
@@ -99,7 +103,7 @@ It replaces bulky desktop tools like MobaXterm, Termius, and FileZilla with an *
 | **`[Delete]`**, **`[Shift+X]`** | Delete Selected Item(s) with Safe Confirmation |
 | **`[.]`** | Toggle Hidden Files (`.env`, `.*`) |
 | **`[F5]`** | Refresh Directory Listing |
-| **`[?]`**, **`[F1]`** | Open Dedicated File Manager Runbook |
+| **`[?]`**, **`[F1]`** | Open Dedicated File Manager Guide |
 | **`[Esc]`**, **`[q]`** | Clear Clipboard / Safe Exit Confirmation |
 
 ---
@@ -165,6 +169,6 @@ go build -o leitstand.exe ./cmd/leitstand
 ## 👤 Author & Vision
 
 - **Creator**: **Kyunggon Kim (김경곤)**
-- **Vision**: Delivering ultra-responsive, zero-dependency, developer-first infrastructure tooling that empowers engineers to command distributed server fleets with effortless speed and clarity.
+- **Vision**: Delivering responsive, zero-dependency, developer-first infrastructure tooling that empowers engineers to manage distributed server fleets with speed and clarity.
 - **Repository**: [github.com/sorrynthx/leitstand](https://github.com/sorrynthx/leitstand)
 - **License**: MIT License

@@ -26,6 +26,9 @@ type DatabaseConfig struct {
 type TelemetryConfig struct {
 	PollingInterval  time.Duration `mapstructure:"polling_interval"`
 	RawRetentionDays int           `mapstructure:"raw_retention_days"`
+	CPUThreshold     float64       `mapstructure:"cpu_threshold"`
+	RAMThreshold     float64       `mapstructure:"ram_threshold"`
+	DiskThreshold    float64       `mapstructure:"disk_threshold"`
 }
 
 // SSHConfig holds global SSH defaults.
@@ -50,6 +53,9 @@ func NewDefaultConfig() *AppConfig {
 		Telemetry: TelemetryConfig{
 			PollingInterval:  DefaultPollingInterval,
 			RawRetentionDays: 7,
+			CPUThreshold:     85.0,
+			RAMThreshold:     90.0,
+			DiskThreshold:    90.0,
 		},
 		SSH: SSHConfig{
 			Timeout:       DefaultSSHTimeout,

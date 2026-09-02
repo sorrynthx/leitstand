@@ -16,6 +16,8 @@ var (
 	ColorHighlight = lipgloss.Color("#263238") // Dark Teal Highlight
 	ColorBg        = lipgloss.Color("#121212") // Deep Dark Background
 	ColorText      = lipgloss.Color("#E0E0E0") // Light Gray Text
+	ColorFg        = lipgloss.Color("#ECEFF1") // Bright Off-White Text
+	ColorWhite     = lipgloss.Color("#FFFFFF") // Pure White Text
 
 	// Styles
 	TitleStyle = lipgloss.NewStyle().

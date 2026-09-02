@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"leitstand/internal/i18n"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
@@ -10,23 +9,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// EditorModal manages an in-app file editor overlay.
 type EditorModal struct {
-	HostID   int64
-	HostName string
-	FilePath string
-	textarea textarea.Model
-	isSaving bool
-	err      error
+	HostID    int64
+	HostName  string
+	FilePath  string
+	textarea  textarea.Model
+	isSaving  bool
+	err       error
+	StatusMsg string
 }
 
-// NewEditorModal creates an initialized editor modal for a specific file.
 func NewEditorModal(hostID int64, hostName string, filePath string, initialContent string, width, height int) *EditorModal {
 	ta := textarea.New()
 	ta.Placeholder = "Empty file. Start typing..."
 	ta.Focus()
 
-	// Adjust dimensions for modal
 	modalWidth := width - 10
 	if modalWidth < 40 {
 		modalWidth = 40
@@ -49,70 +46,66 @@ func NewEditorModal(hostID int64, hostName string, filePath string, initialConte
 	}
 }
 
-// Update handles editor modal key events.
-// Returns (done bool, saveRequested bool, updatedContent string, cmd tea.Cmd)
-func (e *EditorModal) Update(msg tea.Msg) (bool, bool, string, tea.Cmd) {
-	if keyMsg, ok := msg.(tea.KeyMsg); ok {
-		switch keyMsg.String() {
+func (em *EditorModal) Update(msg tea.Msg) (bool, bool, string, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
 		case "esc":
 			return true, false, "", nil
 
-		case "ctrl+s":
-			e.isSaving = true
-			return false, true, e.textarea.Value(), nil
+		case "ctrl+s", "f2", "alt+s":
+			em.isSaving = true
+			return false, true, em.textarea.Value(), nil
+
+		case "pgup", "pageup":
+			h := em.textarea.Height()
+			if h <= 0 {
+				h = 10
+			}
+			for i := 0; i < h; i++ {
+				em.textarea, _ = em.textarea.Update(tea.KeyMsg{Type: tea.KeyUp})
+			}
+			return false, false, "", nil
+
+		case "pgdown", "pagedown":
+			h := em.textarea.Height()
+			if h <= 0 {
+				h = 10
+			}
+			for i := 0; i < h; i++ {
+				em.textarea, _ = em.textarea.Update(tea.KeyMsg{Type: tea.KeyDown})
+			}
+			return false, false, "", nil
 		}
 	}
 
 	var cmd tea.Cmd
-	e.textarea, cmd = e.textarea.Update(msg)
+	em.textarea, cmd = em.textarea.Update(msg)
 	return false, false, "", cmd
 }
 
-// SetError displays an error inside the modal.
-func (e *EditorModal) SetError(err error) {
-	e.err = err
-	e.isSaving = false
-}
-
-// View renders the modal dialog.
-func (e *EditorModal) View(screenWidth, screenHeight int) string {
+func (em *EditorModal) View(width, height int) string {
 	var b strings.Builder
 
-	// Header
-	header := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(fmt.Sprintf("%s ── %s (%s)", i18n.T("editor_title"), e.FilePath, e.HostName))
-	b.WriteString(header + "\n\n")
+	title := fmt.Sprintf("✏️ Editing: %s (%s)", em.FilePath, em.HostName)
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(title) + "\n\n")
 
-	// Error banner if any
-	if e.err != nil {
-		errBox := lipgloss.NewStyle().Foreground(ColorDanger).Bold(true).Render(fmt.Sprintf("⚠️  Save Error: %v", e.err))
-		b.WriteString(errBox + "\n")
+	b.WriteString(em.textarea.View() + "\n\n")
+
+	if em.err != nil {
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorDanger).Render("❌ "+em.err.Error()) + "\n\n")
+	} else if em.StatusMsg != "" {
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorSuccess).Render(em.StatusMsg) + "\n\n")
 	}
 
-	// Textarea
-	b.WriteString(e.textarea.View() + "\n\n")
+	hints := lipgloss.NewStyle().Foreground(ColorMuted).Render("[F2 / Ctrl+S] Save Remote File    [PgUp / PgDn] Page Scroll    [Esc] Cancel / Close")
+	b.WriteString(hints)
 
-	// Footer instructions
-	saveHint := lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(i18n.T("editor_save_hint")) + "  "
-	exitHint := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(i18n.T("editor_exit_hint")) + "  "
-	lineHint := lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("Line: %d", e.textarea.Line()+1))
-
-	b.WriteString(saveHint + exitHint + lineHint)
-
-	boxWidth := screenWidth - 8
-	if boxWidth < 45 {
-		boxWidth = 45
-	}
-	boxHeight := screenHeight - 6
-	if boxHeight < 10 {
-		boxHeight = 10
-	}
-
-	modalBox := lipgloss.NewStyle().
-		Border(lipgloss.DoubleBorder()).
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ColorPrimary).
-		Padding(1, 2).
-		Width(boxWidth).
-		Height(boxHeight)
+		Padding(1, 2)
 
-	return lipgloss.Place(screenWidth, screenHeight, lipgloss.Center, lipgloss.Center, modalBox.Render(b.String()))
+	content := boxStyle.Render(b.String())
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content)
 }

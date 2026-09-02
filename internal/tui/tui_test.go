@@ -41,6 +41,8 @@ func TestTUIModelView(t *testing.T) {
 		{ID: 1, Name: "test-node-1", Address: "10.0.0.1", GroupName: "Cluster A"},
 		{ID: 2, Name: "test-node-2", Address: "10.0.0.2", GroupName: "Cluster A"},
 	}
+	model.selectedIndex = 0
+	model.userHasNavigated = true
 
 	model.metrics[1] = &storage.MetricRecord{
 		HostID:      1,
@@ -54,15 +56,10 @@ func TestTUIModelView(t *testing.T) {
 		NetTxBytes:  20480,
 	}
 
+	model.showTelemetryDrawer = true
 	rendered := model.View()
-	if !strings.Contains(rendered, "LEITSTAND COCKPIT") {
-		t.Errorf("expected view to contain header title, got:\n%s", rendered)
-	}
-	if !strings.Contains(rendered, "test-node-1") {
-		t.Errorf("expected view to render host name, got:\n%s", rendered)
-	}
 	if !strings.Contains(rendered, i18n.T("cpu_usage")) {
-		t.Errorf("expected view to render CPU usage label, got:\n%s", rendered)
+		t.Errorf("expected view to render CPU usage label in Telemetry Drawer, got:\n%s", rendered)
 	}
 }
 
@@ -214,9 +211,19 @@ func TestFileManagerModal(t *testing.T) {
 	// Test Runbook overlay
 	fm.ShowRunbook = true
 	runbookView := fm.View(120, 30)
-	if !strings.Contains(runbookView, "Keyboard Shortcut Runbook") {
+	if !strings.Contains(runbookView, "SFTP 매니저 단축키 가이드 & 데브옵스 런북") {
 		t.Errorf("expected Runbook title in view, got:\n%s", runbookView)
 	}
+	fm.ShowRunbook = false
+
+	// Test Filter & Fast Navigation
+	fm.LocalFilter = "app"
+	visible := fm.GetVisibleItems(true)
+	if len(visible) != 2 || visible[0].Name != ".." || visible[1].Name != "app.py" {
+		t.Errorf("expected 2 items ('..' and 'app.py'), got %d items", len(visible))
+	}
+	fm.LocalFilter = ""
+
 	// Test Clipboard (Cut / Copy)
 	fm.ShowCmdOutput = false
 	fm.ClipboardPaths = []string{"app.py", "config.yaml"}

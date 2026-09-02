@@ -2,7 +2,6 @@ package ssh
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -165,152 +164,7 @@ func (c *Client) ListRemoteDirectory(dirPath string, showHidden bool) ([]*FileIt
 		})
 	}
 
-	sortFileItems(items)
 	return items, realPath, nil
-}
-
-// UploadFile transfers a local file to the remote server with progress tracking.
-func (c *Client) UploadFile(localPath, remotePath string, onProgress func(transferred, total int64)) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
-	if err != nil {
-		return err
-	}
-	defer sftpClient.Close()
-
-	srcFile, err := os.Open(localPath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	stat, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
-	totalSize := stat.Size()
-
-	// Ensure destination directory exists
-	destDir := filepath.Dir(remotePath)
-	_ = sftpClient.MkdirAll(destDir)
-
-	dstFile, err := sftpClient.Create(remotePath)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	buf := make([]byte, 64*1024) // 64KB buffer for high throughput
-	var transferred int64
-
-	for {
-		n, readErr := srcFile.Read(buf)
-		if n > 0 {
-			_, writeErr := dstFile.Write(buf[:n])
-			if writeErr != nil {
-				return writeErr
-			}
-			transferred += int64(n)
-			if onProgress != nil {
-				onProgress(transferred, totalSize)
-			}
-		}
-		if readErr != nil {
-			if readErr == io.EOF {
-				break
-			}
-			return readErr
-		}
-	}
-
-	return nil
-}
-
-// DownloadFile transfers a remote file to the local PC with progress tracking.
-func (c *Client) DownloadFile(remotePath, localPath string, onProgress func(transferred, total int64)) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
-	if err != nil {
-		return err
-	}
-	defer sftpClient.Close()
-
-	srcFile, err := sftpClient.Open(remotePath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	stat, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
-	totalSize := stat.Size()
-
-	// Ensure local parent directory exists
-	localDir := filepath.Dir(localPath)
-	_ = os.MkdirAll(localDir, 0755)
-
-	dstFile, err := os.Create(localPath)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	buf := make([]byte, 64*1024)
-	var transferred int64
-
-	for {
-		n, readErr := srcFile.Read(buf)
-		if n > 0 {
-			_, writeErr := dstFile.Write(buf[:n])
-			if writeErr != nil {
-				return writeErr
-			}
-			transferred += int64(n)
-			if onProgress != nil {
-				onProgress(transferred, totalSize)
-			}
-		}
-		if readErr != nil {
-			if readErr == io.EOF {
-				break
-			}
-			return readErr
-		}
-	}
-
-	return nil
-}
-
-// MkdirRemote creates a new directory on remote server.
-func (c *Client) MkdirRemote(remotePath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
-	if err != nil {
-		return err
-	}
-	defer sftpClient.Close()
-
-	return sftpClient.MkdirAll(remotePath)
 }
 
 // CreateRemoteFile creates an empty file on remote server.
@@ -333,54 +187,6 @@ func (c *Client) CreateRemoteFile(remotePath string) error {
 		return err
 	}
 	return f.Close()
-}
-
-// RenameRemote renames a remote file or directory.
-func (c *Client) RenameRemote(oldPath, newPath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
-	if err != nil {
-		return err
-	}
-	defer sftpClient.Close()
-
-	return sftpClient.Rename(oldPath, newPath)
-}
-
-// DeleteRemote removes a remote file or directory recursively.
-func (c *Client) DeleteRemote(remotePath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
-	if err != nil {
-		return err
-	}
-	defer sftpClient.Close()
-
-	stat, err := sftpClient.Stat(remotePath)
-	if err != nil {
-		return err
-	}
-
-	if stat.IsDir() {
-		_, _, execErr := c.ExecWithTimeout(fmt.Sprintf("rm -rf \"%s\"", remotePath), 10*time.Second)
-		if execErr == nil {
-			return nil
-		}
-		return sftpClient.RemoveDirectory(remotePath)
-	}
-	return sftpClient.Remove(remotePath)
 }
 
 func sortFileItems(items []*FileItem) {

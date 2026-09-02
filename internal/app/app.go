@@ -3,12 +3,15 @@ package app
 import (
 	"fmt"
 	"leitstand/internal/config"
+	"leitstand/internal/i18n"
 	"leitstand/internal/logger"
 	"leitstand/internal/ssh"
 	"leitstand/internal/storage"
 	"leitstand/internal/telemetry"
 	"leitstand/internal/tui"
 	"leitstand/internal/vault"
+	"strconv"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -31,6 +34,30 @@ func New(cfg *config.AppConfig) (*App, error) {
 	if err != nil {
 		logger.Errorf("Failed to open database: %v", err)
 		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	if savedLang, err := store.GetSetting("language"); err == nil && savedLang != "" {
+		i18n.SetLang(i18n.Lang(savedLang))
+	}
+	if savedInterval, err := store.GetSetting("polling_interval"); err == nil && savedInterval != "" {
+		if dur, parseErr := time.ParseDuration(savedInterval); parseErr == nil {
+			cfg.Telemetry.PollingInterval = dur
+		}
+	}
+	if savedCPU, err := store.GetSetting("cpu_threshold"); err == nil && savedCPU != "" {
+		if val, parseErr := strconv.ParseFloat(savedCPU, 64); parseErr == nil && val > 0 {
+			cfg.Telemetry.CPUThreshold = val
+		}
+	}
+	if savedRAM, err := store.GetSetting("ram_threshold"); err == nil && savedRAM != "" {
+		if val, parseErr := strconv.ParseFloat(savedRAM, 64); parseErr == nil && val > 0 {
+			cfg.Telemetry.RAMThreshold = val
+		}
+	}
+	if savedDisk, err := store.GetSetting("disk_threshold"); err == nil && savedDisk != "" {
+		if val, parseErr := strconv.ParseFloat(savedDisk, 64); parseErr == nil && val > 0 {
+			cfg.Telemetry.DiskThreshold = val
+		}
 	}
 
 	v := vault.New()

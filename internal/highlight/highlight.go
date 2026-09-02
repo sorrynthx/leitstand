@@ -48,3 +48,8 @@ func Highlight(filename string, content string) string {
 
 	return buf.String()
 }
+
+// IsTextContent checks if content contains null bytes (binary check).
+func IsTextContent(content string) bool {
+	return !strings.Contains(content, "\x00")
+}

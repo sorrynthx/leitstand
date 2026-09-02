@@ -85,6 +85,24 @@ func (d *RunbookDrawer) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 			}
 			return false, "", nil
 
+		case "pgup", "pageup", "ctrl+u", "ctrl+b":
+			if len(items) > 0 {
+				d.selectedIndex -= 5
+				if d.selectedIndex < 0 {
+					d.selectedIndex = 0
+				}
+			}
+			return false, "", nil
+
+		case "pgdown", "pagedown", "ctrl+d":
+			if len(items) > 0 {
+				d.selectedIndex += 5
+				if d.selectedIndex >= len(items) {
+					d.selectedIndex = len(items) - 1
+				}
+			}
+			return false, "", nil
+
 		case "enter":
 			if len(items) > 0 && d.selectedIndex >= 0 && d.selectedIndex < len(items) {
 				return true, items[d.selectedIndex].Command, nil
@@ -172,10 +190,11 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 		if i == d.selectedIndex {
 			cursor = "▶ "
 			itemLine = lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Background(lipgloss.Color("#1B2A32")).Render(cursor + itemTitle)
+			b.WriteString(itemLine + "\n\n")
 		} else {
 			itemLine = lipgloss.NewStyle().Foreground(lipgloss.Color("#ECEFF1")).Render(cursor + itemTitle)
+			b.WriteString(itemLine + "\n")
 		}
-		b.WriteString(itemLine + "\n")
 	}
 
 	if endIdx < len(items) {

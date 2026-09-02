@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-// HostTelemetryState tracks historical tick snapshots to compute deltas.
 type HostTelemetryState struct {
 	LastCPUTick   *CPUTickSnapshot
 	LastNetwork   *NetworkStats
@@ -21,7 +20,6 @@ type HostTelemetryState struct {
 	LastError     error
 }
 
-// Collector coordinates telemetry collection across managed hosts.
 type Collector struct {
 	mu         sync.RWMutex
 	store      *storage.Storage
@@ -30,7 +28,6 @@ type Collector struct {
 	hostStates map[int64]*HostTelemetryState
 }
 
-// NewCollector creates a telemetry collector.
 func NewCollector(store *storage.Storage, pool *ssh.Pool, v *vault.Vault) *Collector {
 	return &Collector{
 		store:      store,
@@ -40,12 +37,10 @@ func NewCollector(store *storage.Storage, pool *ssh.Pool, v *vault.Vault) *Colle
 	}
 }
 
-// Pool returns the underlying SSH connection pool.
 func (c *Collector) Pool() *ssh.Pool {
 	return c.pool
 }
 
-// CollectHost polls telemetry for a single host.
 func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, error) {
 	if !c.vault.IsUnlocked() {
 		return nil, vault.ErrVaultLocked
@@ -74,18 +69,25 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 		return nil, fmt.Errorf("ssh connection failed: %w", err)
 	}
 
-	stdout, stderr, err := client.Exec(MetricExtractScript)
+	rec, _, err := c.CollectFromClient(context.Background(), host, client)
+	return rec, err
+}
+
+func (c *Collector) CollectFromClient(ctx context.Context, host *storage.Host, client *ssh.Client) (*storage.MetricRecord, *SysInfo, error) {
+	if client == nil {
+		return nil, nil, fmt.Errorf("ssh client is nil")
+	}
+
+	stdout, stderr, err := client.ExecWithTimeout(MetricExtractScript, 10*time.Second)
 	if err != nil {
-		logger.Warnf("CollectHost: Exec failed for host %s (%d): %v (stderr: %s)", host.Name, host.ID, err, string(stderr))
 		c.recordHostError(host.ID, fmt.Errorf("exec error: %w (stderr: %s)", err, string(stderr)))
-		return nil, err
+		return nil, nil, err
 	}
 
 	bundle, err := ParseRawBundle(string(stdout))
 	if err != nil {
-		logger.Warnf("CollectHost: ParseRawBundle failed for host %s (%d): %v", host.Name, host.ID, err)
 		c.recordHostError(host.ID, err)
-		return nil, fmt.Errorf("telemetry parse error: %w", err)
+		return nil, nil, fmt.Errorf("telemetry parse error: %w", err)
 	}
 
 	c.mu.Lock()
@@ -98,6 +100,8 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 	var cpuPct float64
 	if state.LastCPUTick != nil {
 		cpuPct = CalculateCPUPercent(state.LastCPUTick, bundle.CPUTick)
+	} else {
+		cpuPct = bundle.InstantCPUPercent
 	}
 
 	var rxRate, txRate uint64
@@ -133,7 +137,7 @@ func (c *Collector) CollectHost(host *storage.Host) (*storage.MetricRecord, erro
 	state.LastRecord = record
 	c.mu.Unlock()
 
-	return record, nil
+	return record, bundle.SysInfo, nil
 }
 
 func (c *Collector) recordHostError(hostID int64, err error) {
@@ -148,7 +152,6 @@ func (c *Collector) recordHostError(hostID int64, err error) {
 	state.LastError = err
 }
 
-// GetHostState returns the latest cached state of a host.
 func (c *Collector) GetHostState(hostID int64) (*HostTelemetryState, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -158,42 +161,4 @@ func (c *Collector) GetHostState(hostID int64) (*HostTelemetryState, bool) {
 		return nil, false
 	}
 	return state, true
-}
-
-// StartPollingLoop runs periodic polling across all active hosts.
-func (c *Collector) StartPollingLoop(ctx context.Context, interval time.Duration, onUpdate func(hostID int64, record *storage.MetricRecord, err error)) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	// Initial poll immediately
-	c.pollAll(onUpdate)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			c.pollAll(onUpdate)
-		}
-	}
-}
-
-func (c *Collector) pollAll(onUpdate func(hostID int64, record *storage.MetricRecord, err error)) {
-	hosts, err := c.store.ListHosts()
-	if err != nil {
-		return
-	}
-
-	var wg sync.WaitGroup
-	for _, h := range hosts {
-		wg.Add(1)
-		go func(host *storage.Host) {
-			defer wg.Done()
-			rec, err := c.CollectHost(host)
-			if onUpdate != nil {
-				onUpdate(host.ID, rec, err)
-			}
-		}(h)
-	}
-	wg.Wait()
 }

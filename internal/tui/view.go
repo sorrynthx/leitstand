@@ -18,8 +18,14 @@ func (m *Model) View() string {
 	}
 
 	// 1. Overlay Modals
-	if m.showVaultModal && m.vaultForm != nil {
-		return m.vaultForm.View(m.width, m.height)
+	if m.showVaultModal {
+		vf := m.vaultModal
+		if vf == nil {
+			vf = m.vaultForm
+		}
+		if vf != nil {
+			return vf.View(m.width, m.height)
+		}
 	}
 
 	if m.showDeleteModal && m.hostToDelete != nil {
@@ -50,72 +56,63 @@ func (m *Model) View() string {
 		return m.fileManager.View(m.width, m.height)
 	}
 
-	// 2. Runbook Drawer Overlay
-	if m.showDrawer && m.drawer != nil {
-		drawerWidth := int(float64(m.width) * 0.58)
-		if drawerWidth < 55 {
-			drawerWidth = 55
-		}
-		if drawerWidth > m.width-4 {
-			drawerWidth = m.width - 4
-		}
-		drawerHeight := m.height - 2
-		if drawerHeight < 15 {
-			drawerHeight = 15
-		}
-		return lipgloss.Place(m.width, m.height, lipgloss.Right, lipgloss.Center, m.drawer.View(drawerWidth, drawerHeight))
-	}
-
 	// 3. Master Cockpit Layout
 	header := m.renderHeader()
 	statusBar := m.renderStatusBar()
 
 	headerHeight := 1
 	statusBarHeight := 1
-	availableHeight := m.height - headerHeight - statusBarHeight - 1
+	availableHeight := m.height - headerHeight - statusBarHeight - 2
 	if availableHeight < 14 {
 		availableHeight = 14
 	}
 
-	// Full-screen Console Mode
+	var mainContent string
 	if m.fullScreenConsole {
-		consolePane := m.renderRemoteConsole(m.width-2, availableHeight-2)
-		mainView := lipgloss.JoinVertical(lipgloss.Left, header, consolePane, statusBar)
-		return lipgloss.Place(m.width, m.height, lipgloss.Left, lipgloss.Top, mainView)
-	}
-
-	leftWidth := int(float64(m.width) * 0.28)
-	if leftWidth < 24 {
-		leftWidth = 24
-	}
-	rightWidth := m.width - leftWidth - 2
-	if rightWidth < 35 {
-		rightWidth = 35
-	}
-
-	leftPane := m.renderHostListPane(leftWidth, availableHeight-2)
-
-	var rightSide string
-	if m.cfg.Telemetry.PollingInterval <= 0 {
-		rightSide = m.renderRemoteConsole(rightWidth, availableHeight-2)
+		consolePane := m.renderRemoteConsole(m.width-4, availableHeight-2)
+		mainContent = lipgloss.JoinVertical(lipgloss.Left, header, consolePane, statusBar)
 	} else {
-		rightTopInnerHeight := 8
-		rightTopPane := m.renderTelemetryDeck(rightWidth, rightTopInnerHeight)
-
-		rightBottomInnerHeight := availableHeight - 10 - 2
-		if rightBottomInnerHeight < 4 {
-			rightBottomInnerHeight = 4
+		leftWidth := int(float64(m.width) * 0.28)
+		if leftWidth < 25 {
+			leftWidth = 25
 		}
-		rightBottomPane := m.renderRemoteConsole(rightWidth, rightBottomInnerHeight)
+		rightWidth := m.width - leftWidth - 6
+		if rightWidth < 45 {
+			rightWidth = 45
+		}
 
-		rightSide = lipgloss.JoinVertical(lipgloss.Left, rightTopPane, rightBottomPane)
+		leftPane := m.renderHostListPane(leftWidth, availableHeight-2)
+
+		var rightSide string
+		if !m.userHasNavigated {
+			rightSide = m.renderWelcomePanel(rightWidth, availableHeight-2)
+		} else {
+			rightSide = m.renderRemoteConsole(rightWidth, availableHeight-2)
+		}
+
+		content := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightSide)
+		mainContent = lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
 	}
 
-	content := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightSide)
-	mainView := lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
+	// 2. Runbook Drawer Overlay (100% Full Width Modal)
+	if m.showDrawer && m.drawer != nil {
+		drawerWidth := m.width - 4
+		if drawerWidth < 55 {
+			drawerWidth = 55
+		}
+		drawerHeight := m.height - 2
+		if drawerHeight < 15 {
+			drawerHeight = 15
+		}
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.drawer.View(drawerWidth, drawerHeight))
+	}
 
-	return lipgloss.Place(m.width, m.height, lipgloss.Left, lipgloss.Top, mainView)
+
+
+	return mainContent
 }
+
+
 
 // renderHeader renders the top status header bar.
 func (m *Model) renderHeader() string {
@@ -141,7 +138,11 @@ func (m *Model) renderHeader() string {
 // renderStatusBar renders the bottom status bar with contextual shortcuts.
 func (m *Model) renderStatusBar() string {
 	var keys string
-	if m.activePane == PaneConsole {
+	if len(m.hosts) == 0 {
+		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_add")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_settings")) + "  " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_quit")) + "  "
+	} else if m.activePane == PaneConsole {
 		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tab_new")) + "  " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("status_tab_switch")) + "  " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tab_close")) + "  " +
@@ -165,13 +166,41 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	status := m.statusMessage
-	keysLen := runewidth.StringWidth(keys)
-	statusLen := runewidth.StringWidth(status)
-	availWidth := (m.width - 4) - keysLen - statusLen
+	availWidth := (m.width - 1) - runewidth.StringWidth(keys) - runewidth.StringWidth(status) - 2
 	if availWidth < 1 {
 		availWidth = 1
 	}
 
 	content := keys + strings.Repeat(" ", availWidth) + status
-	return StatusBarStyle.Width(m.width - 2).Render(content)
+	return StatusBarStyle.Width(m.width - 1).Render(content)
+}
+
+// renderWelcomePanel renders the clean text view without any panel borders or boxes before a server is selected.
+func (m *Model) renderWelcomePanel(width, height int) string {
+	var b strings.Builder
+
+	title := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("welcome_title"))
+	b.WriteString(title + "\n\n")
+
+	subTitle := lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("welcome_subtitle"))
+	b.WriteString(subTitle + "\n\n")
+
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("welcome_shortcuts")) + "\n\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("↑ / ↓  (or j/k)") + "   : " + i18n.T("welcome_sc_1") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("Enter / c / s") + "   : " + i18n.T("welcome_sc_2") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("a / n") + "           : " + i18n.T("welcome_sc_3") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("f / F6") + "          : " + i18n.T("welcome_sc_4") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("t") + "             : " + i18n.T("welcome_sc_5") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("?") + "             : " + i18n.T("welcome_sc_6") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("p") + "             : " + i18n.T("welcome_sc_7") + "\n\n")
+
+	if len(m.hosts) > 0 {
+		statusStr := lipgloss.NewStyle().Foreground(ColorSuccess).Render(i18n.Tf("welcome_ready", len(m.hosts)))
+		b.WriteString(statusStr)
+	} else {
+		statusStr := lipgloss.NewStyle().Foreground(ColorWarning).Render(i18n.T("welcome_no_hosts"))
+		b.WriteString(statusStr)
+	}
+
+	return lipgloss.NewStyle().Padding(1, 2).Width(width).Height(height).Render(b.String())
 }

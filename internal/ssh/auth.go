@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net"
@@ -20,6 +21,8 @@ func BuildClientConfig(username string, authMethod string, secretPayload []byte,
 		return nil, errors.New("username cannot be empty")
 	}
 
+	secretPayload = bytes.TrimSpace(secretPayload)
+
 	var authMethods []ssh.AuthMethod
 
 	switch authMethod {
@@ -33,6 +36,7 @@ func BuildClientConfig(username string, authMethod string, secretPayload []byte,
 		if len(secretPayload) == 0 {
 			return nil, ErrEmptyCredential
 		}
+		passphrase = bytes.TrimSpace(passphrase)
 		var signer ssh.Signer
 		var err error
 		if len(passphrase) > 0 {
@@ -52,17 +56,8 @@ func BuildClientConfig(username string, authMethod string, secretPayload []byte,
 	return &ssh.ClientConfig{
 		User:            username,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // TODO: support known_hosts in future phases
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         timeout,
-		HostKeyAlgorithms: []string{
-			ssh.KeyAlgoED25519,
-			ssh.KeyAlgoECDSA256,
-			ssh.KeyAlgoECDSA384,
-			ssh.KeyAlgoECDSA521,
-			ssh.KeyAlgoRSASHA256,
-			ssh.KeyAlgoRSASHA512,
-			ssh.KeyAlgoRSA,
-		},
 	}, nil
 }
 
