@@ -2,7 +2,7 @@ package tui
 
 import (
 	"leitstand/internal/i18n"
-	"strconv"
+	"os"
 	"strings"
 	"time"
 
@@ -18,78 +18,119 @@ type SettingsResult struct {
 	CPUThresh  float64
 	RAMThresh  float64
 	DiskThresh float64
-	CurrPass   string
-	NewPass    string
+	LogDir     string
 }
 
 func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
+	if s.showConfirmSave {
+		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			switch keyMsg.String() {
+			case "enter", "y", "Y":
+				return s.executeSave(), nil
+			case "esc", "n", "N", "q":
+				s.showConfirmSave = false
+				return SettingsResult{}, nil
+			}
+		}
+		return SettingsResult{}, nil
+	}
+
+	if s.filePicker != nil {
+		done, pickedPath, cmd := s.filePicker.Update(msg)
+		if done {
+			if pickedPath != "" {
+				if s.pendingExportType > 0 {
+					s.handleDatabaseFilePicked(pickedPath)
+					s.pendingExportType = 0
+				} else {
+					s.selectedLogPreset = 3
+					s.inputs[3].SetValue(pickedPath)
+				}
+			}
+			s.filePicker = nil
+		}
+		return SettingsResult{}, cmd
+	}
+
+	if s.activeTab == TabDatabase {
+		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			cmd, handled := s.updateSettingsDatabaseTab(keyMsg)
+			if handled {
+				return SettingsResult{}, cmd
+			}
+		}
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "esc":
 			return SettingsResult{Done: true, SaveReq: false}, nil
-
 		case "f1", "alt+1", "1":
 			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "1" {
-				s.activeTab = TabGeneral
-				s.focusField = FieldLanguage
+				s.switchTab(TabGeneral)
 				return SettingsResult{}, nil
 			}
-
 		case "f2", "alt+2", "2":
 			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "2" {
-				s.activeTab = TabTelemetry
-				s.focusField = FieldInterval
+				s.switchTab(TabTelemetry)
 				return SettingsResult{}, nil
 			}
-
 		case "f3", "alt+3", "3":
 			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "3" {
-				s.activeTab = TabAbout
+				s.switchTab(TabLogs)
+				return SettingsResult{}, nil
+			}
+		case "f4", "alt+4", "4":
+			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "4" {
+				s.switchTab(TabDatabase)
+				if s.dbStats == nil && s.store != nil {
+					s.dbStats, _ = s.store.GetDBStats()
+				}
+				return SettingsResult{}, nil
+			}
+		case "f5", "alt+5", "5":
+			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "5" {
+				s.switchTab(TabAbout)
 				return SettingsResult{}, nil
 			}
 
 		case "tab":
 			if s.activeTab == TabAbout {
-				s.activeTab = TabGeneral
-				s.focusField = FieldLanguage
+				s.switchTab(TabGeneral)
 				return SettingsResult{}, nil
 			}
-			s.blurCurrent()
-			s.focusField = (s.focusField + 1) % FieldCount
-			s.focusCurrent()
+			s.focusNext()
 			return SettingsResult{}, textinput.Blink
 
 		case "shift+tab":
 			if s.activeTab == TabAbout {
-				s.activeTab = TabGeneral
-				s.focusField = FieldLanguage
+				s.switchTab(TabGeneral)
 				return SettingsResult{}, nil
 			}
-			s.blurCurrent()
-			s.focusField--
-			if s.focusField < 0 {
-				s.focusField = FieldCount - 1
-			}
-			s.focusCurrent()
+			s.focusPrev()
 			return SettingsResult{}, textinput.Blink
 
-		case "down":
+		case "down", "j", "pgdn":
+			if s.activeTab == TabLogs && s.focusField == FieldLogPreset {
+				s.selectedLogPreset = (s.selectedLogPreset + 1) % len(s.logDirPresets)
+				return SettingsResult{}, nil
+			}
 			if s.activeTab != TabAbout {
-				s.blurCurrent()
-				s.focusField = (s.focusField + 1) % FieldCount
-				s.focusCurrent()
+				s.focusNext()
 				return SettingsResult{}, textinput.Blink
 			}
 
-		case "up":
-			if s.activeTab != TabAbout {
-				s.blurCurrent()
-				s.focusField--
-				if s.focusField < 0 {
-					s.focusField = FieldCount - 1
+		case "up", "k", "pgup":
+			if s.activeTab == TabLogs && s.focusField == FieldLogPreset {
+				s.selectedLogPreset--
+				if s.selectedLogPreset < 0 {
+					s.selectedLogPreset = len(s.logDirPresets) - 1
 				}
-				s.focusCurrent()
+				return SettingsResult{}, nil
+			}
+			if s.activeTab != TabAbout {
+				s.focusPrev()
 				return SettingsResult{}, textinput.Blink
 			}
 
@@ -107,6 +148,12 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 					s.intervalIndex = len(intervalOptions) - 1
 				}
 				return SettingsResult{}, nil
+			} else if s.activeTab == TabLogs {
+				s.selectedLogPreset--
+				if s.selectedLogPreset < 0 {
+					s.selectedLogPreset = len(s.logDirPresets) - 1
+				}
+				return SettingsResult{}, nil
 			}
 
 		case "right", "l":
@@ -117,65 +164,38 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			} else if s.focusField == FieldInterval {
 				s.intervalIndex = (s.intervalIndex + 1) % len(intervalOptions)
 				return SettingsResult{}, nil
+			} else if s.activeTab == TabLogs {
+				s.selectedLogPreset = (s.selectedLogPreset + 1) % len(s.logDirPresets)
+				return SettingsResult{}, nil
 			}
 
+		case " ", "space", "b", "B":
+			if s.activeTab == TabLogs && s.selectedLogPreset == 3 {
+				initDir := strings.TrimSpace(s.inputs[3].Value())
+				if initDir == "" {
+					initDir, _ = os.UserHomeDir()
+				}
+				s.filePicker = NewDirPickerModal(initDir, 80, 24)
+				return SettingsResult{}, nil
+			}
+		case "ctrl+e":
+			s.errMessage = "💡 세션 저장은 콘솔 화면에서 [Esc]로 설정을 닫은 후 [Ctrl+E]를 눌러주세요."
+			return SettingsResult{}, nil
 		case "enter":
 			if s.activeTab == TabAbout {
 				s.activeTab = TabGeneral
 				s.focusField = FieldLanguage
 				return SettingsResult{}, nil
 			}
-
-			selectedLang := i18n.SupportedLangs[s.selectedLangIndex].Code
-			selectedInterval := intervalOptions[s.intervalIndex].Duration
-
-			currPass := s.inputs[0].Value()
-			newPass := s.inputs[1].Value()
-			confirmPass := s.inputs[2].Value()
-
-			if newPass != "" {
-				if len(newPass) < 4 {
-					s.errMessage = "New password must be at least 4 characters"
-					return SettingsResult{}, nil
-				}
-				if newPass != confirmPass {
-					s.errMessage = i18n.T("settings_pass_mismatch")
-					return SettingsResult{}, nil
-				}
-				if currPass == "" {
-					s.errMessage = "Current password is required to set new password"
-					return SettingsResult{}, nil
-				}
-			}
-
-			cpuT, err1 := strconv.ParseFloat(strings.TrimSpace(s.inputs[3].Value()), 64)
-			ramT, err2 := strconv.ParseFloat(strings.TrimSpace(s.inputs[4].Value()), 64)
-			diskT, err3 := strconv.ParseFloat(strings.TrimSpace(s.inputs[5].Value()), 64)
-
-			if err1 != nil || cpuT < 1 || cpuT > 100 {
-				s.errMessage = "⚠️ CPU 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
+			if s.activeTab == TabLogs && s.selectedLogPreset == 3 && strings.TrimSpace(s.inputs[3].Value()) == "" {
+				initDir, _ := os.UserHomeDir()
+				s.filePicker = NewDirPickerModal(initDir, 80, 24)
 				return SettingsResult{}, nil
 			}
-			if err2 != nil || ramT < 1 || ramT > 100 {
-				s.errMessage = "⚠️ RAM 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
-				return SettingsResult{}, nil
+			if s.validateInputs() {
+				s.showConfirmSave = true
 			}
-			if err3 != nil || diskT < 1 || diskT > 100 {
-				s.errMessage = "⚠️ Disk 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
-				return SettingsResult{}, nil
-			}
-
-			return SettingsResult{
-				Done:       true,
-				SaveReq:    true,
-				Lang:       selectedLang,
-				Interval:   selectedInterval,
-				CPUThresh:  cpuT,
-				RAMThresh:  ramT,
-				DiskThresh: diskT,
-				CurrPass:   currPass,
-				NewPass:    newPass,
-			}, nil
+			return SettingsResult{}, nil
 		}
 	}
 
@@ -185,18 +205,4 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 		s.inputs[inputIdx], cmd = s.inputs[inputIdx].Update(msg)
 	}
 	return SettingsResult{}, cmd
-}
-
-func (s *SettingsModal) blurCurrent() {
-	idx := s.inputIndexForField(s.focusField)
-	if idx >= 0 && idx < len(s.inputs) {
-		s.inputs[idx].Blur()
-	}
-}
-
-func (s *SettingsModal) focusCurrent() {
-	idx := s.inputIndexForField(s.focusField)
-	if idx >= 0 && idx < len(s.inputs) {
-		s.inputs[idx].Focus()
-	}
 }

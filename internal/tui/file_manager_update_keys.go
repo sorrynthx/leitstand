@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"leitstand/internal/logger"
 	"path"
 	"path/filepath"
 
@@ -11,11 +12,34 @@ import (
 func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 	if m.IsTransferring {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			if m.ShowTransferCancelPrompt {
+				switch keyMsg.String() {
+				case "enter", "y", "Y":
+					logger.Infof("[SFTP] User confirmed transfer cancellation -> calling TransferCancel()")
+					m.IsTransferCanceled = true
+					if m.TransferCancel != nil {
+						m.TransferCancel()
+					}
+					m.IsTransferring = false
+					m.IsTransferBackground = false
+					m.ShowTransferCancelPrompt = false
+					m.StatusMessage = "⚠️ 전송이 사용자에 의해 취소되었습니다."
+					return false, nil
+				case "esc", "n", "N", "q":
+					m.ShowTransferCancelPrompt = false
+					return false, nil
+				}
+				return false, nil
+			}
+
 			switch keyMsg.String() {
 			case "esc", "q", "ctrl+c":
-				m.IsTransferring = false
-				m.StatusMessage = "⚠️ 전송이 사용자에 의해 취소되었습니다."
+				m.ShowTransferCancelPrompt = true
 				return false, nil
+			case "b", "B":
+				logger.Infof("[SFTP] User minimized transfer to background mode")
+				m.IsTransferBackground = true
+				return true, nil
 			}
 		}
 		return false, nil
@@ -115,30 +139,27 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 			return false, nil
 
 		case "up", "k":
-			m.StatusMessage = ""
-			if m.ActivePanel == PanelLocal {
-				if m.LocalCursor > 0 {
-					m.LocalCursor--
-				}
-			} else {
-				if m.RemoteCursor > 0 {
-					m.RemoteCursor--
-				}
-			}
+			m.navigateCursor(-1)
 			return false, nil
 
 		case "down", "j":
-			m.StatusMessage = ""
-			items := m.GetActiveItems()
-			if m.ActivePanel == PanelLocal {
-				if m.LocalCursor < len(items)-1 {
-					m.LocalCursor++
-				}
-			} else {
-				if m.RemoteCursor < len(items)-1 {
-					m.RemoteCursor++
-				}
-			}
+			m.navigateCursor(1)
+			return false, nil
+
+		case "pgup", "pageup", "ctrl+u":
+			m.navigateCursor(-10)
+			return false, nil
+
+		case "pgdown", "pagedown", "ctrl+d":
+			m.navigateCursor(10)
+			return false, nil
+
+		case "home", "g":
+			m.jumpCursor(true)
+			return false, nil
+
+		case "end", "G":
+			m.jumpCursor(false)
 			return false, nil
 
 		case "space", " ":

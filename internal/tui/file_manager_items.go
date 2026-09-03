@@ -198,3 +198,45 @@ func (m *FileManagerModal) ClearSelections() {
 	m.LocalSelected = make(map[string]bool)
 	m.RemoteSelected = make(map[string]bool)
 }
+
+func (m *FileManagerModal) navigateCursor(delta int) {
+	m.StatusMessage = ""
+	items := m.GetActiveItems()
+	maxIdx := len(items) - 1
+	if maxIdx < 0 {
+		maxIdx = 0
+	}
+	if m.ActivePanel == PanelLocal {
+		m.LocalCursor += delta
+		if m.LocalCursor < 0 {
+			m.LocalCursor = 0
+		} else if m.LocalCursor > maxIdx {
+			m.LocalCursor = maxIdx
+		}
+	} else {
+		m.RemoteCursor += delta
+		if m.RemoteCursor < 0 {
+			m.RemoteCursor = 0
+		} else if m.RemoteCursor > maxIdx {
+			m.RemoteCursor = maxIdx
+		}
+	}
+}
+
+func (m *FileManagerModal) jumpCursor(toTop bool) {
+	m.StatusMessage = ""
+	items := m.GetActiveItems()
+	target := 0
+	if !toTop {
+		target = len(items) - 1
+		if target < 0 {
+			target = 0
+		}
+	}
+	if m.ActivePanel == PanelLocal {
+		m.LocalCursor = target
+	} else {
+		m.RemoteCursor = target
+	}
+}
+

@@ -150,13 +150,13 @@ func (m *Model) execSudoCmd(host *storage.Host, cmdText string, password string)
 
 		stdoutStr := string(stdout)
 		newCWD := cwd
-		if idx := strings.Index(stdoutStr, "___LEITSTAND_PWD___"); idx != -1 {
+		if idx := strings.LastIndex(stdoutStr, "___LEITSTAND_PWD___"); idx != -1 {
 			outPart := strings.TrimRight(stdoutStr[:idx], "\r\n ")
 			pwdRaw := stdoutStr[idx+len("___LEITSTAND_PWD___"):]
 			pwdLines := strings.Split(strings.TrimSpace(pwdRaw), "\n")
 			if len(pwdLines) > 0 {
 				pwdLine := strings.TrimSpace(pwdLines[0])
-				if pwdLine != "" {
+				if isValidCWD(pwdLine) {
 					newCWD = pwdLine
 				}
 			}

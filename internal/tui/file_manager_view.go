@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/mattn/go-runewidth"
 )
 
 func (m *FileManagerModal) View(width, height int) string {
@@ -212,4 +213,26 @@ func formatSortIndicator(field SortField, asc bool) string {
 	default:
 		return "[정렬 " + dir + "]"
 	}
+}
+
+func formatTransferBytes(b int64) string {
+	val := float64(b)
+	switch {
+	case val >= 1024*1024*1024:
+		return fmt.Sprintf("%.2f GB", val/(1024*1024*1024))
+	case val >= 1024*1024:
+		return fmt.Sprintf("%.1f MB", val/(1024*1024))
+	case val >= 1024:
+		return fmt.Sprintf("%.1f KB", val/1024)
+	default:
+		return fmt.Sprintf("%d B", b)
+	}
+}
+
+func padStringToWidth(s string, targetWidth int) string {
+	w := lipgloss.Width(s)
+	if w >= targetWidth {
+		return runewidth.Truncate(s, targetWidth, "")
+	}
+	return s + strings.Repeat(" ", targetWidth-w)
 }

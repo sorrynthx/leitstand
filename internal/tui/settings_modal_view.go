@@ -9,6 +9,15 @@ import (
 )
 
 func (s *SettingsModal) View(width, height int) string {
+	if s.filePicker != nil {
+		return s.filePicker.View(width, height)
+	}
+	if s.showConfirmSave {
+		var cb strings.Builder
+		cb.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("settings_confirm_save_title")) + "\n\n")
+		cb.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render("  "+i18n.T("settings_confirm_save_hints")) + "\n")
+		return RenderModalContainer(cb.String(), 56, ColorWarning, width, height)
+	}
 	if width <= 0 {
 		width = 100
 	}
@@ -30,28 +39,38 @@ func (s *SettingsModal) View(width, height int) string {
 	headerTitle := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("settings_title"))
 	b.WriteString(headerTitle + "\n\n")
 
-	var tabGenHeader, tabTelemHeader, tabAboutHeader string
-	if s.activeTab == TabGeneral {
-		tabGenHeader = lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(ColorPrimary).Padding(0, 2).Render("[1] " + i18n.T("tab_general") + " ●")
-		tabTelemHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[2] 📊 Telemetry ○")
-		tabAboutHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[3] " + i18n.T("tab_about") + " ○")
-	} else if s.activeTab == TabTelemetry {
-		tabGenHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[1] " + i18n.T("tab_general") + " ○")
-		tabTelemHeader = lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(ColorSecondary).Padding(0, 2).Render("[2] 📊 Telemetry ●")
-		tabAboutHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[3] " + i18n.T("tab_about") + " ○")
-	} else {
-		tabGenHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[1] " + i18n.T("tab_general") + " ○")
-		tabTelemHeader = lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 2).Render("[2] 📊 Telemetry ○")
-		tabAboutHeader = lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(ColorSuccess).Padding(0, 2).Render("[3] " + i18n.T("tab_about") + " ●")
+	type tabEntry struct {
+		tab   SettingsTab
+		label string
+		color lipgloss.Color
 	}
+	tabDefs := []tabEntry{
+		{TabGeneral, "[1] " + i18n.T("tab_general"), ColorPrimary},
+		{TabTelemetry, "[2] 📊 Telemetry", ColorSecondary},
+		{TabLogs, "[3] 📜 " + i18n.T("settings_tab_logs"), ColorSuccess},
+		{TabDatabase, "[4] 🗄️ " + i18n.T("settings_tab_database"), ColorWarning},
+		{TabAbout, "[5] " + i18n.T("tab_about"), ColorSuccess},
+	}
+	var tabBtns []string
+	for _, td := range tabDefs {
+		if s.activeTab == td.tab {
+			tabBtns = append(tabBtns, lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(td.color).Padding(0, 1).Render(td.label+" ●"))
+		} else {
+			tabBtns = append(tabBtns, lipgloss.NewStyle().Foreground(ColorMuted).Background(ColorHighlight).Padding(0, 1).Render(td.label+" ○"))
+		}
+	}
+	b.WriteString(strings.Join(tabBtns, " ") + "\n\n")
 
-	b.WriteString(tabGenHeader + "   " + tabTelemHeader + "   " + tabAboutHeader + "\n\n")
-
-	if s.activeTab == TabGeneral {
+	switch s.activeTab {
+	case TabGeneral:
 		b.WriteString(s.renderGeneralTab())
-	} else if s.activeTab == TabTelemetry {
+	case TabTelemetry:
 		b.WriteString(s.renderTelemetryTab())
-	} else {
+	case TabLogs:
+		b.WriteString(s.renderLogsTab())
+	case TabDatabase:
+		b.WriteString(s.renderDatabaseTab())
+	case TabAbout:
 		b.WriteString(s.renderAboutTab())
 	}
 
@@ -80,40 +99,10 @@ func (s *SettingsModal) renderGeneralTab() string {
 	langBtn := lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(fmt.Sprintf("◄ %s ►", currLangOpt.Label))
 	b.WriteString(langBtn + "\n\n")
 
-	// 2. Vault Password Change Header
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("🔒 Master Vault Rekeying / Password Change") + "\n\n")
-
-	prompts := []string{
-		i18n.T("settings_curr_pass"),
-		i18n.T("settings_new_pass"),
-		i18n.T("settings_confirm_pass"),
-	}
-
-	placeholders := []string{
-		i18n.T("settings_ph_curr_pass"),
-		i18n.T("settings_ph_new_pass"),
-		i18n.T("settings_ph_confirm_pass"),
-	}
-
-	for i := 0; i < 3; i++ {
-		field := SettingsField(int(FieldCurrentPass) + i)
-		inp := s.inputs[i]
-		inp.Prompt = fmt.Sprintf("%-26s ", prompts[i])
-		inp.Placeholder = placeholders[i]
-		inp.Width = 55
-
-		if s.focusField == field {
-			inp.PromptStyle = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary)
-			inp.TextStyle = lipgloss.NewStyle().Foreground(ColorText)
-			b.WriteString("❯ " + inp.View() + "\n\n")
-		} else {
-			inp.PromptStyle = lipgloss.NewStyle().Foreground(ColorMuted)
-			inp.TextStyle = lipgloss.NewStyle().Foreground(ColorMuted)
-			b.WriteString("  " + inp.View() + "\n\n")
-		}
-	}
-
-	b.WriteString(RenderSecurityBadges(s.inputs...))
+	// 2. Info Card directing to Tab 4 for Security
+	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(
+		"💡 마스터 비밀번호 변경 및 DB 백업/복원은 [4] 데이터 & 보안 탭에서 관리할 수 있습니다.",
+	) + "\n\n")
 
 	// Submit Button / Hints
 	if s.focusField == FieldSubmitBtn {
@@ -126,8 +115,6 @@ func (s *SettingsModal) renderGeneralTab() string {
 
 	if s.errMessage != "" {
 		b.WriteString("\n" + lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("❌ "+s.errMessage) + "\n")
-	} else if s.successMessage != "" {
-		b.WriteString("\n" + lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render("✨ "+s.successMessage) + "\n")
 	} else {
 		b.WriteString("\n")
 	}
@@ -173,13 +160,13 @@ func (s *SettingsModal) renderTelemetryTab() string {
 	b.WriteString(intervalBtn + "\n\n")
 
 	// 2. CPU Threshold
-	b.WriteString(s.renderThresholdField(FieldCPUThresh, 3, "💻 CPU 경고 임계치 (CPU Threshold %):", "85"))
+	b.WriteString(s.renderThresholdField(FieldCPUThresh, 0, "💻 CPU 경고 임계치 (CPU Threshold %):", "85"))
 
 	// 3. RAM Threshold
-	b.WriteString(s.renderThresholdField(FieldRAMThresh, 4, "🧠 RAM 경고 임계치 (RAM Threshold %):", "90"))
+	b.WriteString(s.renderThresholdField(FieldRAMThresh, 1, "🧠 RAM 경고 임계치 (RAM Threshold %):", "90"))
 
 	// 4. Disk Threshold
-	b.WriteString(s.renderThresholdField(FieldDiskThresh, 5, "💾 Disk 경고 임계치 (Disk Threshold %):", "90"))
+	b.WriteString(s.renderThresholdField(FieldDiskThresh, 2, "💾 Disk 경고 임계치 (Disk Threshold %):", "90"))
 
 	// Save Button
 	if s.focusField == FieldSubmitBtn {

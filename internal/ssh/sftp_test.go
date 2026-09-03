@@ -1,4 +1,4 @@
-﻿package ssh
+package ssh
 
 import (
 	"crypto/rand"
@@ -84,5 +84,47 @@ func TestSSHPrivateKeyAuth(t *testing.T) {
 	_, err = pool.GetOrCreateFromPayload(wrongHost, secret, payload)
 	if err == nil {
 		t.Error("expected failure for wrong username with private key")
+	}
+}
+
+func TestKeepAliveLifecycle(t *testing.T) {
+	mockAddr, cleanup := startMockSSHServer(t, "testuser", "testpass", nil)
+	defer cleanup()
+
+	hostStr, portStr, _ := net.SplitHostPort(mockAddr)
+	port, _ := strconv.Atoi(portStr)
+
+	cfg, err := BuildClientConfig("testuser", "password", []byte("testpass"), nil, 5*time.Second)
+	if err != nil {
+		t.Fatalf("BuildClientConfig failed: %v", err)
+	}
+
+	client, err := NewClient(net.JoinHostPort(hostStr, strconv.Itoa(port)), cfg)
+	if err != nil {
+		t.Fatalf("NewClient failed: %v", err)
+	}
+	defer client.Close()
+
+	if !client.IsAlive() {
+		t.Error("expected client to be alive")
+	}
+
+	// Verify keepalive ticker can start and stop safely
+	client.StartKeepAlive(50 * time.Millisecond)
+	time.Sleep(120 * time.Millisecond)
+	client.StopKeepAlive()
+
+	if !client.IsAlive() {
+		t.Error("expected client to remain alive after keepalive stop")
+	}
+}
+
+func TestResetSFTPClient(t *testing.T) {
+	client := &Client{}
+	// Calling ResetSFTPClient on fresh/nil client should be safe and idempotent
+	client.ResetSFTPClient()
+
+	if client.sftpClient != nil {
+		t.Errorf("expected sftpClient to remain nil")
 	}
 }

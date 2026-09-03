@@ -63,13 +63,13 @@ func (m *Model) execRemoteCmd(host *storage.Host, cmdText string) tea.Cmd {
 		stderr := string(stderrBytes)
 
 		newCWD := cwd
-		if idx := strings.Index(stdout, "___LEITSTAND_PWD___"); idx != -1 {
+		if idx := strings.LastIndex(stdout, "___LEITSTAND_PWD___"); idx != -1 {
 			outPart := strings.TrimRight(stdout[:idx], "\r\n ")
 			pwdRaw := stdout[idx+len("___LEITSTAND_PWD___"):]
 			pwdLines := strings.Split(strings.TrimSpace(pwdRaw), "\n")
 			if len(pwdLines) > 0 {
 				pwdLine := strings.TrimSpace(pwdLines[0])
-				if pwdLine != "" {
+				if isValidCWD(pwdLine) {
 					newCWD = pwdLine
 				}
 			}
@@ -87,4 +87,12 @@ func (m *Model) execRemoteCmd(host *storage.Host, cmdText string) tea.Cmd {
 			Err:     err,
 		}
 	}
+}
+
+func isValidCWD(p string) bool {
+	p = strings.TrimSpace(p)
+	if p == "" || strings.ContainsAny(p, ";$'\n\r`\"") {
+		return false
+	}
+	return strings.HasPrefix(p, "/") || p == "~" || strings.HasPrefix(p, "~/")
 }

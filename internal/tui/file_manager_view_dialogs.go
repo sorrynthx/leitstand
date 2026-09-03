@@ -56,12 +56,9 @@ func (m *FileManagerModal) renderTransferDeck(width int) string {
 	} else if m.StatusMessage != "" {
 		b.WriteString(m.StatusMessage + "\n")
 	} else {
-		rawHints := i18n.T("sftp_hints")
-		truncHints := runewidth.Truncate(rawHints, width-2, "…")
-		hints := lipgloss.NewStyle().Foreground(ColorMuted).Render(truncHints)
-		b.WriteString(hints + "\n")
+		truncHints := runewidth.Truncate(i18n.T("sftp_hints"), width-2, "…")
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(truncHints) + "\n")
 	}
-
 	return b.String()
 }
 
@@ -78,12 +75,22 @@ func (m *FileManagerModal) renderTransferProgressModal(width, height int) string
 	if m.CurrentTotal > 0 {
 		pct = (float64(m.CurrentBytes) / float64(m.CurrentTotal)) * 100.0
 	}
-	b.WriteString(fmt.Sprintf("[%s] %.1f%%\n", RenderProgressBar(45, pct, ColorSuccess, ColorBorder), pct))
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("Speed: %.1f KB/s", m.BytesPerSec/1024.0)) + "\n\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorWarning).Render(i18n.T("sftp_transfer_wait")) + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("sftp_transfer_cancel_hint")))
+	speedStr := fmt.Sprintf("%.1f KB/s", m.BytesPerSec/1024.0)
+	if m.BytesPerSec >= 1024*1024 {
+		speedStr = fmt.Sprintf("%.1f MB/s", m.BytesPerSec/(1024.0*1024.0))
+	}
+	b.WriteString(fmt.Sprintf("[%s] %.1f%%\n", RenderProgressBar(40, pct, ColorSuccess, ColorBorder), pct))
+	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(fmt.Sprintf("Size: %s / %s  •  Speed: %s", formatTransferBytes(m.CurrentBytes), formatTransferBytes(m.CurrentTotal), speedStr)) + "\n\n")
 
-	boxStyle := lipgloss.NewStyle().Border(lipgloss.DoubleBorder()).BorderForeground(ColorPrimary).Padding(1, 3).Width(55)
+	if m.ShowTransferCancelPrompt {
+		b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("⚠️ [전송 취소 확인] 전송을 정말 중단하시겠습니까?") + "\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorWarning).Render("  [Enter / y] 취소 확정     [Esc / n] 계속 전송"))
+	} else {
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorWarning).Render(i18n.T("sftp_transfer_wait")) + "\n")
+		b.WriteString(lipgloss.NewStyle().Foreground(ColorSecondary).Render("💡 [b] 백그라운드 전환 (터미널 복귀)   [Esc/q] 전송 취소"))
+	}
+
+	boxStyle := lipgloss.NewStyle().Border(lipgloss.DoubleBorder()).BorderForeground(ColorPrimary).Padding(1, 3).Width(58)
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, boxStyle.Render(b.String()))
 }
 
@@ -146,9 +153,9 @@ func (m *FileManagerModal) renderRunbookModal(width, height int) string {
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("📖 SFTP 매니저 단축키 가이드 & 데브옵스 런북") + "\n\n")
 
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("⌨️  [단축키 요약 Cheat Sheet]") + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [x/c/v] 잘라내기/복사/붙여넣기   • [Space] 선택   • [s] 정렬") + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [Tab] 패널전환   • [F5/F6] 전송/이동   • [F7/t] 새폴더/새파일") + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [F2/F8] 이름변경/삭제   • [.] 숨김파일   • [Esc] 닫기") + "\n\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [x/c/p/v] 잘라내기/복사/붙여넣기   • [PgUp/PgDn] 스크롤   • [s] 정렬") + "\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [Tab] 패널전환   • [F5/F6] 전송/이동   • [n/N/t] 새폴더/새파일") + "\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render(" • [F2/r] 이름변경   • [Delete/d] 삭제   • [.] 숨김파일   • [Esc] 닫기") + "\n\n")
 
 	headerTitle := fmt.Sprintf("🚀 [데브옵스 추천 명령어 사적 (%d/%d)] (↑/↓/PgUp/PgDn 선택 후 Enter)", m.RunbookCursor+1, len(defaultSFTPRunbooks))
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(headerTitle) + "\n")
@@ -238,12 +245,4 @@ func renderFileItemLine(it *ssh.FileItem, isSelected, isChecked bool, inClipCut,
 		return lipgloss.NewStyle().Bold(true).Background(ColorHighlight).Foreground(lipgloss.Color("#FFFFFF")).Render(fullLine)
 	}
 	return fullLine
-}
-
-func padStringToWidth(s string, targetWidth int) string {
-	w := lipgloss.Width(s)
-	if w >= targetWidth {
-		return runewidth.Truncate(s, targetWidth, "")
-	}
-	return s + strings.Repeat(" ", targetWidth-w)
 }

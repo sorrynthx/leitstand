@@ -1,8 +1,9 @@
 package ssh
 
 import (
-	"fmt"
+	"context"
 	"io"
+	"leitstand/internal/logger"
 	"os"
 	"path"
 	"path/filepath"
@@ -10,19 +11,14 @@ import (
 	"github.com/pkg/sftp"
 )
 
-func (c *Client) UploadFile(localPath, remotePath string, onProgress func(transferred, total int64)) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("client is closed")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+func (c *Client) UploadFile(ctx context.Context, localPath, remotePath string, onProgress func(transferred, total int64)) error {
+	sess, err := c.createDedicatedSFTPSession(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create SFTP subsystem: %w", err)
+		return err
 	}
-	defer sftpClient.Close()
+	defer sess.Close()
+	defer watchCancel(ctx, sess)()
+	sftpClient := sess.Client
 
 	srcFile, err := os.Open(localPath)
 	if err != nil {
@@ -30,21 +26,19 @@ func (c *Client) UploadFile(localPath, remotePath string, onProgress func(transf
 	}
 
 	fi, err := srcFile.Stat()
+	srcFile.Close()
 	if err != nil {
-		srcFile.Close()
 		return err
 	}
 
 	if fi.IsDir() {
-		srcFile.Close()
-		return c.uploadDirRecursive(sftpClient, localPath, remotePath, onProgress)
+		return c.uploadDirRecursive(ctx, sftpClient, localPath, remotePath, onProgress)
 	}
-	srcFile.Close()
 
-	return uploadSingleFile(sftpClient, localPath, remotePath, onProgress)
+	return uploadSingleFile(ctx, sftpClient, localPath, remotePath, onProgress)
 }
 
-func uploadSingleFile(sftpClient *sftp.Client, localPath, remotePath string, onProgress func(transferred, total int64)) error {
+func uploadSingleFile(ctx context.Context, sftpClient *sftp.Client, localPath, remotePath string, onProgress func(transferred, total int64)) error {
 	srcFile, err := os.Open(localPath)
 	if err != nil {
 		return err
@@ -70,6 +64,13 @@ func uploadSingleFile(sftpClient *sftp.Client, localPath, remotePath string, onP
 	var transferred int64
 
 	for {
+		select {
+		case <-ctx.Done():
+			logger.Warnf("[SFTP] uploadSingleFile interrupted by cancel context: %v", ctx.Err())
+			return ctx.Err()
+		default:
+		}
+
 		n, readErr := srcFile.Read(buf)
 		if n > 0 {
 			_, writeErr := dstFile.Write(buf[:n])
@@ -91,21 +92,26 @@ func uploadSingleFile(sftpClient *sftp.Client, localPath, remotePath string, onP
 	return nil
 }
 
-func (c *Client) uploadDirRecursive(sftpClient *sftp.Client, localDir, remoteDir string, onProgress func(transferred, total int64)) error {
+func (c *Client) uploadDirRecursive(ctx context.Context, sftpClient *sftp.Client, localDir, remoteDir string, onProgress func(transferred, total int64)) error {
 	_ = sftpClient.MkdirAll(remoteDir)
 	entries, err := os.ReadDir(localDir)
 	if err != nil {
 		return err
 	}
 	for _, entry := range entries {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 		subLocal := filepath.Join(localDir, entry.Name())
 		subRemote := path.Join(remoteDir, entry.Name())
 		if entry.IsDir() {
-			if err := c.uploadDirRecursive(sftpClient, subLocal, subRemote, onProgress); err != nil {
+			if err := c.uploadDirRecursive(ctx, sftpClient, subLocal, subRemote, onProgress); err != nil {
 				return err
 			}
 		} else {
-			if err := uploadSingleFile(sftpClient, subLocal, subRemote, onProgress); err != nil {
+			if err := uploadSingleFile(ctx, sftpClient, subLocal, subRemote, onProgress); err != nil {
 				return err
 			}
 		}
@@ -113,19 +119,14 @@ func (c *Client) uploadDirRecursive(sftpClient *sftp.Client, localDir, remoteDir
 	return nil
 }
 
-func (c *Client) DownloadFile(remotePath, localPath string, onProgress func(transferred, total int64)) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("client is closed")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+func (c *Client) DownloadFile(ctx context.Context, remotePath, localPath string, onProgress func(transferred, total int64)) error {
+	sess, err := c.createDedicatedSFTPSession(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to create SFTP subsystem: %w", err)
+		return err
 	}
-	defer sftpClient.Close()
+	defer sess.Close()
+	defer watchCancel(ctx, sess)()
+	sftpClient := sess.Client
 
 	srcFile, err := sftpClient.Open(remotePath)
 	if err != nil {
@@ -133,21 +134,19 @@ func (c *Client) DownloadFile(remotePath, localPath string, onProgress func(tran
 	}
 
 	fi, err := srcFile.Stat()
+	srcFile.Close()
 	if err != nil {
-		srcFile.Close()
 		return err
 	}
 
 	if fi.IsDir() {
-		srcFile.Close()
-		return c.downloadDirRecursive(sftpClient, remotePath, localPath, onProgress)
+		return c.downloadDirRecursive(ctx, sftpClient, remotePath, localPath, onProgress)
 	}
-	srcFile.Close()
 
-	return downloadSingleFile(sftpClient, remotePath, localPath, onProgress)
+	return downloadSingleFile(ctx, sftpClient, remotePath, localPath, onProgress)
 }
 
-func downloadSingleFile(sftpClient *sftp.Client, remotePath, localPath string, onProgress func(transferred, total int64)) error {
+func downloadSingleFile(ctx context.Context, sftpClient *sftp.Client, remotePath, localPath string, onProgress func(transferred, total int64)) error {
 	srcFile, err := sftpClient.Open(remotePath)
 	if err != nil {
 		return err
@@ -173,6 +172,13 @@ func downloadSingleFile(sftpClient *sftp.Client, remotePath, localPath string, o
 	var transferred int64
 
 	for {
+		select {
+		case <-ctx.Done():
+			logger.Warnf("[SFTP] downloadSingleFile interrupted by cancel context: %v", ctx.Err())
+			return ctx.Err()
+		default:
+		}
+
 		n, readErr := srcFile.Read(buf)
 		if n > 0 {
 			_, writeErr := dstFile.Write(buf[:n])
@@ -194,24 +200,41 @@ func downloadSingleFile(sftpClient *sftp.Client, remotePath, localPath string, o
 	return nil
 }
 
-func (c *Client) downloadDirRecursive(sftpClient *sftp.Client, remoteDir, localDir string, onProgress func(transferred, total int64)) error {
+func (c *Client) downloadDirRecursive(ctx context.Context, sftpClient *sftp.Client, remoteDir, localDir string, onProgress func(transferred, total int64)) error {
 	_ = os.MkdirAll(localDir, 0755)
 	entries, err := sftpClient.ReadDir(remoteDir)
 	if err != nil {
 		return err
 	}
 	for _, entry := range entries {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 		subRemote := path.Join(remoteDir, entry.Name())
 		subLocal := filepath.Join(localDir, entry.Name())
 		if entry.IsDir() {
-			if err := c.downloadDirRecursive(sftpClient, subRemote, subLocal, onProgress); err != nil {
+			if err := c.downloadDirRecursive(ctx, sftpClient, subRemote, subLocal, onProgress); err != nil {
 				return err
 			}
 		} else {
-			if err := downloadSingleFile(sftpClient, subRemote, subLocal, onProgress); err != nil {
+			if err := downloadSingleFile(ctx, sftpClient, subRemote, subLocal, onProgress); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func watchCancel(ctx context.Context, closer io.Closer) func() {
+	ch := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = closer.Close()
+		case <-ch:
+		}
+	}()
+	return func() { close(ch) }
 }

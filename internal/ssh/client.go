@@ -13,11 +13,12 @@ import (
 
 // Client wraps an active ssh.Client connection.
 type Client struct {
-	mu         sync.Mutex
-	rawClient  *ssh.Client
-	sftpClient *sftp.Client
-	address    string
-	createdAt  time.Time
+	mu            sync.Mutex
+	rawClient     *ssh.Client
+	sftpClient    *sftp.Client
+	address       string
+	createdAt     time.Time
+	keepAliveStop chan struct{}
 }
 
 // NewClient connects to the remote SSH server using the provided configuration.
@@ -27,11 +28,13 @@ func NewClient(address string, config *ssh.ClientConfig) (*Client, error) {
 		return nil, fmt.Errorf("ssh dial failed to %s: %w", address, err)
 	}
 
-	return &Client{
+	c := &Client{
 		rawClient: client,
 		address:   address,
 		createdAt: time.Now(),
-	}, nil
+	}
+	c.StartKeepAlive(30 * time.Second)
+	return c, nil
 }
 
 // Exec runs a non-interactive remote command and returns stdout, stderr with a 15-second default timeout.
@@ -216,8 +219,19 @@ func (c *Client) GetSFTPClient() (*sftp.Client, error) {
 	return c.sftpClient, nil
 }
 
+// ResetSFTPClient resets the cached SFTP client instance so next call reconnects cleanly.
+func (c *Client) ResetSFTPClient() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.sftpClient != nil {
+		_ = c.sftpClient.Close()
+		c.sftpClient = nil
+	}
+}
+
 // Close closes the underlying SSH connection and its cached SFTP subsystem.
 func (c *Client) Close() error {
+	c.StopKeepAlive()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

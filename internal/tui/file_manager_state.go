@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"leitstand/internal/ssh"
 	"path/filepath"
 	"time"
@@ -132,18 +133,22 @@ type FileManagerModal struct {
 	LocalSort        SortField
 	RemoteSort       SortField
 	LocalSortAsc     bool
-	RemoteSortAsc    bool
-	IsTransferring   bool
-	TransferIsUpload bool
-	CurrentFileName  string
-	FileIndex        int
-	FileTotal        int
-	CurrentBytes     int64
-	CurrentTotal     int64
-	BytesPerSec      float64
-	TransferDoneMsg  string
-	TransferDoneTime time.Time
-	ShowCmdOutput    bool
+	RemoteSortAsc            bool
+	IsTransferring           bool
+	TransferIsUpload         bool
+	CurrentFileName          string
+	FileIndex                int
+	FileTotal                int
+	CurrentBytes             int64
+	CurrentTotal             int64
+	BytesPerSec              float64
+	TransferDoneMsg          string
+	TransferDoneTime         time.Time
+	TransferCancel           context.CancelFunc
+	ShowTransferCancelPrompt bool
+	IsTransferBackground     bool
+	IsTransferCanceled       bool
+	ShowCmdOutput            bool
 	CmdOutputTitle   string
 	CmdOutputContent string
 	CmdOutputScroll  int

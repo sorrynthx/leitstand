@@ -84,3 +84,11 @@ func (tab *ConsoleTab) SetAutoTitle(tabIndex int, cmdText string) {
 
 	tab.Title = fmt.Sprintf("%d: %s", tabIndex+1, shortCmd)
 }
+
+// ExportLogs returns the full string representation of all logs in the tab.
+func (tab *ConsoleTab) ExportLogs() string {
+	if len(tab.Logs) == 0 {
+		return "(empty session)"
+	}
+	return strings.Join(tab.Logs, "\n")
+}

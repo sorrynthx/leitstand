@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"fmt"
 	"leitstand/internal/i18n"
 	"leitstand/internal/storage"
@@ -25,6 +26,11 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 
 	case FileTransferProgressMsg:
 		if m.fileManager != nil {
+			if m.fileManager.IsTransferCanceled {
+				m.fileManager.IsTransferring = false
+				m.fileManager.IsTransferBackground = false
+				return m, nil, true
+			}
 			m.fileManager.IsTransferring = !msg.IsDone
 			m.fileManager.CurrentFileName = msg.FileName
 			m.fileManager.FileIndex = msg.FileIndex
@@ -33,19 +39,40 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 			m.fileManager.CurrentTotal = msg.TotalBytes
 			m.fileManager.BytesPerSec = msg.BytesPerSec
 
+			if m.fileManager.IsTransferBackground && !msg.IsDone && msg.Err == nil {
+				pct := 0.0
+				if msg.TotalBytes > 0 {
+					pct = (float64(msg.CurrentBytes) / float64(msg.TotalBytes)) * 100.0
+				}
+				speedStr := fmt.Sprintf("%.1f KB/s", msg.BytesPerSec/1024.0)
+				if msg.BytesPerSec >= 1024*1024 {
+					speedStr = fmt.Sprintf("%.1f MB/s", msg.BytesPerSec/(1024*1024))
+				}
+				m.statusMessage = fmt.Sprintf("⬆️ [%s] %.1f%% (%s) [f] 키로 복귀", msg.FileName, pct, speedStr)
+			}
+
 			if msg.Err != nil {
-				m.fileManager.StatusMessage = fmt.Sprintf("❌ %v", msg.Err)
-				m.fileManager.TransferDoneMsg = ""
 				m.fileManager.IsTransferring = false
+				m.fileManager.IsTransferBackground = false
+				m.fileManager.TransferDoneMsg = ""
+				if msg.Err == context.Canceled || strings.Contains(msg.Err.Error(), "canceled") || strings.Contains(msg.Err.Error(), "closed") {
+					m.fileManager.StatusMessage = "⚠️ 전송이 사용자에 의해 취소되었습니다."
+					m.statusMessage = "⚠️ 파일 전송이 취소되었습니다."
+				} else {
+					m.fileManager.StatusMessage = fmt.Sprintf("❌ %v", msg.Err)
+					m.statusMessage = fmt.Sprintf("❌ 파일 전송 실패: %v", msg.Err)
+				}
 				return m, nil, true
 			} else if msg.IsDone {
 				m.fileManager.IsTransferring = false
+				m.fileManager.IsTransferBackground = false
 				doneText := fmt.Sprintf(i18n.T("sftp_transfer_done"), msg.FileTotal)
 				if msg.IsMove {
 					doneText = fmt.Sprintf(i18n.T("sftp_move_done"), msg.FileTotal)
 				}
 				m.fileManager.TransferDoneMsg = doneText
 				m.fileManager.StatusMessage = doneText
+				m.statusMessage = doneText
 				m.fileManager.TransferDoneTime = time.Now()
 				m.fileManager.LocalSelected = make(map[string]bool)
 				m.fileManager.RemoteSelected = make(map[string]bool)

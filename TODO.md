@@ -8,7 +8,7 @@
 ## 🌟 1. Completed Milestones (완료된 기능 및 아키텍처)
 
 ### 🏗️ Architecture & Refactoring (아키텍처 및 소스 품질)
-- [x] **250줄 규칙 100% 준수 모듈화**: `internal/` 하위 58개 전체 소스 코드가 모두 247줄 이하로 완벽 분리 및 정리.
+- [x] **250줄 규칙 100% 준수 모듈화**: 모든 로직 및 UI 소스 코드는 250줄 이하로 엄격 분리 유지. *(단, 향후 명령어 카탈로그 및 다국어 번역의 지속적인 확장이 발생하는 순수 데이터 정의 파일인 `internal/quickcmd/tab_*.go` 및 `internal/i18n/dict_*.go`는 250줄 제한에서 명시적 예외로 관리)*
 - [x] **Zero-CGO Pure Go**: CGO 없이 100% 순수 Go 빌드 지원 (Windows, macOS, Linux 크로스 컴파일 호환).
 - [x] **무중단 SSH 커넥션 풀링 (`internal/ssh`)**: 호스트별 1개의 SSH TCP 커넥션 재사용 및 채널 멀티플렉싱.
 - [x] **SFTP 채널 고갈 방지 (`internal/ssh/client.go`)**: Thread-Safe `GetSFTPClient()` 단일 SFTP 클라이언트 캐싱으로 OpenSSH `MaxSessions 10` 세션 누수 에러 영구 해결.
@@ -49,14 +49,17 @@
 ## 🎯 2. Upcoming Priority Tasks (다음 진행할 핵심 개발 리스트)
 
 ### 📂 Phase 3-0: SFTP 파일 매니저 리팩토링 후 전체 기능 점검 & 통합 테스트 (SFTP Validation)
-- [ ] **SFTP 파일 업로드/다운로드 교차 검증**:
-  - `sftp.go` & `sftp_transfer.go` 분리 후 로컬 ↔ 원격 파일 전송(`[F5]`) 및 삭제(`[F8/d]`) 정밀 테스트.
-- [ ] **SFTP 파일/폴더 조작 기능 실물 검증**:
-  - 새 폴더 생성(`[n]`), 빈 파일 생성(`[N]`), 이름 변경(`[r]`), 삭제(`[Delete]`), 숨김파일 토글(`[.]`) 동작 확인.
-- [ ] **클립보드 잘라내기/복사/붙여넣기 테스트**:
-  - `[x]`(잘라내기) / `[c]`(복사) ➔ 경로 이동 ➔ `[p]`(붙여넣기) 배치 처리 정상 여부 점검.
-- [ ] **`GetSFTPClient()` 단일 SFTP 커넥션 안정성 확인**:
-  - 파일 전송 도중 세션이 끊기거나 SSH 세션 타임아웃 없이 안정적으로 유지되는지 확인.
+- [x] **SFTP 파일 업로드/다운로드 교차 검증**:
+  - `sftp.go` & `sftp_transfer.go` 분리 후 로컬 ↔ 원격 대용량 파일 전송(`[F5]`) 및 삭제 정밀 테스트 완료.
+- [x] **SFTP 파일/폴더 조작 기능 실물 검증**:
+  - 새 폴더 생성(`[n]`), 빈 파일 생성(`[N/t]`), 이름 변경(`[r]`), 삭제(`[Delete]`), 숨김파일 토글(`[.]`) 실서버 동작 확인 완료.
+  - 대량 파일 디렉토리 고속 탐색을 위한 `PgUp` / `PgDn` (10개 단위 점프), `Home` / `End` 즉시 이동 지원 탑재.
+- [x] **클립보드 잘라내기/복사/붙여넣기 테스트**:
+  - `[x]`(잘라내기) / `[c]`(복사) ➔ 경로 이동 ➔ `[p]` 또는 `[v]`(붙여넣기) 단축키 표준화 적용 완료 및 실물 검증 완료.
+- [x] **`GetSFTPClient()` 커넥션 안정성 & Keep-Alive 적용**:
+  - OpenSSH 표준 30초 주기 Keep-Alive 핑 엔진 탑재로 유휴(Idle) 세션 강제 차단 원천 방어.
+  - 단일 SFTP 캐싱(`GetSFTPClient`) 실연동으로 폴더 이동 시 세션 재생성 렉 및 `MaxSessions 10` 고갈 방지.
+  - 네트워크 단선/지연 시 `ResetSFTPClient()` 투명 1회 자동 재연결(Auto-Retry) 파이프라인 탑재.
 
 ### 📊 Phase 3-1: 텔레메트리 (Telemetry) 성능 측정 및 시각화 고도화
 - [x] **실시간 메트릭 수집기 (Telemetry Collector) 튜닝**:
@@ -72,18 +75,26 @@
   - 숫자가 아닌 입력 시 강력한 예외 검증(Validation) 및 SQLite DB (`app_settings`) 영구 저장 연동.
 
 ### 📜 Phase 3-2: 세션 감사 로그 및 SQLite 관리 (Audit & Maintenance)
-- [ ] **콘솔 세션 로그 로컬 저장 (`Ctrl+E`)**:
-  - 콘솔 출력 및 명령어 수행 기록을 `logs/leitstand_<host>_<timestamp>.log` 파일로 백업.
-- [ ] **내부 SQLite DB 관리기 (환경설정 안)**:
-  - DB 백업(JSON 내보내기) 및 복원.
-  - DB 최적화 (SQLite Vacuum) 및 마스터 보관함 초기화 (Reset).
+- [x] **콘솔 세션 로그 로컬 저장 (`Ctrl+E`)**:
+  - ANSI 제어 문자 자동 정제(Clean Plain Text) 및 감사 헤더 삽입 파이프라인(`sessionlog`).
+  - 콘솔 탭에서 `Ctrl+E` 입력 시 `session_<host>_<timestamp>.log` 즉시 생성 및 성공 토스트 배너 연동.
+  - 환경설정(`[p]`) 내 `[3] 📜 Logs` 전용 탭 개편 (OS 기본 문서 폴더, 로컬 폴더, 홈 폴더, 사용자 지정 경로 프리셋 선택 및 SQLite 영구 저장).
+- [x] **내부 SQLite DB 관리기 및 보안 유지보수 (환경설정 `[4]` 탭 일원화)**:
+  - 텔레메트리 메트릭 자동 보관 주기 조절 (7일 권장 / 14일 / 30일) 및 상단 뱃지 렌더링.
+  - `[1] 🧹 메트릭 정리 & DB 디스크 압축 (Prune & VACUUM)` 1클릭 최적화 및 전후 용량 변화 배너.
+  - `[2] 📊 텔레메트리 메트릭 CSV 보고서 백업 추출` (디렉토리 자동생성 및 안전 GUI 탐색기 연동).
+  - `[3] 📤 서버 목록 백업 (Export JSON)` 및 `[4] 📥 서버 목록 복원 (Import JSON)` (중복 방지 안전 병합).
+  - `[5] 🔑 마스터 비밀번호 변경 (Rekey Vault)` 및 전체 서버 크리덴셜 안전 재암호화 (일반설정 중복 제거 후 4번 탭 일원화).
+  - `[6] ⚠️ 보관함 및 설정 초기화 (Factory Reset)` 안전 확인 팝업 탑재. *(※ 실서버 데이터 삭제 테스트는 Phase 4 포트포워딩 개발 후 진행)*
+  - 탭별 포커스 네비게이션 엔진(`settings_modal_nav.go`) 신설로 1번 탭 유령 필드 버그 및 4번 탭 이동 충돌 완벽 해결.
 
 ### 🚇 Phase 4: SSH 터널링 및 글로벌 배포 (Tunneling & Distribution)
 - [ ] **SSH 포트 포워딩 / 터널링 매니저 (SSH Tunneling)**:
-  - 원격 서버 내부 DB(MySQL 3306, Redis 6379)를 로컬 포트로 포워딩.
+  - 원격 서버 내부 DB(MySQL 3306, PostgreSQL 5432, Redis 6379) 또는 비공개 웹 포트를 로컬 포트로 포워딩.
+  - 포트포워딩 설정 모달/드로어 및 활성 터널 실시간 상태 표시 (`🟢 ACTIVE / 🔴 CLOSED`).
 - [ ] **크로스 플랫폼 자동 빌드 파이프라인 (GoReleaser)**:
-  - Windows (.exe), macOS (Apple Silicon / Intel), Linux 바이너리 패키징.
+  - Windows (.exe), macOS (Apple Silicon / Intel), Linux 바이너리 패키징 및 GitHub Release 연동.
 
 ---
 
-*Last Updated: 2026-09-02*
+*Last Updated: 2026-09-03 (Phase 3-2 Completed, Ready for Phase 4)*

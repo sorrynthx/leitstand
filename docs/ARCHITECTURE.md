@@ -39,9 +39,9 @@
 - **`internal/highlight`**: Syntax highlighting for JSON, YAML, SQL, and Shell.
 - **`internal/i18n`**: Multi-language localization dictionary (`en`, `ko`, `de`).
 - **`internal/logger`**: Structured rotation logging.
-- **`internal/quickcmd`**: Built-in Runbook dictionary and category tags.
+- **`internal/quickcmd`**: Built-in Runbook dictionary, modular OS tabs (`tab_shortcuts.go`, `tab_common.go`, etc.), and pure data catalogs (exempted from 250-line limit to allow unlimited runbook growth).
 - **`internal/ssh`**: SSH connection pool, channel multiplexer, interactive PTY runner, SFTP file transfer engine (`sftp.go`).
-- **`internal/storage`**: SQLite database models, migrations, and CRUD repositories.
+- **`internal/storage`**: SQLite database models, migrations, CRUD repositories, and database maintenance engine (`maintenance.go`: VACUUM, PruneAndVacuum, CSV export, JSON backup/restore).
 - **`internal/telemetry`**: Agentless remote metrics collector and parser.
 - **`internal/tui`**: Terminal UI presentation, multi-tab state engine, and event handlers:
   - `model.go`: TUI state struct, bubbletea model initialization.
@@ -51,6 +51,7 @@
   - `view_telemetry.go`: CPU, Memory, Disk, and Network telemetry gauges.
   - `view_console.go`: Multi-tab remote console and sliding window tab bar.
   - `view_modals.go`: Overlay modals (Vault, Sudo, Editor, Settings, FilePicker).
+  - `settings_modal_*.go`: Settings modal with 5 tabs (General, Telemetry, Logs, Database & Security, About), focused tab navigation (`settings_modal_nav.go`), and dedicated rekey workflow (`settings_modal_rekey.go`).
   - `update.go`: Central message dispatcher and cursor clamping.
   - `update_console.go`: Remote command execution, streaming pipeline, tab autocomplete.
   - `update_hostlist.go`: Server explorer navigation, CRUD shortcuts.

@@ -16,13 +16,11 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 	default:
 		return m, nil, false
 	}
-
 	keyMsg, isKey := msg.(tea.KeyMsg)
 	keyStr := ""
 	if isKey {
 		keyStr = keyMsg.String()
 	}
-
 	// 1. Settings / Preferences Modal
 	if m.showSettingsModal && m.settingsModal != nil {
 		res, cmd := m.settingsModal.Update(msg)
@@ -39,6 +37,9 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				m.cfg.Telemetry.CPUThreshold = res.CPUThresh
 				m.cfg.Telemetry.RAMThreshold = res.RAMThresh
 				m.cfg.Telemetry.DiskThreshold = res.DiskThresh
+				if res.LogDir != "" {
+					m.cfg.Logging.SessionLogDir = res.LogDir
+				}
 			}
 			if m.store != nil {
 				_ = m.store.SetSetting("language", string(res.Lang))
@@ -46,16 +47,10 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				_ = m.store.SetSetting("cpu_threshold", fmt.Sprintf("%.0f", res.CPUThresh))
 				_ = m.store.SetSetting("ram_threshold", fmt.Sprintf("%.0f", res.RAMThresh))
 				_ = m.store.SetSetting("disk_threshold", fmt.Sprintf("%.0f", res.DiskThresh))
-			}
-
-			if res.NewPass != "" {
-				err := m.changeVaultPassword(res.CurrPass, res.NewPass)
-				if err != nil {
-					m.settingsModal.SetError(err)
-					return m, nil, true
+				if res.LogDir != "" {
+					_ = m.store.SetSetting("session_log_dir", res.LogDir)
 				}
 			}
-
 			m.showSettingsModal = false
 			m.settingsModal = nil
 			m.statusMessage = "✨ " + i18n.T("settings_saved_msg")
@@ -64,7 +59,6 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		}
 		return m, cmd, true
 	}
-
 	// 2. In-app File Editor Modal
 	if m.showEditorModal && m.editorModal != nil {
 		done, saveReq, saveContent, cmd := m.editorModal.Update(msg)
@@ -233,8 +227,12 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		done, cmd := m.fileManager.Update(msg)
 		if done {
 			m.showFileManager = false
-			m.fileManager = nil
-			m.statusMessage = "📂 File manager closed."
+			if m.fileManager.IsTransferring {
+				m.statusMessage = "⬆️ 전송이 백그라운드로 전환되었습니다. ([f] 키로 복귀)"
+			} else {
+				m.fileManager = nil
+				m.statusMessage = "📂 File manager closed."
+			}
 			return m, nil, true
 		}
 		return m, cmd, true

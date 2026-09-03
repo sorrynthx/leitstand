@@ -42,18 +42,27 @@ It replaces bulky desktop tools with a **fast, single-binary, keyboard-driven co
   - **Clear Delete Confirmation**: Prompts with the exact filename and type (`🗑️ 'production.db' (file) permanently delete? [y/n]`).
   - **Exit Confirmation Modal**: Guards against accidental exit on `[Esc]`, `[q]`, or `[f]`.
 
-### 4. 🔐 Local Encrypted Master Vault
+### 4. 🔐 Local Encrypted Master Vault & Security Maintenance (`[p]` Tab 4)
 - **Argon2id KDF + AES-256-GCM**: Industry-standard encryption for all server passwords, sudo secrets, and SSH private keys.
 - **SSH Private Key Management (`[b]` File Picker)**: In-app browser to discover and load `id_rsa`, `id_ed25519`, and `.pem` keys from `~/.ssh/`.
-- **Master Password Rekeying**: Seamlessly re-encrypt all stored credentials with a new master password from the Settings modal.
+- **Master Password Rekeying**: Dedicated rekeying workflow in Settings Tab `[4]` that safely re-encrypts all stored host credentials with a new master password.
+- **Caps Lock Detection & Security Badges**: Real-time `[🔒 CAPS LOCK ON]` warning banners to prevent mistyped credentials.
 
-### 5. 🌐 Multi-Language Localization (i18n)
+### 5. 🗄️ Database Maintenance & Audit Management (`[p]` Tab 4)
+- **Real-Time DB Diagnostics**: Live file size, registered host count, and historical telemetry snapshot statistics.
+- **Configurable Retention & Disk Vacuum**: 1-click prune expired metrics (7-day default, 14-day, 30-day) followed by instant SQLite `VACUUM` to reclaim disk space.
+- **Audit Export / Import**:
+  - **Metrics CSV Export**: Dump historical CPU/RAM/Disk/Network measurements to timestamped CSV files.
+  - **Hosts JSON Backup & Restore**: Backup registered hosts to portable JSON and safely restore them with deduplication.
+
+### 6. 🌐 Multi-Language Localization (i18n)
 - 100% native support across **English (Default)**, **한국어 (Korean)**, and **Deutsch (German)** across all UI views, modals, runbooks, and error banners.
 
-### 6. 📖 OS-Aware Quick Command Runbook (`[?]`)
-- Automatically identifies remote OS (Ubuntu, Debian, RHEL, Rocky, Alpine, Docker) and offers curated, ready-to-run system maintenance, diagnostic, and troubleshooting commands with safe auto-fill review.
+### 7. 📖 Modular Runbook & Keyboard Shortcut Cheat Sheet (`[?]`)
+- **[1] ⌨️ Shortcuts Guide**: Full-featured in-app shortcut cheat sheet for Server Explorer, Remote Shell, and SFTP File Manager.
+- **[2]~[6] OS Runbooks**: Curated, ready-to-run system diagnostics for Common Linux, Ubuntu, RHEL/Rocky, Alpine, and Docker.
 
-### 7. 🧪 Offline Demo Mode (`--demo`)
+### 8. 🧪 Offline Demo Mode (`--demo`)
 - Run with `.\leitstand.exe --demo` to launch a fully functional mock environment with realistic telemetry and simulated server responses without needing live SSH servers.
 
 ---

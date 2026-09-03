@@ -9,29 +9,29 @@ import (
 
 func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 	switch keyStr {
-	case "x", "X":
+	case "x", "X", "ctrl+x":
 		paths := m.GetSelectedPaths()
 		if len(paths) > 0 {
 			m.ClipboardPaths = paths
 			m.ClipboardIsCut = true
 			m.ClipboardIsLocal = (m.ActivePanel == PanelLocal)
 			m.ClearSelections()
-			m.StatusMessage = fmt.Sprintf("✂️ %d개 항목 잘라내기됨 (이동할 폴더로 이동 후 [v]를 누르세요)", len(paths))
+			m.StatusMessage = fmt.Sprintf("✂️ %d개 항목 잘라내기됨 (붙여넣을 폴더로 이동 후 [p] 또는 [v]를 누르세요)", len(paths))
 		}
 		return false, nil
 
-	case "c", "C":
+	case "c", "C", "ctrl+c":
 		paths := m.GetSelectedPaths()
 		if len(paths) > 0 {
 			m.ClipboardPaths = paths
 			m.ClipboardIsCut = false
 			m.ClipboardIsLocal = (m.ActivePanel == PanelLocal)
 			m.ClearSelections()
-			m.StatusMessage = fmt.Sprintf("📋 %d개 항목 복사됨 (붙여넣을 폴더로 이동 후 [v]를 누르세요)", len(paths))
+			m.StatusMessage = fmt.Sprintf("📋 %d개 항목 복사됨 (붙여넣을 폴더로 이동 후 [p] 또는 [v]를 누르세요)", len(paths))
 		}
 		return false, nil
 
-	case "v", "V", "ctrl+v":
+	case "p", "P", "ctrl+p", "v", "V", "ctrl+v":
 		if len(m.ClipboardPaths) > 0 {
 			destIsLocal := (m.ActivePanel == PanelLocal)
 			destDir := m.RemotePath
@@ -105,14 +105,14 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			return TransferActionMsg{HostID: m.HostID, IsUpload: isUpload, IsMove: true, SrcPaths: paths, DestDirPath: destDir}
 		}
 
-	case "f7", "F7", "n", "N":
+	case "f7", "F7", "n":
 		m.ActivePrompt = PromptMkdir
 		m.SubInput.Reset()
 		m.SubInput.Placeholder = "새 폴더 이름..."
 		m.SubInput.Focus()
 		return false, textinput.Blink
 
-	case "t", "T":
+	case "t", "T", "N":
 		m.ActivePrompt = PromptTouch
 		m.SubInput.Reset()
 		m.SubInput.Placeholder = "새 파일 이름..."

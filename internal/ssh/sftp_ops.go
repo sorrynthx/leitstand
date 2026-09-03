@@ -5,26 +5,17 @@ import (
 	"path"
 	"strings"
 	"time"
-
-	"github.com/pkg/sftp"
 )
 
 func (c *Client) RemoveRemotePath(remotePath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("client is closed")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
-		return fmt.Errorf("failed to create SFTP subsystem: %w", err)
+		return fmt.Errorf("failed to get SFTP subsystem: %w", err)
 	}
-	defer sftpClient.Close()
 
 	fi, err := sftpClient.Stat(remotePath)
 	if err != nil {
+		c.ResetSFTPClient()
 		return err
 	}
 
@@ -35,55 +26,40 @@ func (c *Client) RemoveRemotePath(remotePath string) error {
 }
 
 func (c *Client) MkdirRemote(remotePath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("client is closed")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
-		return fmt.Errorf("failed to create SFTP subsystem: %w", err)
+		return fmt.Errorf("failed to get SFTP subsystem: %w", err)
 	}
-	defer sftpClient.Close()
 
-	return sftpClient.MkdirAll(path.Clean(remotePath))
+	err = sftpClient.MkdirAll(path.Clean(remotePath))
+	if err != nil {
+		c.ResetSFTPClient()
+	}
+	return err
 }
 
 func (c *Client) RenameRemote(oldPath, newPath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get SFTP subsystem: %w", err)
 	}
-	defer sftpClient.Close()
 
-	return sftpClient.Rename(oldPath, newPath)
+	err = sftpClient.Rename(oldPath, newPath)
+	if err != nil {
+		c.ResetSFTPClient()
+	}
+	return err
 }
 
 func (c *Client) DeleteRemote(remotePath string) error {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get SFTP subsystem: %w", err)
 	}
-	defer sftpClient.Close()
 
 	stat, err := sftpClient.Stat(remotePath)
 	if err != nil {
+		c.ResetSFTPClient()
 		return err
 	}
 

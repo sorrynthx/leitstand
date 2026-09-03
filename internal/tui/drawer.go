@@ -38,20 +38,9 @@ func (d *RunbookDrawer) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 		case "esc", "?", "ctrl+k":
 			return true, "", nil // Close drawer
 
-		case "1":
-			d.switchTab(quickcmd.OSTabCommon)
-			return false, "", nil
-		case "2":
-			d.switchTab(quickcmd.OSTabUbuntu)
-			return false, "", nil
-		case "3":
-			d.switchTab(quickcmd.OSTabRHEL)
-			return false, "", nil
-		case "4":
-			d.switchTab(quickcmd.OSTabAlpine)
-			return false, "", nil
-		case "5":
-			d.switchTab(quickcmd.OSTabDocker)
+		case "1", "2", "3", "4", "5", "6":
+			tabIdx := int(msg.String()[0] - '1')
+			d.switchTab(quickcmd.OSTab(tabIdx))
 			return false, "", nil
 
 		case "tab", "right", "l":
@@ -104,6 +93,9 @@ func (d *RunbookDrawer) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 			return false, "", nil
 
 		case "enter":
+			if d.activeTab == quickcmd.OSTabShortcuts {
+				return true, "", nil
+			}
 			if len(items) > 0 && d.selectedIndex >= 0 && d.selectedIndex < len(items) {
 				return true, items[d.selectedIndex].Command, nil
 			}
@@ -185,14 +177,24 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 
 		// Command Item
 		cursor := "  "
-		itemTitle := i18n.T(item.TitleKey)
-		var itemLine string
 		if i == d.selectedIndex {
 			cursor = "▶ "
-			itemLine = lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Background(lipgloss.Color("#1B2A32")).Render(cursor + itemTitle)
-			b.WriteString(itemLine + "\n\n")
+		}
+
+		itemTitle := i18n.T(item.TitleKey)
+		var lineText string
+		if d.activeTab == quickcmd.OSTabShortcuts {
+			keyBadge := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Width(12).Render(item.Command)
+			lineText = fmt.Sprintf("%s%s %s", cursor, keyBadge, itemTitle)
 		} else {
-			itemLine = lipgloss.NewStyle().Foreground(lipgloss.Color("#ECEFF1")).Render(cursor + itemTitle)
+			lineText = fmt.Sprintf("%s%s", cursor, itemTitle)
+		}
+
+		if i == d.selectedIndex {
+			itemLine := lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Background(lipgloss.Color("#1B2A32")).Render(lineText)
+			b.WriteString(itemLine + "\n")
+		} else {
+			itemLine := lipgloss.NewStyle().Foreground(lipgloss.Color("#ECEFF1")).Render(lineText)
 			b.WriteString(itemLine + "\n")
 		}
 	}
@@ -212,20 +214,16 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 			previewWidth = 30
 		}
 
-		cmdBox := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(ColorPrimary).
-			Background(lipgloss.Color("#151820")).
-			Padding(0, 1).
-			Width(previewWidth).
-			Render("❯ " + selected.Command)
-
-		descBox := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#B0BEC5")).
-			Width(previewWidth).
-			Render("💡 " + desc)
-
-		b.WriteString(cmdBox + "\n" + descBox + "\n\n")
+		if d.activeTab == quickcmd.OSTabShortcuts {
+			headerText := fmt.Sprintf("⌨️ [%s] ── %s", selected.Command, i18n.T(selected.TitleKey))
+			cmdBox := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Background(lipgloss.Color("#151820")).Padding(0, 1).Width(previewWidth).Render(headerText)
+			descBox := lipgloss.NewStyle().Foreground(ColorText).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorMuted).Render("(Enter/Esc: 닫기)"))
+			b.WriteString(cmdBox + "\n" + descBox + "\n\n")
+		} else {
+			cmdBox := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Background(lipgloss.Color("#151820")).Padding(0, 1).Width(previewWidth).Render("❯ " + selected.Command)
+			descBox := lipgloss.NewStyle().Foreground(lipgloss.Color("#B0BEC5")).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorSuccess).Render("(Enter: 콘솔 주입)"))
+			b.WriteString(cmdBox + "\n" + descBox + "\n\n")
+		}
 	}
 
 	// Footer Navigation Hint

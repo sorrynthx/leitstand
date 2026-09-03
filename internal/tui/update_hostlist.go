@@ -157,9 +157,9 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 		}
 		return m, nil, true
 
-	case "p", ",":
+	case "p", "P", ",":
 		m.showSettingsModal = true
-		m.settingsModal = NewSettingsModal(i18n.GetLang(), m.cfg.Telemetry.PollingInterval, m.cfg.Telemetry.CPUThreshold, m.cfg.Telemetry.RAMThreshold, m.cfg.Telemetry.DiskThreshold)
+		m.settingsModal = NewSettingsModal(i18n.GetLang(), m.cfg.Telemetry.PollingInterval, m.cfg.Telemetry.CPUThreshold, m.cfg.Telemetry.RAMThreshold, m.cfg.Telemetry.DiskThreshold, m.cfg.Logging.SessionLogDir, m.store, m.vault)
 		return m, nil, true
 
 	case "m", "M", "f5", "F5":

@@ -114,6 +114,9 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 				c.Telemetry.PollingInterval = dur
 			}
 		}
+		if savedLogDir, err := s.GetSetting("session_log_dir"); err == nil && savedLogDir != "" && c != nil {
+			c.Logging.SessionLogDir = savedLogDir
+		}
 	}
 
 	cInput := textinput.New()

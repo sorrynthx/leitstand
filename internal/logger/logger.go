@@ -47,7 +47,39 @@ func Close() {
 	}
 }
 
+const (
+	MaxLogSizeBytes int64 = 5 * 1024 * 1024 // 5 MB
+)
+
+func rotateLocked() {
+	if file == nil {
+		return
+	}
+	fi, err := file.Stat()
+	if err != nil || fi.Size() < MaxLogSizeBytes {
+		return
+	}
+
+	_ = file.Close()
+	file = nil
+	logger = nil
+
+	backupPath := logPath + ".1"
+	_ = os.Remove(backupPath)
+	_ = os.Rename(logPath, backupPath)
+
+	f, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err == nil {
+		file = f
+		logger = log.New(file, "", 0)
+		timestamp := time.Now().Format("2006/01/02 15:04:05.000")
+		logger.Printf("[%s] [INFO] 🔄 Log rotated: archived previous log to %s", timestamp, backupPath)
+	}
+}
+
 func logMessageLocked(level, format string, args ...interface{}) {
+	rotateLocked()
+
 	if logger == nil {
 		f, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err == nil {

@@ -14,7 +14,8 @@ var migrationFS embed.FS
 
 // Storage wraps the SQLite database connection and operations.
 type Storage struct {
-	db *sql.DB
+	db     *sql.DB
+	dbPath string
 }
 
 // Open initializes or connects to SQLite at the given path with WAL optimizations.
@@ -45,7 +46,7 @@ func Open(dbPath string) (*Storage, error) {
 		}
 	}
 
-	s := &Storage{db: db}
+	s := &Storage{db: db, dbPath: dbPath}
 	if err := s.migrate(); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("database migration failed: %w", err)

@@ -1,0 +1,81 @@
+﻿package quickcmd
+
+var CommonCommands = []CommandItem{
+	{
+		ID:          "com_su_root",
+		CategoryKey: "cat_interactive",
+		TitleKey:    "cmd_su_root_title",
+		DescKey:     "cmd_su_root_desc",
+		Command:     "su -",
+	},
+	{
+		ID:          "com_sudo_i",
+		CategoryKey: "cat_interactive",
+		TitleKey:    "cmd_sudo_i_title",
+		DescKey:     "cmd_sudo_i_desc",
+		Command:     "sudo -i",
+	},
+	{
+		ID:          "com_htop",
+		CategoryKey: "cat_interactive",
+		TitleKey:    "cmd_htop_title",
+		DescKey:     "cmd_htop_desc",
+		Command:     "htop",
+	},
+	{
+		ID:          "com_top_cpu",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_top_cpu_title",
+		DescKey:     "cmd_top_cpu_desc",
+		Command:     "ps aux --sort=-%cpu | head -10",
+	},
+	{
+		ID:          "com_top_mem",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_top_mem_title",
+		DescKey:     "cmd_top_mem_desc",
+		Command:     "ps aux --sort=-%mem | head -10",
+	},
+	{
+		ID:          "com_free_m",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_free_title",
+		DescKey:     "cmd_free_desc",
+		Command:     "free -h",
+	},
+	{
+		ID:          "com_open_ports",
+		CategoryKey: "cat_network",
+		TitleKey:    "cmd_ports_title",
+		DescKey:     "cmd_ports_desc",
+		Command:     "ss -tulpn",
+	},
+	{
+		ID:          "com_ip_brief",
+		CategoryKey: "cat_network",
+		TitleKey:    "cmd_ip_brief_title",
+		DescKey:     "cmd_ip_brief_desc",
+		Command:     "ip -br a",
+	},
+	{
+		ID:          "com_df_h",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_df_title",
+		DescKey:     "cmd_df_desc",
+		Command:     "df -hT",
+	},
+	{
+		ID:          "com_du_top",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_du_top_title",
+		DescKey:     "cmd_du_top_desc",
+		Command:     "du -h --max-depth=1 /var 2>/dev/null | sort -hr | head -10",
+	},
+	{
+		ID:          "com_dmesg_err",
+		CategoryKey: "cat_logs",
+		TitleKey:    "cmd_dmesg_title",
+		DescKey:     "cmd_dmesg_desc",
+		Command:     "dmesg -T --level=err,warn | tail -20",
+	},
+}

@@ -42,13 +42,13 @@ func (m *Model) updateConsoleKeys(msg tea.KeyMsg, keyStr string) (tea.Model, tea
 
 	case "ctrl+t":
 		return m, m.launchInteractiveTerminalCmd(curHost)
-
 	case "f6", "ctrl+f":
 		return m, m.openFileManagerCmd(curHost)
-
-	case "ctrl+p":
+	case "ctrl+e":
+		return m, m.exportCurrentSessionLogCmd(curHost, hts.ActiveTab())
+	case "ctrl+p", "ctrl+P":
 		m.showSettingsModal = true
-		m.settingsModal = NewSettingsModal(i18n.GetLang(), m.cfg.Telemetry.PollingInterval, m.cfg.Telemetry.CPUThreshold, m.cfg.Telemetry.RAMThreshold, m.cfg.Telemetry.DiskThreshold)
+		m.settingsModal = NewSettingsModal(i18n.GetLang(), m.cfg.Telemetry.PollingInterval, m.cfg.Telemetry.CPUThreshold, m.cfg.Telemetry.RAMThreshold, m.cfg.Telemetry.DiskThreshold, m.cfg.Logging.SessionLogDir, m.store, m.vault)
 		return m, nil
 
 	case "pgup":

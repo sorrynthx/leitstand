@@ -59,6 +59,9 @@ func New(cfg *config.AppConfig) (*App, error) {
 			cfg.Telemetry.DiskThreshold = val
 		}
 	}
+	if savedLogDir, err := store.GetSetting("session_log_dir"); err == nil && savedLogDir != "" {
+		cfg.Logging.SessionLogDir = savedLogDir
+	}
 
 	v := vault.New()
 	pool := ssh.NewPool(cfg.SSH.Timeout)

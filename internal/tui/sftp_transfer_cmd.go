@@ -3,11 +3,13 @@ package tui
 import (
 	"context"
 	"fmt"
+	"leitstand/internal/logger"
 	"leitstand/internal/ssh"
 	"leitstand/internal/storage"
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -22,6 +24,11 @@ type RemoteFileListMsg struct {
 
 func (m *Model) openFileManagerCmd(host *storage.Host) tea.Cmd {
 	m.showFileManager = true
+	if m.fileManager != nil && m.fileManager.HostID == host.ID && m.fileManager.IsTransferring {
+		m.fileManager.IsTransferBackground = false
+		return nil
+	}
+
 	m.fileManager = NewFileManagerModal(host.ID, host.Name, "", ".")
 
 	return tea.Batch(
@@ -62,7 +69,13 @@ func (m *Model) fetchRemoteFilesCmd(host *storage.Host, remotePath, oldPath stri
 func (m *Model) startFileTransferCmd(action TransferActionMsg) tea.Cmd {
 	msgChan := make(chan tea.Msg, 50)
 	ctx, cancel := context.WithCancel(m.ctx)
-	_ = cancel
+	logger.Infof("[SFTP] Starting transfer (upload=%v, files=%d, dest=%s)", action.IsUpload, len(action.SrcPaths), action.DestDirPath)
+	if m.fileManager != nil {
+		m.fileManager.TransferCancel = cancel
+		m.fileManager.IsTransferCanceled = false
+		m.fileManager.ShowTransferCancelPrompt = false
+		m.fileManager.IsTransferBackground = false
+	}
 
 	if m.isDemo {
 		go SimulateDemoFileTransfer(ctx, action.HostID, action.IsUpload, action.SrcPaths, action.DestDirPath, msgChan)
@@ -100,7 +113,22 @@ func (m *Model) startFileTransferCmd(action TransferActionMsg) tea.Cmd {
 			}
 			var transferErr error
 
+			startTime := time.Now()
+			lastTime := startTime
+			lastBytes := int64(0)
+			var currentBps float64
+
 			progressCb := func(transferred, total int64) {
+				now := time.Now()
+				elapsed := now.Sub(lastTime)
+				if elapsed >= 200*time.Millisecond {
+					currentBps = float64(transferred-lastBytes) / elapsed.Seconds()
+					lastTime = now
+					lastBytes = transferred
+				} else if currentBps <= 0 && now.Sub(startTime).Seconds() > 0.1 {
+					currentBps = float64(transferred) / now.Sub(startTime).Seconds()
+				}
+
 				select {
 				case <-ctx.Done():
 					return
@@ -111,6 +139,7 @@ func (m *Model) startFileTransferCmd(action TransferActionMsg) tea.Cmd {
 					FileTotal:    totalFiles,
 					CurrentBytes: transferred,
 					TotalBytes:   total,
+					BytesPerSec:  currentBps,
 					IsDone:       false,
 					IsMove:       action.IsMove,
 					msgChan:      msgChan,
@@ -137,19 +166,31 @@ func (m *Model) startFileTransferCmd(action TransferActionMsg) tea.Cmd {
 			} else {
 				if action.IsUpload {
 					destPath := path.Join(action.DestDirPath, fileName)
-					transferErr = client.UploadFile(srcPath, destPath, progressCb)
+					transferErr = client.UploadFile(ctx, srcPath, destPath, progressCb)
 					if transferErr == nil && action.IsMove {
 						_ = os.RemoveAll(srcPath)
 					}
 				} else {
 					destPath := filepath.Join(action.DestDirPath, fileName)
-					transferErr = client.DownloadFile(srcPath, destPath, progressCb)
+					transferErr = client.DownloadFile(ctx, srcPath, destPath, progressCb)
 					if transferErr == nil && action.IsMove {
 						_ = client.DeleteRemote(srcPath)
 					}
 				}
 			}
 
+			if transferErr != nil {
+				logger.Warnf("[SFTP] Transfer error/cancel on %s: %v", fileName, transferErr)
+				msgChan <- FileTransferProgressMsg{
+					HostID:   action.HostID,
+					FileName: fileName,
+					IsDone:   true,
+					Err:      transferErr,
+				}
+				return
+			}
+
+			logger.Infof("[SFTP] Completed transfer for %s (%d/%d)", fileName, i+1, totalFiles)
 			isLast := (i == totalFiles-1)
 			msgChan <- FileTransferProgressMsg{
 				HostID:       action.HostID,
@@ -160,12 +201,8 @@ func (m *Model) startFileTransferCmd(action TransferActionMsg) tea.Cmd {
 				TotalBytes:   100,
 				IsDone:       isLast,
 				IsMove:       action.IsMove,
-				Err:          transferErr,
+				Err:          nil,
 				msgChan:      msgChan,
-			}
-
-			if transferErr != nil {
-				return
 			}
 		}
 	}()

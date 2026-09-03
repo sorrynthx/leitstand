@@ -100,19 +100,23 @@ func ListLocalDirectory(dirPath string, showHidden bool) ([]*FileItem, error) {
 
 // ListRemoteDirectory lists files on the remote server using SFTP.
 func (c *Client) ListRemoteDirectory(dirPath string, showHidden bool) ([]*FileItem, string, error) {
-	c.mu.Lock()
-	raw := c.rawClient
-	c.mu.Unlock()
-	if raw == nil {
-		return nil, "", fmt.Errorf("ssh client not connected")
-	}
-
-	sftpClient, err := sftp.NewClient(raw)
+	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to initialize sftp subsystem: %w", err)
 	}
-	defer sftpClient.Close()
 
+	items, actualPath, err := c.fetchRemoteDirEntries(sftpClient, dirPath, showHidden)
+	if err != nil {
+		c.ResetSFTPClient()
+		retryClient, retryErr := c.GetSFTPClient()
+		if retryErr == nil {
+			return c.fetchRemoteDirEntries(retryClient, dirPath, showHidden)
+		}
+	}
+	return items, actualPath, err
+}
+
+func (c *Client) fetchRemoteDirEntries(sftpClient *sftp.Client, dirPath string, showHidden bool) ([]*FileItem, string, error) {
 	if dirPath == "" || dirPath == "~" || dirPath == "." {
 		home, err := sftpClient.Getwd()
 		if err == nil && home != "" {
@@ -153,10 +157,9 @@ func (c *Client) ListRemoteDirectory(dirPath string, showHidden bool) ([]*FileIt
 			continue
 		}
 
-		itemPath := path.Join(realPath, name)
 		items = append(items, &FileItem{
 			Name:    name,
-			Path:    itemPath,
+			Path:    path.Join(realPath, name),
 			Size:    info.Size(),
 			IsDir:   info.IsDir(),
 			ModTime: info.ModTime(),
@@ -164,6 +167,7 @@ func (c *Client) ListRemoteDirectory(dirPath string, showHidden bool) ([]*FileIt
 		})
 	}
 
+	sortFileItems(items)
 	return items, realPath, nil
 }
 

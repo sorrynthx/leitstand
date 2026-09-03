@@ -22,6 +22,14 @@ type FilePickerModal struct {
 	width         int
 	height        int
 	errMessage    string
+	PickDir       bool
+}
+
+// NewDirPickerModal creates a file picker configured specifically for picking directories.
+func NewDirPickerModal(initDir string, termWidth, termHeight int) *FilePickerModal {
+	fp := NewFilePickerModal(initDir, termWidth, termHeight)
+	fp.PickDir = true
+	return fp
 }
 
 func NewFilePickerModal(initDir string, termWidth, termHeight int) *FilePickerModal {
@@ -34,6 +42,16 @@ func NewFilePickerModal(initDir string, termWidth, termHeight int) *FilePickerMo
 			}
 		} else {
 			initDir = "."
+		}
+	}
+
+	if _, err := os.Stat(initDir); os.IsNotExist(err) {
+		if mkErr := os.MkdirAll(initDir, 0755); mkErr != nil {
+			if home, hErr := os.UserHomeDir(); hErr == nil {
+				initDir = home
+			} else {
+				initDir = "."
+			}
 		}
 	}
 

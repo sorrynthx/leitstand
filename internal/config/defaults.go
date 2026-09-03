@@ -32,3 +32,12 @@ func DefaultDataDir() string {
 func DefaultDBPath() string {
 	return filepath.Join(DefaultDataDir(), DefaultDBFileName)
 }
+
+// DefaultSessionLogDir returns the platform-appropriate directory for saving session audit logs.
+func DefaultSessionLogDir() string {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		return filepath.Join(home, "Documents", "leitstand", "logs")
+	}
+	return filepath.Join(".", "logs")
+}

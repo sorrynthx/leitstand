@@ -15,6 +15,12 @@ type AppConfig struct {
 	Telemetry TelemetryConfig `mapstructure:"telemetry"`
 	SSH       SSHConfig       `mapstructure:"ssh"`
 	TUI       TUIConfig       `mapstructure:"tui"`
+	Logging   LoggingConfig   `mapstructure:"logging"`
+}
+
+// LoggingConfig holds session audit logging directory settings.
+type LoggingConfig struct {
+	SessionLogDir string `mapstructure:"session_log_dir"`
 }
 
 // DatabaseConfig holds database connection settings.
@@ -66,6 +72,9 @@ func NewDefaultConfig() *AppConfig {
 			MinCols:  DefaultMinCols,
 			MinRows:  DefaultMinRows,
 		},
+		Logging: LoggingConfig{
+			SessionLogDir: DefaultSessionLogDir(),
+		},
 	}
 }
 
@@ -82,6 +91,7 @@ func Load(cfgFile string) (*AppConfig, error) {
 	v.SetDefault("tui.language", defaults.TUI.Language)
 	v.SetDefault("tui.min_cols", defaults.TUI.MinCols)
 	v.SetDefault("tui.min_rows", defaults.TUI.MinRows)
+	v.SetDefault("logging.session_log_dir", defaults.Logging.SessionLogDir)
 
 	if cfgFile != "" {
 		v.SetConfigFile(cfgFile)

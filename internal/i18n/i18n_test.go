@@ -32,3 +32,24 @@ func TestI18n(t *testing.T) {
 		t.Fatalf("Expected formatted string")
 	}
 }
+
+func TestDictionaryParity(t *testing.T) {
+	for k := range dictKO {
+		if _, ok := dictEN[k]; !ok {
+			t.Errorf("Key '%s' present in dictKO but missing in dictEN", k)
+		}
+		if _, ok := dictDE[k]; !ok {
+			t.Errorf("Key '%s' present in dictKO but missing in dictDE", k)
+		}
+	}
+	for k := range dictEN {
+		if _, ok := dictKO[k]; !ok {
+			t.Errorf("Key '%s' present in dictEN but missing in dictKO", k)
+		}
+	}
+	for k := range dictDE {
+		if _, ok := dictKO[k]; !ok {
+			t.Errorf("Key '%s' present in dictDE but missing in dictKO", k)
+		}
+	}
+}
