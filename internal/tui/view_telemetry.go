@@ -49,7 +49,7 @@ func (m *Model) renderTelemetryDeck(width, height int) string {
 		connBox := lipgloss.NewStyle().
 			Foreground(ColorWarning).
 			Padding(0, 1).
-			Render(fmt.Sprintf("⏳ [서버 접속 확인 중...] %s (%s:%d)", selectedHost.Name, selectedHost.Address, selectedHost.Port))
+			Render(i18n.Tf("telemetry_verifying_conn", selectedHost.Name, selectedHost.Address, selectedHost.Port))
 		b.WriteString(connBox + "\n")
 	} else if hasErr && err != nil && st == HostStatusOffline {
 		errBox := lipgloss.NewStyle().

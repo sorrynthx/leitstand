@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"fmt"
 	"leitstand/internal/i18n"
 	"strings"
 	"time"
@@ -55,6 +56,10 @@ func (m *Model) View() string {
 		return m.fileManager.View(m.width, m.height)
 	}
 
+	if m.showTunnelModal && m.tunnelModal != nil {
+		return m.tunnelModal.View(m.width, m.height)
+	}
+
 	// 3. Master Cockpit Layout
 	header := m.renderHeader()
 	statusBar := m.renderStatusBar()
@@ -68,7 +73,7 @@ func (m *Model) View() string {
 
 	var mainContent string
 	if m.fullScreenConsole {
-		consolePane := m.renderRemoteConsole(m.width-4, availableHeight-2)
+		consolePane := m.renderConsoleOrCopilotSplit(m.width-4, availableHeight-2)
 		mainContent = lipgloss.JoinVertical(lipgloss.Left, header, consolePane, statusBar)
 	} else {
 		leftWidth := int(float64(m.width) * 0.28)
@@ -86,12 +91,13 @@ func (m *Model) View() string {
 		if !m.userHasNavigated {
 			rightSide = m.renderWelcomePanel(rightWidth, availableHeight-2)
 		} else {
-			rightSide = m.renderRemoteConsole(rightWidth, availableHeight-2)
+			rightSide = m.renderConsoleOrCopilotSplit(rightWidth, availableHeight-2)
 		}
 
 		content := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightSide)
 		mainContent = lipgloss.JoinVertical(lipgloss.Left, header, content, statusBar)
 	}
+
 
 	// 2. Runbook Drawer Overlay (100% Full Width Modal)
 	if m.showDrawer && m.drawer != nil {
@@ -123,15 +129,28 @@ func (m *Model) renderHeader() string {
 		modeBadge = BadgeStyle.Render(i18n.T("live_engine"))
 	}
 
+	var tunnelBadge string
+	if m.tunnelMgr != nil && m.tunnelMgr.GetActiveCount() > 0 {
+		count := m.tunnelMgr.GetActiveCount()
+		summary := m.tunnelMgr.GetActiveSummary()
+		var badgeText string
+		if count == 1 {
+			badgeText = fmt.Sprintf(i18n.T("tunnel_badge_single"), summary)
+		} else {
+			badgeText = fmt.Sprintf(i18n.T("tunnel_badge_plural"), count, summary)
+		}
+		tunnelBadge = " " + BadgeStyle.Copy().Background(ColorSuccess).Foreground(lipgloss.Color("#000000")).Render(badgeText)
+	}
+
 	timeStr := lipgloss.NewStyle().Foreground(ColorMuted).Render(time.Now().Format("2006-01-02 15:04:05 MST"))
 
-	gapWidth := m.width - lipgloss.Width(title) - lipgloss.Width(modeBadge) - lipgloss.Width(timeStr) - 4
+	gapWidth := m.width - lipgloss.Width(title) - lipgloss.Width(modeBadge) - lipgloss.Width(tunnelBadge) - lipgloss.Width(timeStr) - 4
 	if gapWidth < 1 {
 		gapWidth = 1
 	}
 
 	gap := strings.Repeat(" ", gapWidth)
-	return lipgloss.JoinHorizontal(lipgloss.Center, title, " ", modeBadge, gap, timeStr)
+	return lipgloss.JoinHorizontal(lipgloss.Center, title, " ", modeBadge, tunnelBadge, gap, timeStr)
 }
 
 // renderStatusBar renders the bottom status bar with contextual shortcuts and message lines.
@@ -144,20 +163,25 @@ func (m *Model) renderStatusBar() string {
 	} else if m.activePane == PaneConsole {
 		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_exit_console")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("status_terminal")) + "   " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("status_ai_copilot")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tab_new")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tab_close")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(i18n.T("status_export_log")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_files_console")) + "   " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tunnels_console")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_runbook"))
 	} else {
 		keys = lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_focus_console")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("status_terminal")) + "   " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("status_ai_copilot")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_files")) + "   " +
+			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_tunnels")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("status_runbook")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_settings")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_add")) + "   " +
 			lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("status_quit"))
 	}
+
 
 	status := m.statusMessage
 	if status == "" {
@@ -187,6 +211,7 @@ func (m *Model) renderWelcomePanel(width, height int) string {
 	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("a / n") + "           : " + i18n.T("welcome_sc_3") + "\n")
 	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("f / F6") + "          : " + i18n.T("welcome_sc_4") + "\n")
 	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("t") + "             : " + i18n.T("welcome_sc_5") + "\n")
+	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("T / F7") + "          : " + i18n.T("welcome_sc_tunnel") + "\n")
 	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("?") + "             : " + i18n.T("welcome_sc_6") + "\n")
 	b.WriteString("  • " + lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FFFFFF")).Render("p") + "             : " + i18n.T("welcome_sc_7") + "\n\n")
 

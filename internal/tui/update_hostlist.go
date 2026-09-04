@@ -3,8 +3,6 @@ package tui
 import (
 	"fmt"
 	"leitstand/internal/i18n"
-	"leitstand/internal/storage"
-	"leitstand/internal/vault"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -103,8 +101,7 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 	case "pgup", "pageup", "ctrl+u", "ctrl+b":
 		if len(m.hosts) > 0 {
 			oldIdx := m.selectedIndex
-			m.selectedIndex -= 5
-			if m.selectedIndex < 0 {
+			if m.selectedIndex -= 5; m.selectedIndex < 0 {
 				m.selectedIndex = 0
 			}
 			return onHostNav(oldIdx)
@@ -114,8 +111,7 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 	case "pgdown", "pagedown", "ctrl+d":
 		if len(m.hosts) > 0 {
 			oldIdx := m.selectedIndex
-			m.selectedIndex += 5
-			if m.selectedIndex >= len(m.hosts) {
+			if m.selectedIndex += 5; m.selectedIndex >= len(m.hosts) {
 				m.selectedIndex = len(m.hosts) - 1
 			}
 			return onHostNav(oldIdx)
@@ -199,12 +195,20 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 		}
 		return m, nil, true
 
-	case "t", "T", "ctrl+t":
+	case "t":
 		if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
 			curHost := m.hosts[m.selectedIndex]
 			delete(m.errors, curHost.ID)
 			m.hostStatus[curHost.ID] = HostStatusConnecting
 			return m, m.launchInteractiveTerminalCmd(curHost), true
+		}
+		return m, nil, true
+
+	case "T", "f7", "F7":
+		if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+			curHost := m.hosts[m.selectedIndex]
+			m.showTunnelModal = true
+			m.tunnelModal = NewTunnelModal(curHost, m.store, m.sshPool, m.tunnelMgr)
 		}
 		return m, nil, true
 
@@ -215,10 +219,10 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 		}
 		m.activePane = PaneConsole
 		m.consoleInput.Focus()
-		if m.selectedIndex < 0 && len(m.hosts) > 0 {
+		if m.selectedIndex < 0 {
 			m.selectedIndex = 0
 		}
-		if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
+		if m.selectedIndex < len(m.hosts) {
 			curHost := m.hosts[m.selectedIndex]
 			delete(m.errors, curHost.ID)
 			m.hostStatus[curHost.ID] = HostStatusConnecting
@@ -234,24 +238,12 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 		return m, nil, true
 
 	case "e", "E":
-		if !m.isDemo && len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) && m.store != nil && m.vault != nil {
-			curHost := m.hosts[m.selectedIndex]
-			secret, _ := m.store.GetHostSecret(curHost.ID)
-			var payload *storage.SecretPayload
-			if secret != nil {
-				decrypted, err := m.vault.Decrypt(secret.Nonce, secret.Ciphertext)
-				if err == nil {
-					payload, _ = storage.ParseSecretPayload(decrypted, secret.AuthMethod)
-					vault.ZeroBytes(decrypted)
-				}
-			}
-			m.hostToEdit = curHost
-			m.editForm = NewEditHostForm(curHost, secret, payload)
-			m.showEditModal = true
-			return m, nil, true
-		}
+		m.openEditHostModal()
 		return m, nil, true
 	}
 
+	if m.handleNavigationIMEWarning(keyStr) {
+		return m, nil, true
+	}
 	return m, nil, false
 }

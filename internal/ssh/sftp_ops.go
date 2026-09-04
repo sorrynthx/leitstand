@@ -7,7 +7,27 @@ import (
 	"time"
 )
 
+func isCriticalSystemPath(p string) bool {
+	clean := path.Clean(strings.TrimSpace(p))
+	if clean == "/" || clean == "." || clean == "" {
+		return true
+	}
+	criticals := []string{
+		"/bin", "/boot", "/dev", "/etc", "/lib", "/lib64",
+		"/proc", "/root", "/sys", "/usr", "/var", "/sbin",
+	}
+	for _, c := range criticals {
+		if clean == c {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Client) RemoveRemotePath(remotePath string) error {
+	if isCriticalSystemPath(remotePath) {
+		return fmt.Errorf("cannot delete protected system directory: %s", remotePath)
+	}
 	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
 		return fmt.Errorf("failed to get SFTP subsystem: %w", err)
@@ -52,6 +72,9 @@ func (c *Client) RenameRemote(oldPath, newPath string) error {
 }
 
 func (c *Client) DeleteRemote(remotePath string) error {
+	if isCriticalSystemPath(remotePath) {
+		return fmt.Errorf("cannot delete protected system directory: %s", remotePath)
+	}
 	sftpClient, err := c.GetSFTPClient()
 	if err != nil {
 		return fmt.Errorf("failed to get SFTP subsystem: %w", err)

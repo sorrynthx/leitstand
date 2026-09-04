@@ -113,23 +113,40 @@
 ## 5. Phased Implementation Roadmap
 
 ```text
-Phase 1: Core Engine & CLI Vault (MVP)
+Phase 1: Core Engine & CLI Vault (MVP) [COMPLETED]
 ├── [x] Project scaffolding, Cobra CLI setup, config structure
-├── [ ] Argon2id + AES-256-GCM Vault storage on SQLite
-├── [ ] SSH Connection Pool & basic Linux metric parser (/proc/stat, meminfo)
-└── [ ] Minimal Bubbletea 2-Pane UI (Host List + Live CPU/RAM gauge)
+├── [x] Argon2id + AES-256-GCM Vault storage on SQLite
+├── [x] SSH Connection Pool & basic Linux metric parser (/proc/stat, meminfo)
+└── [x] Minimal Bubbletea 2-Pane UI (Host List + Live CPU/RAM gauge)
 
-Phase 2: Cockpit UI & Terminal PTY
-├── [ ] Responsive 3-Pane Cockpit with Lipgloss (Width-safe rendering)
-├── [ ] Interactive PTY terminal integration inside Bubbletea
-├── [ ] Systemd service status check & quick restart triggers
-└── [ ] i18n support (en, de, ko) via embed.FS
+Phase 2: Cockpit UI & Terminal PTY [COMPLETED]
+├── [x] Responsive 3-Pane Cockpit with Lipgloss (Width-safe rendering)
+├── [x] Interactive PTY terminal integration inside Bubbletea & multi-tab shell
+├── [x] su/sudo elevation engine with session cache preservation
+└── [x] i18n support (en, de, ko) with 100% dictionary parity
 
-Phase 3: Telemetry Engine & Automation
-├── [ ] Time-series downsampling engine (Raw -> 10m -> 1h rollups)
-├── [ ] Historical trend charts & exportable HTML/Markdown reports
-├── [ ] Custom one-click snippet manager (Batch remote command runner)
-└── [ ] Multi-platform packaging (Homebrew, Scoop, WinGet, AUR)
+Phase 3: Telemetry Engine, SFTP & Maintenance [COMPLETED]
+├── [x] High-precision dual-sample /proc/stat telemetry collector & alert thresholds
+├── [x] Dual-pane SFTP file manager with cut/copy/paste & in-app text editor (F2/Ctrl+S)
+├── [x] Clean session audit logger (Ctrl+E) & SQLite maintenance engine (Prune, VACUUM, CSV)
+└── [x] 250-line modularity rule enforced across all code packages
+
+Phase 4: SSH Port Forwarding & Tunneling Manager [COMPLETED]
+├── [x] Local port forwarding engine (net.Listen + SSH channel streaming)
+├── [x] Tunneling modal UI (T/F7) with live status indicators and persistence
+└── [x] Verified with real Docker containers (n8n, Ollama, MySQL)
+
+Phase 5: AI Terminal Copilot & Autonomous Diagnostics [50% PROGRESS]
+├── [x] In-app inline AI copilot drawer (F4) & terminal focus recovery
+├── [x] Local Ollama SSE streaming engine & context-aware prompting (internal/ai)
+├── [x] Destructive command safety guard (ai_safety.go) & bare rm block
+├── [x] Externalized prompt template (~/.leitstand/copilot_system_prompt.txt)
+├── [x] Korean IME & German Umlaut detection for navigation shortcuts
+└── [ ] Cloud LLM API keys (OpenAI, Claude, Gemini) integration & testing (NEXT)
+
+Phase 6: Multi-Platform Distribution & Release [UPCOMING]
+├── [ ] Cross-platform GoReleaser pipeline (Windows, macOS, Linux)
+└── [ ] Automated GitHub Releases & binary packaging
 ```
 
 ---

@@ -64,3 +64,25 @@ type MetricRecord struct {
 	NetRxBytes  uint64    `json:"net_rx_bytes"`
 	NetTxBytes  uint64    `json:"net_tx_bytes"`
 }
+
+// SSHTunnel represents a port forwarding configuration.
+type SSHTunnel struct {
+	ID         int64     `json:"id"`
+	HostID     int64     `json:"host_id"`
+	Name       string    `json:"name"`
+	LocalPort  int       `json:"local_port"`
+	RemoteHost string    `json:"remote_host"`
+	RemotePort int       `json:"remote_port"`
+	AutoStart  bool      `json:"auto_start"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// AIChatMessage represents a single conversation message in the AI Copilot.
+type AIChatMessage struct {
+	ID        int64     `json:"id"`
+	HostID    int64     `json:"host_id"`
+	Role      string    `json:"role"` // "user", "assistant", "system"
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+}
+

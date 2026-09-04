@@ -102,6 +102,7 @@ func (a *App) Vault() *vault.Vault {
 // RunCockpit starts the interactive Bubbletea TUI.
 func (a *App) RunCockpit(isDemo bool) error {
 	model := tui.NewModel(a.cfg, a.store, a.vault, a.collector, isDemo)
+	defer model.Close()
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {

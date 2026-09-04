@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"fmt"
 	"leitstand/internal/i18n"
 	"leitstand/internal/storage"
 	"leitstand/internal/vault"
@@ -12,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 )
 
+
 type SettingsTab int
 
 const (
@@ -19,6 +19,7 @@ const (
 	TabTelemetry
 	TabLogs
 	TabDatabase
+	TabAI
 	TabAbout
 )
 
@@ -32,6 +33,12 @@ const (
 	FieldDiskThresh
 	FieldLogPreset
 	FieldLogCustomDir
+	FieldAIProvider
+	FieldAIEndpoint
+	FieldAIKey
+	FieldAIModel
+	FieldAIRetention
+	FieldAIMaxHistory
 	FieldSubmitBtn
 	FieldCount
 )
@@ -67,6 +74,11 @@ type SettingsModal struct {
 	pendingExportType int
 	store             *storage.Storage
 	vault             *vault.Vault
+
+	// AI Settings State (TabAI)
+	aiProviderIndex   int
+	aiProviders       []string
+
 }
 
 var intervalOptions = []struct {
@@ -124,40 +136,8 @@ func NewSettingsModal(currLang i18n.Lang, currInterval time.Duration, cpuThresh,
 		}
 	}
 
-	inputs := make([]textinput.Model, 4)
-
-	// Telemetry Threshold Inputs
-	if cpuThresh <= 0 {
-		cpuThresh = 85.0
-	}
-	inputs[0] = textinput.New()
-	inputs[0].SetValue(fmt.Sprintf("%.0f", cpuThresh))
-	inputs[0].Placeholder = "85"
-	inputs[0].Width = 10
-
-	if ramThresh <= 0 {
-		ramThresh = 90.0
-	}
-	inputs[1] = textinput.New()
-	inputs[1].SetValue(fmt.Sprintf("%.0f", ramThresh))
-	inputs[1].Placeholder = "90"
-	inputs[1].Width = 10
-
-	if diskThresh <= 0 {
-		diskThresh = 90.0
-	}
-	inputs[2] = textinput.New()
-	inputs[2].SetValue(fmt.Sprintf("%.0f", diskThresh))
-	inputs[2].Placeholder = "90"
-	inputs[2].Width = 10
-
-	// Custom Log Directory Input
-	inputs[3] = textinput.New()
-	inputs[3].Placeholder = "e.g. D:\\MyLogs or /var/log/leitstand"
-	if presetIdx == 3 {
-		inputs[3].SetValue(currLogDir)
-	}
-	inputs[3].Width = 48
+	inputs := createSettingsInputs(cpuThresh, ramThresh, diskThresh, currLogDir, presetIdx)
+	providers := []string{"groq", "ollama", "openai", "custom"}
 
 	sm := &SettingsModal{
 		activeTab:         TabGeneral,
@@ -169,7 +149,9 @@ func NewSettingsModal(currLang i18n.Lang, currInterval time.Duration, cpuThresh,
 		focusField:        FieldLanguage,
 		store:             store,
 		vault:             v,
+		aiProviders:       providers,
 	}
+	sm.initAISettings()
 	if store != nil {
 		sm.dbStats, _ = store.GetDBStats()
 	}
@@ -177,6 +159,7 @@ func NewSettingsModal(currLang i18n.Lang, currInterval time.Duration, cpuThresh,
 }
 
 func (s *SettingsModal) SetError(err error) {
+
 	if err != nil {
 		s.errMessage = err.Error()
 	} else {
@@ -194,6 +177,16 @@ func (s *SettingsModal) inputIndexForField(f SettingsField) int {
 		return 2
 	case FieldLogCustomDir:
 		return 3
+	case FieldAIEndpoint:
+		return 4
+	case FieldAIKey:
+		return 5
+	case FieldAIModel:
+		return 6
+	case FieldAIRetention:
+		return 7
+	case FieldAIMaxHistory:
+		return 8
 	default:
 		return -1
 	}
@@ -212,3 +205,4 @@ func (s *SettingsModal) focusCurrent() {
 		s.inputs[idx].Focus()
 	}
 }
+

@@ -45,11 +45,36 @@ func (m *Model) renderConsoleBody(width, height int, curHost *storage.Host, acti
 			Foreground(lipgloss.Color("#FF7B72")).
 			Background(lipgloss.Color("#1E222B")).
 			Padding(0, 1).
-			Render(fmt.Sprintf("🔌 [%s] '%s' (%s:%d) • [Enter] 접속 | [r] 재연결 | [f] SFTP | [t] 터미널", i18n.T("status_offline"), curHost.Name, curHost.Address, curHost.Port))
+			Render(i18n.Tf("prompt_offline_host", i18n.T("status_offline"), curHost.Name, curHost.Address, curHost.Port))
 	}
 
 	if statusBanner != "" {
 		b.WriteString(padToWidth(statusBanner, width-4) + "\n")
+	}
+
+	if m.showAICopilot && m.aiCopilot != nil {
+		aiBar := m.aiCopilot.ViewInline(width - 4)
+		aiBarH := lipgloss.Height(aiBar)
+		vpHeight := height - aiBarH
+		if statusBanner != "" {
+			vpHeight -= lipgloss.Height(statusBanner)
+		}
+		if vpHeight < 2 {
+			vpHeight = 2
+		}
+
+		if activeTab != nil {
+			activeTab.Viewport.Width = width - 4
+			activeTab.Viewport.Height = vpHeight
+			b.WriteString(activeTab.Viewport.View() + "\n")
+		} else {
+			m.viewport.Width = width - 4
+			m.viewport.Height = vpHeight
+			b.WriteString(m.viewport.View() + "\n")
+		}
+
+		b.WriteString(aiBar)
+		return b.String()
 	}
 
 	vpHeight := height - 2

@@ -8,6 +8,7 @@ import (
 	"leitstand/internal/storage"
 	"leitstand/internal/telemetry"
 	"leitstand/internal/vault"
+	"strconv"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -96,11 +97,19 @@ type Model struct {
 	showSettingsModal bool
 	settingsModal     *SettingsModal
 
+	tunnelMgr       *ssh.TunnelManager
+	showTunnelModal bool
+	tunnelModal     *TunnelModal
+
+	showAICopilot bool
+	aiCopilot     *AICopilotModal
+
 	showDrawer          bool
 	drawer              *RunbookDrawer
 	showTelemetryDrawer bool
 	isDemo              bool
 }
+
 
 func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector *telemetry.Collector, isDemo bool) *Model {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -117,6 +126,25 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 		if savedLogDir, err := s.GetSetting("session_log_dir"); err == nil && savedLogDir != "" && c != nil {
 			c.Logging.SessionLogDir = savedLogDir
 		}
+		if p, err := s.GetSetting("ai_provider"); err == nil && p != "" && c != nil {
+			c.AI.Provider = p
+		}
+		if ep, err := s.GetSetting("ai_endpoint"); err == nil && ep != "" && c != nil {
+			c.AI.Endpoint = ep
+		}
+		if md, err := s.GetSetting("ai_model"); err == nil && md != "" && c != nil {
+			c.AI.Model = md
+		}
+		if ret, err := s.GetSetting("ai_retention_days"); err == nil && ret != "" && c != nil {
+			if n, err := strconv.Atoi(ret); err == nil && n > 0 {
+				c.AI.RetentionDays = n
+			}
+		}
+		if maxH, err := s.GetSetting("ai_max_history"); err == nil && maxH != "" && c != nil {
+			if n, err := strconv.Atoi(maxH); err == nil && n > 0 {
+				c.AI.MaxHistory = n
+			}
+		}
 	}
 
 	cInput := textinput.New()
@@ -124,7 +152,14 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 	cInput.Placeholder = "Type command and press Enter..."
 
 	vp := viewport.New(80, 20)
-	pool := ssh.NewPool(10 * time.Second)
+
+	var pool *ssh.Pool
+	if collector != nil && collector.Pool() != nil {
+		pool = collector.Pool()
+	} else {
+		pool = ssh.NewPool(10 * time.Second)
+	}
+	tm := ssh.NewTunnelManager(pool)
 
 	if collector == nil && s != nil && v != nil {
 		collector = telemetry.NewCollector(s, pool, v)
@@ -150,6 +185,7 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 		vault:             v,
 		collector:         collector,
 		sshPool:           pool,
+		tunnelMgr:         tm,
 		hostStatus:        make(map[int64]HostStatus),
 		metrics:           make(map[int64]*storage.MetricRecord),
 		sysInfos:          make(map[int64]*telemetry.SysInfo),
@@ -174,6 +210,9 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 func (m *Model) Close() {
 	if m.cancel != nil {
 		m.cancel()
+	}
+	if m.tunnelMgr != nil {
+		m.tunnelMgr.CloseAll()
 	}
 	if m.sshPool != nil {
 		m.sshPool.CloseAll()

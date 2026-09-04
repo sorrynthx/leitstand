@@ -48,7 +48,7 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				if msg.BytesPerSec >= 1024*1024 {
 					speedStr = fmt.Sprintf("%.1f MB/s", msg.BytesPerSec/(1024*1024))
 				}
-				m.statusMessage = fmt.Sprintf("⬆️ [%s] %.1f%% (%s) [f] 키로 복귀", msg.FileName, pct, speedStr)
+				m.statusMessage = i18n.Tf("sftp_bg_transfer_progress", msg.FileName, pct, speedStr)
 			}
 
 			if msg.Err != nil {
@@ -56,11 +56,11 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				m.fileManager.IsTransferBackground = false
 				m.fileManager.TransferDoneMsg = ""
 				if msg.Err == context.Canceled || strings.Contains(msg.Err.Error(), "canceled") || strings.Contains(msg.Err.Error(), "closed") {
-					m.fileManager.StatusMessage = "⚠️ 전송이 사용자에 의해 취소되었습니다."
-					m.statusMessage = "⚠️ 파일 전송이 취소되었습니다."
+					m.fileManager.StatusMessage = i18n.T("sftp_transfer_cancelled_user")
+					m.statusMessage = i18n.T("sftp_transfer_cancelled")
 				} else {
 					m.fileManager.StatusMessage = fmt.Sprintf("❌ %v", msg.Err)
-					m.statusMessage = fmt.Sprintf("❌ 파일 전송 실패: %v", msg.Err)
+					m.statusMessage = i18n.Tf("sftp_transfer_failed", msg.Err)
 				}
 				return m, nil, true
 			} else if msg.IsDone {
@@ -191,9 +191,9 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		if m.fileManager != nil && m.fileManager.HostID == msg.HostID {
 			outText := strings.TrimSpace(msg.Output)
 			if msg.Err == nil && outText == "" {
-				outText = "✨ (명령어가 성공적으로 실행되었으나 출력 결과가 없습니다. 조건에 일치하는 대상이 0건입니다.)"
+				outText = i18n.T("sftp_cmd_empty_output")
 			} else if msg.Err != nil && outText == "" {
-				outText = fmt.Sprintf("⚠️ (오류 발생: %v)", msg.Err)
+				outText = i18n.Tf("sftp_cmd_err_output", msg.Err)
 			}
 
 			if msg.Err != nil {

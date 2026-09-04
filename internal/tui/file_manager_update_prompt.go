@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"fmt"
+	"leitstand/internal/i18n"
 	"path/filepath"
 	"strings"
 
@@ -127,7 +127,7 @@ func (fm *FileManagerModal) UpdatePrompt(msg tea.KeyMsg) (bool, tea.Cmd) {
 						"man": true, "bash": true, "sh": true, "zsh": true, "su": true,
 					}
 					if interactiveCmds[firstWord] {
-						fm.StatusMessage = fmt.Sprintf("⚠️ '%s' 대화형 프로그램은 내장 에디터(F4)나 터미널([t])을 이용해주세요! (추천 인라인: ls, df, du, chmod, tar, tail, grep)", firstWord)
+						fm.StatusMessage = i18n.Tf("sftp_err_interactive_cmd", firstWord)
 						return false, nil
 					}
 				}

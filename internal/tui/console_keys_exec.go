@@ -40,8 +40,10 @@ func (m *Model) updateConsoleKeys(msg tea.KeyMsg, keyStr string) (tea.Model, tea
 		newM, cmd, _ := m.handleConsoleAutoCompletion()
 		return newM, cmd
 
-	case "ctrl+t":
-		return m, m.launchInteractiveTerminalCmd(curHost)
+	case "f7", "F7":
+		m.showTunnelModal = true
+		m.tunnelModal = NewTunnelModal(curHost, m.store, m.sshPool, m.tunnelMgr)
+		return m, nil
 	case "f6", "ctrl+f":
 		return m, m.openFileManagerCmd(curHost)
 	case "ctrl+e":
@@ -203,9 +205,9 @@ func (m *Model) updateConsoleKeys(msg tea.KeyMsg, keyStr string) (tea.Model, tea
 					return m, nil
 				}
 				if cachedPass, ok := m.sudoCache[curHost.ID]; ok && cachedPass != "" {
-					tab.AppendLog(fmt.Sprintf("⏳ [접속 및 권한 검증 중...] Authenticating root credentials on %s...", curHost.Name))
+					tab.AppendLog(i18n.Tf("sudo_auth_in_progress", curHost.Name))
 					m.updateViewportContent()
-					m.statusMessage = fmt.Sprintf("⏳ [접속 중...] Authenticating root privilege on %s...", curHost.Name)
+					m.statusMessage = i18n.Tf("sudo_auth_in_progress", curHost.Name)
 					return m, m.execSudoValidateAndElevateCmd(curHost, tab, cachedPass, true)
 				}
 				m.pendingSudoCmd = "su"

@@ -211,7 +211,7 @@ func TestFileManagerModal(t *testing.T) {
 	// Test Runbook overlay
 	fm.ShowRunbook = true
 	runbookView := fm.View(120, 30)
-	if !strings.Contains(runbookView, "SFTP 매니저 단축키 가이드 & 데브옵스 런북") {
+	if !strings.Contains(runbookView, i18n.T("sftp_runbook_title")) {
 		t.Errorf("expected Runbook title in view, got:\n%s", runbookView)
 	}
 	fm.ShowRunbook = false

@@ -27,8 +27,12 @@ type ConsoleTab struct {
 	IsScreenApp  bool
 	StreamCmd    string
 	StreamCancel context.CancelFunc
+	LastCommand  string
+	LastExitCode int
+	LastError    string
 	CreatedAt    time.Time
 }
+
 
 // HostTabState holds all tabs and the active tab index for a specific host.
 type HostTabState struct {

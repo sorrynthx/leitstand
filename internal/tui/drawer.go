@@ -217,11 +217,11 @@ func (d *RunbookDrawer) View(drawerWidth, drawerHeight int) string {
 		if d.activeTab == quickcmd.OSTabShortcuts {
 			headerText := fmt.Sprintf("⌨️ [%s] ── %s", selected.Command, i18n.T(selected.TitleKey))
 			cmdBox := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Background(lipgloss.Color("#151820")).Padding(0, 1).Width(previewWidth).Render(headerText)
-			descBox := lipgloss.NewStyle().Foreground(ColorText).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorMuted).Render("(Enter/Esc: 닫기)"))
+			descBox := lipgloss.NewStyle().Foreground(ColorText).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("drawer_hint_close")))
 			b.WriteString(cmdBox + "\n" + descBox + "\n\n")
 		} else {
 			cmdBox := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Background(lipgloss.Color("#151820")).Padding(0, 1).Width(previewWidth).Render("❯ " + selected.Command)
-			descBox := lipgloss.NewStyle().Foreground(lipgloss.Color("#B0BEC5")).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorSuccess).Render("(Enter: 콘솔 주입)"))
+			descBox := lipgloss.NewStyle().Foreground(lipgloss.Color("#B0BEC5")).Width(previewWidth).Render("💡 " + desc + "  " + lipgloss.NewStyle().Foreground(ColorSuccess).Render(i18n.T("drawer_hint_inject")))
 			b.WriteString(cmdBox + "\n" + descBox + "\n\n")
 		}
 	}

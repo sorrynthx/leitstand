@@ -48,7 +48,7 @@ func (s *SettingsModal) updateSettingsDatabaseTab(msg tea.KeyMsg) (tea.Cmd, bool
 			_ = s.store.SetSetting("metrics_retention_days", fmt.Sprintf("%d", days))
 		}
 		s.errMessage = ""
-		s.successMessage = fmt.Sprintf("⏱️ 메트릭 보관 주기가 %d일로 변경되었습니다.", days)
+		s.successMessage = i18n.Tf("db_success_retention", days)
 		return nil, true
 
 	case "right", "l":
@@ -58,7 +58,7 @@ func (s *SettingsModal) updateSettingsDatabaseTab(msg tea.KeyMsg) (tea.Cmd, bool
 			_ = s.store.SetSetting("metrics_retention_days", fmt.Sprintf("%d", days))
 		}
 		s.errMessage = ""
-		s.successMessage = fmt.Sprintf("⏱️ 메트릭 보관 주기가 %d일로 변경되었습니다.", days)
+		s.successMessage = i18n.Tf("db_success_retention", days)
 		return nil, true
 
 	case "enter", " ":

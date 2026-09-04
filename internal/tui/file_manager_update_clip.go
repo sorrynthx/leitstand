@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"fmt"
+	"leitstand/internal/i18n"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -16,7 +16,7 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			m.ClipboardIsCut = true
 			m.ClipboardIsLocal = (m.ActivePanel == PanelLocal)
 			m.ClearSelections()
-			m.StatusMessage = fmt.Sprintf("✂️ %d개 항목 잘라내기됨 (붙여넣을 폴더로 이동 후 [p] 또는 [v]를 누르세요)", len(paths))
+			m.StatusMessage = i18n.Tf("sftp_cut_notify", len(paths))
 		}
 		return false, nil
 
@@ -27,7 +27,7 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			m.ClipboardIsCut = false
 			m.ClipboardIsLocal = (m.ActivePanel == PanelLocal)
 			m.ClearSelections()
-			m.StatusMessage = fmt.Sprintf("📋 %d개 항목 복사됨 (붙여넣을 폴더로 이동 후 [p] 또는 [v]를 누르세요)", len(paths))
+			m.StatusMessage = i18n.Tf("sftp_copy_notify", len(paths))
 		}
 		return false, nil
 
@@ -45,11 +45,11 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			m.ClipboardPaths = nil
 			m.ClipboardIsCut = false
 			m.ClearSelections()
-			actionName := "복사"
+			actionName := i18n.T("sftp_action_copy")
 			if isMove {
-				actionName = "이동"
+				actionName = i18n.T("sftp_action_move")
 			}
-			m.StatusMessage = fmt.Sprintf("🚀 %d개 항목 붙여넣기(%s) 시작...", len(paths), actionName)
+			m.StatusMessage = i18n.Tf("sftp_paste_notify", len(paths), actionName)
 			return false, func() tea.Msg {
 				return TransferActionMsg{
 					HostID:      m.HostID,
@@ -80,11 +80,11 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			destDir = m.LocalPath
 		}
 		m.ClearSelections()
-		actionName := "업로드"
+		actionName := i18n.T("sftp_action_upload")
 		if !isUpload {
-			actionName = "다운로드"
+			actionName = i18n.T("sftp_action_download")
 		}
-		m.StatusMessage = fmt.Sprintf("🚀 %d개 항목 %s 전송 시작...", len(paths), actionName)
+		m.StatusMessage = i18n.Tf("sftp_transfer_start_notify", len(paths), actionName)
 		return false, func() tea.Msg {
 			return TransferActionMsg{HostID: m.HostID, IsUpload: isUpload, IsMove: false, SrcPaths: paths, DestDirPath: destDir}
 		}
@@ -100,7 +100,7 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 			destDir = m.LocalPath
 		}
 		m.ClearSelections()
-		m.StatusMessage = fmt.Sprintf("🚀 %d개 항목 이동 시작...", len(paths))
+		m.StatusMessage = i18n.Tf("sftp_move_start_notify", len(paths))
 		return false, func() tea.Msg {
 			return TransferActionMsg{HostID: m.HostID, IsUpload: isUpload, IsMove: true, SrcPaths: paths, DestDirPath: destDir}
 		}
@@ -108,14 +108,14 @@ func (m *FileManagerModal) handleSFTPKeyActions(keyStr string) (bool, tea.Cmd) {
 	case "f7", "F7", "n":
 		m.ActivePrompt = PromptMkdir
 		m.SubInput.Reset()
-		m.SubInput.Placeholder = "새 폴더 이름..."
+		m.SubInput.Placeholder = i18n.T("sftp_mkdir_ph")
 		m.SubInput.Focus()
 		return false, textinput.Blink
 
 	case "t", "T", "N":
 		m.ActivePrompt = PromptTouch
 		m.SubInput.Reset()
-		m.SubInput.Placeholder = "새 파일 이름..."
+		m.SubInput.Placeholder = i18n.T("sftp_touch_ph")
 		m.SubInput.Focus()
 		return false, textinput.Blink
 

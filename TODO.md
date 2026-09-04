@@ -88,13 +88,62 @@
   - `[6] ⚠️ 보관함 및 설정 초기화 (Factory Reset)` 안전 확인 팝업 탑재. *(※ 실서버 데이터 삭제 테스트는 Phase 4 포트포워딩 개발 후 진행)*
   - 탭별 포커스 네비게이션 엔진(`settings_modal_nav.go`) 신설로 1번 탭 유령 필드 버그 및 4번 탭 이동 충돌 완벽 해결.
 
-### 🚇 Phase 4: SSH 터널링 및 글로벌 배포 (Tunneling & Distribution)
-- [ ] **SSH 포트 포워딩 / 터널링 매니저 (SSH Tunneling)**:
-  - 원격 서버 내부 DB(MySQL 3306, PostgreSQL 5432, Redis 6379) 또는 비공개 웹 포트를 로컬 포트로 포워딩.
-  - 포트포워딩 설정 모달/드로어 및 활성 터널 실시간 상태 표시 (`🟢 ACTIVE / 🔴 CLOSED`).
+### 🚇 Phase 4: SSH 포트 포워딩 & 터널링 매니저 (SSH Tunneling)
+- [x] **SSH 로컬 포트 포워딩 엔진 (`internal/ssh/tunnel.go`, `internal/ssh/tunnel_manager.go`)**:
+  - 원격 서버 내부 사설 DB(MySQL 3306, PostgreSQL 5432, Redis 6379) 또는 비공개 웹 포트(8080, 5678, 11434)를 내 PC 로컬 포트로 암호화 터널링.
+  - `net.Listen` 로컬 소켓 바인딩 및 SSH 채널 `Dial` 양방향 고속 스트리밍(`io.Copy`).
+  - 활성 커넥션 수(atomic counter) 추적 및 리소스 누수 없는 안전한 수명주기 해제.
+- [x] **터널링 관리 모달 UI (`internal/tui/tunnel_modal*.go`)**:
+  - `T` (`Shift+T`) 및 `F7` 전역 단축키 호출 지원 (콘솔 입력 중에도 `F7` 전역 감지).
+  - 로컬 바인딩 포트 및 원격 대상 포트 입력/추가/삭제 폼.
+  - 활성 터널 실시간 상태 표시 (`🟢 ON / 🔴 OFF`) 및 `Space` / `Enter` 원클릭 시작/중지 토글.
+  - 상단 헤더(`LIVE ENGINE` 옆) 활성 터널 카운트 & 포트 요약 초록색 뱃지 실시간 동적 연동.
+  - 하단 상태바 `[T/F7] 터널` 키 가이드 상시 노출.
+  - SQLite 영구 저장(`ssh_tunnels`)으로 앱 재실행 시에도 등록된 터널링 규칙 보존.
+- [x] **실서버 및 Docker 컨테이너 실물 검증**:
+  - 테스트 서버 192.168.14.119 내 Docker 컨테이너(n8n 5678, Ollama 11434, MySQL 3306) 구동 후 로컬 PC 브라우저/도구 접속 100% 동작 확인 완료.
+  - 2단계 삭제 확인 다이얼로그(`[d]` -> `[Enter/y]` 확인, `[Esc/n]` 취소) 탑재.
+  - 전역 다국어(KO, EN, DE) 전수 점검 및 AST 정밀 스캔을 통한 잔존 하드코딩 0개(100% Zero-Hardcoding) 달성.
+
+### ⭐️ Phase 4-1: 커스텀 런북 & 팀 런북 JSON 확장 (Custom Runbooks & JSON Extension)
+- [ ] **`[?]` 런북 내 `[7] ⭐️ Custom (내 명령어)` 탭 신설**:
+  - 프로젝트 및 실무 전용 자주 쓰는 명령어들을 모아두는 나만의 런북 보관함.
+  - 인앱 추가(`[a]`), 수정(`[e]`), 삭제(`[d]`) 및 방향키 이동 후 `Enter` 즉시 콘솔 입력.
+- [ ] **하이브리드 런북 아키텍처 (Built-in + SQLite Overlay)**:
+  - 기존 OS별 기본 내장 런북(불변의 안정성) + 로컬 SQLite `custom_commands` 테이블의 사용자 명령어 투명 결합.
+- [ ] **팀 런북 JSON Export & Import 파이프라인**:
+  - 내가 작성한 명령어들을 `my_runbook.json`으로 내보내기(Export).
+  - 팀원이 공유해 준 공통 런북 JSON 파일을 불러와 중복 없이 내 보관함에 안전 병합(Import).
+
+### 🤖 Phase 5: AI 터미널 코파일럿 & 자율 진단 엔진 (AI Terminal Copilot - 50% 진행)
+- [x] **인앱 인라인 AI 코파일럿 UI (`[F4]`)**:
+  - 하단 인라인 AI 대화창 토글 및 렌더링 (`[F4]`, `[Esc]` 닫기 시 터미널 포커스 자동 복구).
+  - 마크다운 스타일링 및 추천 명령어(`[Enter] 즉시 실행`, `[Tab] 입력창 복사`) 버튼 UI.
+- [x] **로컬 Ollama 스트리밍 엔진 & 최근 컨텍스트 주입 (`internal/ai`)**:
+  - 로컬 Ollama REST API(`http://localhost:11434/api/chat`) 순수 Go `net/http` 실시간 SSE 스트리밍.
+  - 대화 내역(`ai_chat_history`) SQLite 영구 저장 및 최근 2턴 컨텍스트 격리 주입 (과거 명령 혼동 차단).
+- [x] **치명적 위험 명령 원천 차단 안전 가드 (`ai_safety.go`)**:
+  - 시스템 재부팅, 종료, 포맷, `swapoff`, 대상 경로 없는 bare `rm` (`rm`, `rm -f`) 자동 실행 원천 차단.
+- [x] **AI 추천 명령어 원클릭 주입 & 터미널 포커스 인계 루프**:
+  - `[Enter]` 실행 직후 원격 터미널(`PaneConsole`) 입력창으로 포커스 자동 인계 및 명령 실행.
+- [x] **시스템 프롬프트 외부 파일 분리 (`~/.leitstand/copilot_system_prompt.txt`)**:
+  - 코드 재빌드 없이 사용자가 직접 수정 가능한 프롬프트 템플릿 파일 로더 및 자동 생성기.
+- [x] **단축키 모드 한글 IME 및 독일어 특수문자 안내 엔진 (`update_ime.go`)**:
+  - 탐색 모드에서 한글(자모/음절) 및 독일어 Umlaut/특수문자(`ä, ö, ü, ß`) 감지 시 상태바 전환 안내 경고 출력.
+- [ ] **클라우드 LLM API 키 연동 및 외부 API 테스트 (Next)**:
+  - 외부 API 대응: OpenAI / Claude / Gemini API 키 입력 지원 및 실서버 진단 테스트.
+- [ ] **서버 텔레메트리 & 최근 로그 컨텍스트 자동 주입 (Context-Aware Prompting)**:
+  - 질문 전송 시 현재 서버 OS, CWD, CPU/RAM/디스크 사용량, 직전 터미널 에러를 시스템 프롬프트에 자동 첨부.
+- [ ] **커스텀 런북 저장 연계**:
+  - AI가 추천한 유용한 명령어를 커스텀 런북(`custom_commands`)으로 원클릭 저장.
+
+### 📦 Phase 6: 크로스 플랫폼 자동 빌드 & 글로벌 배포 (Distribution & GoReleaser)
 - [ ] **크로스 플랫폼 자동 빌드 파이프라인 (GoReleaser)**:
-  - Windows (.exe), macOS (Apple Silicon / Intel), Linux 바이너리 패키징 및 GitHub Release 연동.
+  - Windows (.exe), macOS (Apple Silicon M-series / Intel), Linux x86_64 바이너리 패키징.
+  - GitHub Release 자동 연동 및 단일 실행 파일 릴리스.
+- [ ] **Phase 3-2 공장 초기화 (Factory Reset) 최종 실물 검증**:
+  - 최종 릴리스 전, 4번 탭 `[6] Factory Reset` 2단계 확인 팝업 및 SQLite DB 완전 초기화 최종 점검.
 
 ---
 
-*Last Updated: 2026-09-03 (Phase 3-2 Completed, Ready for Phase 4)*
+*Last Updated: 2026-09-04 (Phase 5 AI Copilot 50% Milestone & IME Navigation Guard Completed)*

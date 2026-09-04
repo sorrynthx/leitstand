@@ -1,4 +1,4 @@
-﻿package tui
+package tui
 
 func (s *SettingsModal) switchTab(newTab SettingsTab) {
 	s.blurCurrent()
@@ -12,6 +12,8 @@ func (s *SettingsModal) switchTab(newTab SettingsTab) {
 		s.focusField = FieldInterval
 	case TabLogs:
 		s.focusField = FieldLogPreset
+	case TabAI:
+		s.focusField = FieldAIProvider
 	default:
 		s.focusField = FieldLanguage
 	}
@@ -46,6 +48,9 @@ func (s *SettingsModal) focusNext() {
 				s.focusField = FieldLogPreset
 			}
 		}
+	case TabAI:
+		fields := []SettingsField{FieldAIProvider, FieldAIEndpoint, FieldAIKey, FieldAIModel, FieldAIRetention, FieldAIMaxHistory, FieldSubmitBtn}
+		s.focusField = cycleField(s.focusField, fields, 1)
 	}
 	s.focusCurrent()
 }
@@ -78,9 +83,13 @@ func (s *SettingsModal) focusPrev() {
 				s.focusField = FieldSubmitBtn
 			}
 		}
+	case TabAI:
+		fields := []SettingsField{FieldAIProvider, FieldAIEndpoint, FieldAIKey, FieldAIModel, FieldAIRetention, FieldAIMaxHistory, FieldSubmitBtn}
+		s.focusField = cycleField(s.focusField, fields, -1)
 	}
 	s.focusCurrent()
 }
+
 
 func cycleField(curr SettingsField, allowed []SettingsField, delta int) SettingsField {
 	idx := -1

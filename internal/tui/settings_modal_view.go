@@ -49,7 +49,8 @@ func (s *SettingsModal) View(width, height int) string {
 		{TabTelemetry, "[2] 📊 Telemetry", ColorSecondary},
 		{TabLogs, "[3] 📜 " + i18n.T("settings_tab_logs"), ColorSuccess},
 		{TabDatabase, "[4] 🗄️ " + i18n.T("settings_tab_database"), ColorWarning},
-		{TabAbout, "[5] " + i18n.T("tab_about"), ColorSuccess},
+		{TabAI, "[5] 🤖 " + i18n.T("settings_tab_ai"), ColorSecondary},
+		{TabAbout, "[6] " + i18n.T("tab_about"), ColorSuccess},
 	}
 	var tabBtns []string
 	for _, td := range tabDefs {
@@ -70,9 +71,12 @@ func (s *SettingsModal) View(width, height int) string {
 		b.WriteString(s.renderLogsTab())
 	case TabDatabase:
 		b.WriteString(s.renderDatabaseTab())
+	case TabAI:
+		b.WriteString(s.renderAITab())
 	case TabAbout:
 		b.WriteString(s.renderAboutTab())
 	}
+
 
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.DoubleBorder()).
@@ -101,7 +105,7 @@ func (s *SettingsModal) renderGeneralTab() string {
 
 	// 2. Info Card directing to Tab 4 for Security
 	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(
-		"💡 마스터 비밀번호 변경 및 DB 백업/복원은 [4] 데이터 & 보안 탭에서 관리할 수 있습니다.",
+		i18n.T("settings_db_tab_hint"),
 	) + "\n\n")
 
 	// Submit Button / Hints
@@ -146,7 +150,7 @@ func (s *SettingsModal) renderAboutTab() string {
 func (s *SettingsModal) renderTelemetryTab() string {
 	var b strings.Builder
 
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("📊 텔레메트리 폴링 및 자원 위험 임계치 설정") + "\n\n")
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render(i18n.T("settings_section_telemetry")) + "\n\n")
 
 	// 1. Telemetry Polling Interval
 	intervalLabel := i18n.T("settings_interval_label")
@@ -160,13 +164,13 @@ func (s *SettingsModal) renderTelemetryTab() string {
 	b.WriteString(intervalBtn + "\n\n")
 
 	// 2. CPU Threshold
-	b.WriteString(s.renderThresholdField(FieldCPUThresh, 0, "💻 CPU 경고 임계치 (CPU Threshold %):", "85"))
+	b.WriteString(s.renderThresholdField(FieldCPUThresh, 0, i18n.T("settings_label_cpu_thresh"), "85"))
 
 	// 3. RAM Threshold
-	b.WriteString(s.renderThresholdField(FieldRAMThresh, 1, "🧠 RAM 경고 임계치 (RAM Threshold %):", "90"))
+	b.WriteString(s.renderThresholdField(FieldRAMThresh, 1, i18n.T("settings_label_ram_thresh"), "90"))
 
 	// 4. Disk Threshold
-	b.WriteString(s.renderThresholdField(FieldDiskThresh, 2, "💾 Disk 경고 임계치 (Disk Threshold %):", "90"))
+	b.WriteString(s.renderThresholdField(FieldDiskThresh, 2, i18n.T("settings_label_disk_thresh"), "90"))
 
 	// Save Button
 	if s.focusField == FieldSubmitBtn {
@@ -183,7 +187,7 @@ func (s *SettingsModal) renderTelemetryTab() string {
 		b.WriteString("\n")
 	}
 
-	hints := lipgloss.NewStyle().Foreground(ColorMuted).Render("[Tab/Shift+Tab] 이동  [←/→] 수치/옵션 조절  [1~3] 탭  [Esc] 닫기")
+	hints := lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("settings_hints_footer"))
 	b.WriteString(hints)
 
 	return b.String()

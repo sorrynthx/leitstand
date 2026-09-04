@@ -16,6 +16,16 @@ type AppConfig struct {
 	SSH       SSHConfig       `mapstructure:"ssh"`
 	TUI       TUIConfig       `mapstructure:"tui"`
 	Logging   LoggingConfig   `mapstructure:"logging"`
+	AI        AIConfig        `mapstructure:"ai"`
+}
+
+// AIConfig holds AI Copilot provider and retention settings.
+type AIConfig struct {
+	Provider      string `mapstructure:"provider"`
+	Endpoint      string `mapstructure:"endpoint"`
+	Model         string `mapstructure:"model"`
+	RetentionDays int    `mapstructure:"retention_days"`
+	MaxHistory    int    `mapstructure:"max_history"`
 }
 
 // LoggingConfig holds session audit logging directory settings.
@@ -75,6 +85,13 @@ func NewDefaultConfig() *AppConfig {
 		Logging: LoggingConfig{
 			SessionLogDir: DefaultSessionLogDir(),
 		},
+		AI: AIConfig{
+			Provider:      "groq",
+			Endpoint:      "https://api.groq.com/openai/v1",
+			Model:         "llama-3.3-70b-versatile",
+			RetentionDays: 3,
+			MaxHistory:    20,
+		},
 	}
 }
 
@@ -92,6 +109,11 @@ func Load(cfgFile string) (*AppConfig, error) {
 	v.SetDefault("tui.min_cols", defaults.TUI.MinCols)
 	v.SetDefault("tui.min_rows", defaults.TUI.MinRows)
 	v.SetDefault("logging.session_log_dir", defaults.Logging.SessionLogDir)
+	v.SetDefault("ai.provider", defaults.AI.Provider)
+	v.SetDefault("ai.endpoint", defaults.AI.Endpoint)
+	v.SetDefault("ai.model", defaults.AI.Model)
+	v.SetDefault("ai.retention_days", defaults.AI.RetentionDays)
+	v.SetDefault("ai.max_history", defaults.AI.MaxHistory)
 
 	if cfgFile != "" {
 		v.SetConfigFile(cfgFile)

@@ -39,8 +39,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		keyStr := msg.String()
 
+		if keyStr == "f4" || keyStr == "F4" {
+			return m.ToggleAICopilot()
+		}
+
 		if keyStr == "f5" || keyStr == "F5" {
 			m.showDrawer = false
+
 			m.showTelemetryDrawer = !m.showTelemetryDrawer
 			if m.showTelemetryDrawer {
 				m.statusMessage = i18n.T("telemetry_deck_expanded")
@@ -93,9 +98,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case SessionLogExportedMsg:
 		if msg.Err != nil {
-			m.statusMessage = fmt.Sprintf("❌ 세션 로그 저장 실패: %v", msg.Err)
+			m.statusMessage = i18n.Tf("session_log_save_err", msg.Err)
 		} else {
-			m.statusMessage = fmt.Sprintf("💾 세션 로그 저장 완료: %s", msg.FilePath)
+			m.statusMessage = i18n.Tf("session_log_saved", msg.FilePath)
 			if len(m.hosts) > 0 && m.selectedIndex >= 0 && m.selectedIndex < len(m.hosts) {
 				curHost := m.hosts[m.selectedIndex]
 				hts := m.GetOrCreateHostTabs(curHost.ID, curHost.Name)
@@ -119,6 +124,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) handleMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case AICopilotChunkMsg, AICopilotDoneMsg:
+		if m.showAICopilot && m.aiCopilot != nil {
+			model, cmd, _ := m.UpdateAICopilot(msg)
+			return model, cmd
+		}
+	}
 	if model, cmd, handled := m.tryHandleTelemetryMessage(msg); handled {
 		return model, cmd
 	}
@@ -127,6 +139,7 @@ func (m *Model) handleMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	return m.handleCommandResultMessage(msg)
 }
+
 
 func (m *Model) changeVaultPassword(currPassword, newPassword string) error {
 	if m.store == nil || m.vault == nil {

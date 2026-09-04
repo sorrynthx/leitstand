@@ -205,13 +205,13 @@ func formatSortIndicator(field SortField, asc bool) string {
 	}
 	switch field {
 	case SortByName:
-		return "[이름순 " + dir + "]"
+		return i18n.Tf("sftp_sort_name", dir)
 	case SortBySize:
-		return "[크기순 " + dir + "]"
+		return i18n.Tf("sftp_sort_size", dir)
 	case SortByModTime:
-		return "[날짜순 " + dir + "]"
+		return i18n.Tf("sftp_sort_date", dir)
 	default:
-		return "[정렬 " + dir + "]"
+		return i18n.Tf("sftp_sort_default", dir)
 	}
 }
 

@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"leitstand/internal/i18n"
 	"leitstand/internal/logger"
 	"path"
 	"path/filepath"
@@ -23,7 +24,7 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 					m.IsTransferring = false
 					m.IsTransferBackground = false
 					m.ShowTransferCancelPrompt = false
-					m.StatusMessage = "⚠️ 전송이 사용자에 의해 취소되었습니다."
+					m.StatusMessage = i18n.T("sftp_transfer_cancelled_user")
 					return false, nil
 				case "esc", "n", "N", "q":
 					m.ShowTransferCancelPrompt = false
@@ -68,6 +69,7 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 
 	if m.ShowRunbook {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			runbooks := getSFTPRunbooks()
 			switch keyMsg.String() {
 			case "esc", "q":
 				m.ShowRunbook = false
@@ -78,7 +80,7 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 				}
 				return false, nil
 			case "down", "j":
-				if m.RunbookCursor < len(defaultSFTPRunbooks)-1 {
+				if m.RunbookCursor < len(runbooks)-1 {
 					m.RunbookCursor++
 				}
 				return false, nil
@@ -90,12 +92,12 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 				return false, nil
 			case "pgdown", "pagedown":
 				m.RunbookCursor += 4
-				if m.RunbookCursor >= len(defaultSFTPRunbooks) {
-					m.RunbookCursor = len(defaultSFTPRunbooks) - 1
+				if m.RunbookCursor >= len(runbooks) {
+					m.RunbookCursor = len(runbooks) - 1
 				}
 				return false, nil
 			case "enter":
-				selectedCmd := defaultSFTPRunbooks[m.RunbookCursor].Command
+				selectedCmd := runbooks[m.RunbookCursor].Command
 				m.ShowRunbook = false
 				m.ActivePrompt = PromptQuickCmd
 				m.QuickCmdInput.Reset()

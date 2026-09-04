@@ -1,4 +1,4 @@
-﻿package tui
+package tui
 
 import (
 	"fmt"
@@ -49,9 +49,9 @@ func (s *SettingsModal) renderDatabaseTab() string {
 
 	var retentionBadges []string
 	for i, d := range RetentionDays {
-		label := fmt.Sprintf("%d일", d)
+		label := i18n.Tf("db_days_format", d)
 		if d == 7 {
-			label = "7일 (권장)"
+			label = i18n.T("db_days_recommended")
 		}
 		if i == s.retentionIndex {
 			retentionBadges = append(retentionBadges, lipgloss.NewStyle().
@@ -76,7 +76,7 @@ func (s *SettingsModal) renderDatabaseTab() string {
 		Padding(0, 1).
 		Width(68).
 		Render(fmt.Sprintf(
-			"%s\n• %s: %s   • %s: %s\n• %s: %d대   • %s: %d건\n%s",
+			"%s\n• %s: %s   • %s: %s\n• %s: %d   • %s: %d\n%s",
 			lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("🗄️ "+i18n.T("db_status_title")),
 			i18n.T("db_path"), lipgloss.NewStyle().Foreground(ColorText).Render(dbPath),
 			i18n.T("db_size"), lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(dbSizeStr),
@@ -141,7 +141,7 @@ func (s *SettingsModal) renderDatabaseTab() string {
 			Render(fmt.Sprintf(
 				"❓ %s\n   %s",
 				lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(s.dbConfirmPrompt),
-				lipgloss.NewStyle().Foreground(ColorText).Render("[Enter / y] 실행    [Esc / n] 취소"),
+				lipgloss.NewStyle().Foreground(ColorText).Render(i18n.T("db_confirm_btns")),
 			))
 		b.WriteString(confirmBox + "\n")
 	} else {

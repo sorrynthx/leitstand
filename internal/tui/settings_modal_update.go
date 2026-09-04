@@ -11,15 +11,22 @@ import (
 )
 
 type SettingsResult struct {
-	Done       bool
-	SaveReq    bool
-	Lang       i18n.Lang
-	Interval   time.Duration
-	CPUThresh  float64
-	RAMThresh  float64
-	DiskThresh float64
-	LogDir     string
+	Done         bool
+	SaveReq      bool
+	Lang         i18n.Lang
+	Interval     time.Duration
+	CPUThresh    float64
+	RAMThresh    float64
+	DiskThresh   float64
+	LogDir       string
+	AIProvider   string
+	AIEndpoint   string
+	AIKey        string
+	AIModel      string
+	AIRetention  int
+	AIMaxHistory int
 }
+
 
 func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 	if s.showConfirmSave {
@@ -91,6 +98,11 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			}
 		case "f5", "alt+5", "5":
 			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "5" {
+				s.switchTab(TabAI)
+				return SettingsResult{}, nil
+			}
+		case "f6", "alt+6", "6":
+			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "6" {
 				s.switchTab(TabAbout)
 				return SettingsResult{}, nil
 			}
@@ -154,6 +166,12 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 					s.selectedLogPreset = len(s.logDirPresets) - 1
 				}
 				return SettingsResult{}, nil
+			} else if s.activeTab == TabAI && s.focusField == FieldAIProvider {
+				s.aiProviderIndex--
+				if s.aiProviderIndex < 0 {
+					s.aiProviderIndex = len(s.aiProviders) - 1
+				}
+				return SettingsResult{}, nil
 			}
 
 		case "right", "l":
@@ -167,7 +185,11 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			} else if s.activeTab == TabLogs {
 				s.selectedLogPreset = (s.selectedLogPreset + 1) % len(s.logDirPresets)
 				return SettingsResult{}, nil
+			} else if s.activeTab == TabAI && s.focusField == FieldAIProvider {
+				s.aiProviderIndex = (s.aiProviderIndex + 1) % len(s.aiProviders)
+				return SettingsResult{}, nil
 			}
+
 
 		case " ", "space", "b", "B":
 			if s.activeTab == TabLogs && s.selectedLogPreset == 3 {
@@ -179,7 +201,7 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 				return SettingsResult{}, nil
 			}
 		case "ctrl+e":
-			s.errMessage = "💡 세션 저장은 콘솔 화면에서 [Esc]로 설정을 닫은 후 [Ctrl+E]를 눌러주세요."
+			s.errMessage = i18n.T("settings_session_log_tip")
 			return SettingsResult{}, nil
 		case "enter":
 			if s.activeTab == TabAbout {

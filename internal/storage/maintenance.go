@@ -45,22 +45,24 @@ func (s *Storage) Vacuum() error {
 	return nil
 }
 
-// PruneAndVacuum deletes metrics older than retentionDays and then vacuums the database.
+// PruneAndVacuum deletes metrics and AI chats older than retentionDays and then vacuums the database.
 func (s *Storage) PruneAndVacuum(retentionDays int) (int64, int64, int64, error) {
 	beforeStats, _ := s.GetDBStats()
 	beforeSize := beforeStats.SizeBytes
 
-	deleted, err := s.PruneMetricsOlderThan(retentionDays)
+	deletedMetrics, err := s.PruneMetricsOlderThan(retentionDays)
 	if err != nil {
 		return 0, beforeSize, beforeSize, err
 	}
 
+	deletedChats, _ := s.PruneAIChatsOlderThan(retentionDays)
+
 	if err := s.Vacuum(); err != nil {
-		return deleted, beforeSize, beforeSize, err
+		return deletedMetrics + deletedChats, beforeSize, beforeSize, err
 	}
 
 	afterStats, _ := s.GetDBStats()
-	return deleted, beforeSize, afterStats.SizeBytes, nil
+	return deletedMetrics + deletedChats, beforeSize, afterStats.SizeBytes, nil
 }
 
 // ExportMetricsCSV exports historical metrics of a given time window (in days) to a CSV file.

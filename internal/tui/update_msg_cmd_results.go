@@ -37,10 +37,34 @@ func (m *Model) handleCommandResultMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 							targetTab.CWD = msg.NewCWD
 						}
 
-						if msg.Err != nil {
-							targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n❌ Error: %v\n%s", cwdDisplay, msg.Command, msg.Err, msg.Stderr))
+						targetTab.LastCommand = msg.Command
+						isGrepNoMatch := strings.Contains(msg.Command, "grep") &&
+							strings.Contains(fmt.Sprintf("%v", msg.Err), "status 1") &&
+							strings.TrimSpace(msg.Stderr) == ""
+
+						if isGrepNoMatch {
+							targetTab.LastError = ""
+							targetTab.LastExitCode = 0
+							targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n(일치하는 항목 없음 / No matches found)", cwdDisplay, msg.Command))
+							m.statusMessage = fmt.Sprintf("ℹ️ '%s': 일치하는 결과 없음", msg.Command)
+						} else if msg.Err != nil {
+							targetTab.LastError = fmt.Sprintf("%v: %s", msg.Err, strings.TrimSpace(msg.Stderr))
+							targetTab.LastExitCode = 1
+							if strings.Contains(fmt.Sprintf("%v", msg.Err), "127") {
+								targetTab.LastExitCode = 127
+							}
+							logText := fmt.Sprintf("[%s] ❯ %s\n❌ Error: %v", cwdDisplay, msg.Command, msg.Err)
+							if strings.TrimSpace(msg.Stderr) != "" {
+								logText += "\n" + strings.TrimSpace(msg.Stderr)
+							}
+							if strings.TrimSpace(msg.Stdout) != "" {
+								logText += "\n" + strings.TrimSpace(msg.Stdout)
+							}
+							targetTab.AppendLog(logText)
 							m.statusMessage = fmt.Sprintf("⚠️ Error executing '%s'", msg.Command)
 						} else {
+							targetTab.LastError = ""
+							targetTab.LastExitCode = 0
 							out := msg.Stdout
 							if out != "" {
 								targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n%s", cwdDisplay, msg.Command, out))

@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"leitstand/internal/storage"
+	"leitstand/internal/vault"
 	"os"
 	"path/filepath"
 	"strings"
@@ -138,4 +140,24 @@ func (f *HostForm) Update(msg tea.Msg) (bool, *HostFormData, tea.Cmd) {
 	}
 
 	return false, nil, nil
+}
+
+func (m *Model) openEditHostModal() bool {
+	if m.isDemo || len(m.hosts) == 0 || m.selectedIndex < 0 || m.selectedIndex >= len(m.hosts) || m.store == nil || m.vault == nil {
+		return false
+	}
+	curHost := m.hosts[m.selectedIndex]
+	secret, _ := m.store.GetHostSecret(curHost.ID)
+	var payload *storage.SecretPayload
+	if secret != nil {
+		decrypted, err := m.vault.Decrypt(secret.Nonce, secret.Ciphertext)
+		if err == nil {
+			payload, _ = storage.ParseSecretPayload(decrypted, secret.AuthMethod)
+			vault.ZeroBytes(decrypted)
+		}
+	}
+	m.hostToEdit = curHost
+	m.editForm = NewEditHostForm(curHost, secret, payload)
+	m.showEditModal = true
+	return true
 }

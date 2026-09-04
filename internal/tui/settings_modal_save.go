@@ -1,4 +1,4 @@
-﻿package tui
+package tui
 
 import (
 	"leitstand/internal/i18n"
@@ -12,15 +12,15 @@ func (s *SettingsModal) validateInputs() bool {
 	diskT, err3 := strconv.ParseFloat(strings.TrimSpace(s.inputs[2].Value()), 64)
 
 	if err1 != nil || cpuT < 1 || cpuT > 100 {
-		s.errMessage = "⚠️ CPU 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
+		s.errMessage = i18n.T("settings_err_cpu_thresh")
 		return false
 	}
 	if err2 != nil || ramT < 1 || ramT > 100 {
-		s.errMessage = "⚠️ RAM 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
+		s.errMessage = i18n.T("settings_err_ram_thresh")
 		return false
 	}
 	if err3 != nil || diskT < 1 || diskT > 100 {
-		s.errMessage = "⚠️ Disk 임계치는 1 ~ 100 사이의 숫자로 입력해 주세요."
+		s.errMessage = i18n.T("settings_err_disk_thresh")
 		return false
 	}
 
@@ -43,14 +43,34 @@ func (s *SettingsModal) executeSave() SettingsResult {
 		finalLogDir = strings.TrimSpace(s.inputs[3].Value())
 	}
 
+	aiProv := s.aiProviders[s.aiProviderIndex]
+	aiEp := strings.TrimSpace(s.inputs[4].Value())
+	aiKey := strings.TrimSpace(s.inputs[5].Value())
+	aiModel := strings.TrimSpace(s.inputs[6].Value())
+	aiRet, _ := strconv.Atoi(strings.TrimSpace(s.inputs[7].Value()))
+	if aiRet <= 0 {
+		aiRet = 3
+	}
+	aiMaxH, _ := strconv.Atoi(strings.TrimSpace(s.inputs[8].Value()))
+	if aiMaxH <= 0 {
+		aiMaxH = 20
+	}
+
 	return SettingsResult{
-		Done:       true,
-		SaveReq:    true,
-		Lang:       selectedLang,
-		Interval:   selectedInterval,
-		CPUThresh:  cpuT,
-		RAMThresh:  ramT,
-		DiskThresh: diskT,
-		LogDir:     finalLogDir,
+		Done:         true,
+		SaveReq:      true,
+		Lang:         selectedLang,
+		Interval:     selectedInterval,
+		CPUThresh:    cpuT,
+		RAMThresh:    ramT,
+		DiskThresh:   diskT,
+		LogDir:       finalLogDir,
+		AIProvider:   aiProv,
+		AIEndpoint:   aiEp,
+		AIKey:        aiKey,
+		AIModel:      aiModel,
+		AIRetention:  aiRet,
+		AIMaxHistory: aiMaxH,
 	}
 }
+

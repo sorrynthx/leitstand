@@ -31,32 +31,14 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 			return m, nil, true
 		}
 		if res.SaveReq {
-			i18n.SetLang(res.Lang)
-			if m.cfg != nil {
-				m.cfg.Telemetry.PollingInterval = res.Interval
-				m.cfg.Telemetry.CPUThreshold = res.CPUThresh
-				m.cfg.Telemetry.RAMThreshold = res.RAMThresh
-				m.cfg.Telemetry.DiskThreshold = res.DiskThresh
-				if res.LogDir != "" {
-					m.cfg.Logging.SessionLogDir = res.LogDir
-				}
-			}
-			if m.store != nil {
-				_ = m.store.SetSetting("language", string(res.Lang))
-				_ = m.store.SetSetting("polling_interval", res.Interval.String())
-				_ = m.store.SetSetting("cpu_threshold", fmt.Sprintf("%.0f", res.CPUThresh))
-				_ = m.store.SetSetting("ram_threshold", fmt.Sprintf("%.0f", res.RAMThresh))
-				_ = m.store.SetSetting("disk_threshold", fmt.Sprintf("%.0f", res.DiskThresh))
-				if res.LogDir != "" {
-					_ = m.store.SetSetting("session_log_dir", res.LogDir)
-				}
-			}
+			m.applyAndPersistSettings(res)
 			m.showSettingsModal = false
 			m.settingsModal = nil
 			m.statusMessage = "✨ " + i18n.T("settings_saved_msg")
 			m.updateViewportContent()
 			return m, nil, true
 		}
+
 		return m, cmd, true
 	}
 	// 2. In-app File Editor Modal
@@ -209,7 +191,7 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				curHost := m.hosts[m.selectedIndex]
 				hts := m.GetOrCreateHostTabs(curHost.ID, curHost.Name)
 				activeTab := hts.ActiveTab()
-				m.statusMessage = fmt.Sprintf("⏳ [접속 및 권한 검증 중...] Authenticating root credentials on %s...", curHost.Name)
+				m.statusMessage = i18n.Tf("sudo_auth_in_progress", curHost.Name)
 				return m, m.execSudoValidateAndElevateCmd(curHost, activeTab, pass, remember), true
 			}
 
@@ -228,7 +210,7 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		if done {
 			m.showFileManager = false
 			if m.fileManager.IsTransferring {
-				m.statusMessage = "⬆️ 전송이 백그라운드로 전환되었습니다. ([f] 키로 복귀)"
+				m.statusMessage = i18n.T("sftp_bg_transfer_switched")
 			} else {
 				m.fileManager = nil
 				m.statusMessage = "📂 File manager closed."
@@ -238,5 +220,16 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		return m, cmd, true
 	}
 
+	// 8. Tunnel Manager Modal
+	if model, cmd, handled := m.updateTunnelModal(msg); handled {
+		return model, cmd, true
+	}
+
+	// 9. AI Copilot Modal
+	if model, cmd, handled := m.UpdateAICopilot(msg); handled {
+		return model, cmd, true
+	}
+
 	return m, nil, false
 }
+
