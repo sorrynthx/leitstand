@@ -25,6 +25,7 @@ type AICopilotModal struct {
 	LastCommand      string
 	LastExitCode     string
 	LastError        string
+	TelemetrySummary string
 	Messages         []*storage.AIChatMessage
 	Input            textinput.Model
 	Viewport         viewport.Model
@@ -35,6 +36,8 @@ type AICopilotModal struct {
 	Explanation      string
 	IsDangerous      bool
 	StatusMessage    string
+	historyNavIndex  int    // -1 = current typing draft, 0 = last turn, 1 = 2nd to last, etc.
+	draftInput       string // saved user input draft before navigating history
 	cfg              *config.AppConfig
 	store            *storage.Storage
 	vault            *vault.Vault
@@ -58,6 +61,7 @@ func NewAICopilotModal(hostID int64, hostName, distro string, cfg *config.AppCon
 		vault:    v,
 		Input:    ti,
 		Viewport: vp,
+		historyNavIndex: -1,
 	}
 
 
@@ -110,6 +114,31 @@ func (m *AICopilotModal) UpdateHostContext(tab *ConsoleTab, distro string) {
 	}
 }
 
+// UpdateTelemetry updates live telemetry metrics in the context.
+func (m *AICopilotModal) UpdateTelemetry(metric *storage.MetricRecord) {
+	if metric == nil {
+		m.TelemetrySummary = ""
+		return
+	}
+	var parts []string
+	if metric.CPUPercent >= 0 {
+		parts = append(parts, fmt.Sprintf("CPU: %.1f%%", metric.CPUPercent))
+	}
+	if metric.MemoryTotal > 0 {
+		usedGB := float64(metric.MemoryUsed) / (1024 * 1024 * 1024)
+		totalGB := float64(metric.MemoryTotal) / (1024 * 1024 * 1024)
+		pct := float64(metric.MemoryUsed) * 100 / float64(metric.MemoryTotal)
+		parts = append(parts, fmt.Sprintf("RAM: %.1fGB/%.1fGB (%.1f%%)", usedGB, totalGB, pct))
+	}
+	if metric.DiskTotal > 0 {
+		usedGB := float64(metric.DiskUsed) / (1024 * 1024 * 1024)
+		totalGB := float64(metric.DiskTotal) / (1024 * 1024 * 1024)
+		pct := float64(metric.DiskUsed) * 100 / float64(metric.DiskTotal)
+		parts = append(parts, fmt.Sprintf("Disk: %.1fGB/%.1fGB (%.1f%%)", usedGB, totalGB, pct))
+	}
+	m.TelemetrySummary = strings.Join(parts, " | ")
+}
+
 // LoadHistory loads recent conversation history within the configured maxHistory ceiling.
 func (m *AICopilotModal) LoadHistory() {
 	if m.store == nil || m.cfg == nil || m.cfg.AI.RetentionDays <= 0 {
@@ -135,6 +164,8 @@ func (m *AICopilotModal) ResetForNewQuery() {
 	m.StatusMessage = ""
 	m.IsStreaming = false
 	m.StreamingContent = ""
+	m.historyNavIndex = -1
+	m.draftInput = ""
 	m.Input.Focus()
 }
 
@@ -159,31 +190,29 @@ func (m *AICopilotModal) refreshExtractedCommand() {
 		return
 	}
 
-	if matches := codeBlockRegex.FindStringSubmatch(lastMsg.Content); len(matches) > 1 {
+	raw := lastMsg.Content
+
+	if matches := codeBlockRegex.FindStringSubmatch(raw); len(matches) > 1 {
 		cmd := sanitizeCommand(matches[1])
 		if cmd != "" {
 			m.ExtractedCommand = cmd
 			m.IsDangerous = CheckCommandSafety(cmd)
-			clean := codeBlockRegex.ReplaceAllString(lastMsg.Content, "")
-			clean = strings.TrimSpace(strings.ReplaceAll(clean, "\n", " "))
+			clean := strings.TrimSpace(codeBlockRegex.ReplaceAllString(raw, ""))
 			m.Explanation = clean
 			return
 		}
 	}
 	inlineRegex := regexp.MustCompile("`([^`]+)`")
-	if matches := inlineRegex.FindStringSubmatch(lastMsg.Content); len(matches) > 1 {
+	if matches := inlineRegex.FindStringSubmatch(raw); len(matches) > 1 {
 		cmd := sanitizeCommand(matches[1])
 		if cmd != "" && !strings.Contains(cmd, "\n") {
 			m.ExtractedCommand = cmd
 			m.IsDangerous = CheckCommandSafety(cmd)
-			clean := inlineRegex.ReplaceAllString(lastMsg.Content, "")
-			clean = strings.TrimSpace(strings.ReplaceAll(clean, "\n", " "))
-			m.Explanation = clean
+			m.Explanation = strings.TrimSpace(raw)
 			return
 		}
 	}
 
 	// No executable code block in latest response (e.g. safety refusal or pure explanation)
-	clean := strings.TrimSpace(strings.ReplaceAll(lastMsg.Content, "\n", " "))
-	m.Explanation = clean
+	m.Explanation = strings.TrimSpace(raw)
 }

@@ -559,4 +559,16 @@ var dictKO = map[string]string{
 	"ai_warn_dangerous_cmd":         "⛔ 치명적인 위험 명령 감지: 안전을 위해 자동 실행이 차단되었습니다.",
 	"ai_blocked_dangerous_run":     "⛔ 시스템 파괴/종료 위험이 있는 명령어는 자동 실행할 수 없습니다.",
 	"sftp_err_critical_path":        "⚠️ 보호된 시스템 핵심 디렉터리(%s)는 삭제할 수 없습니다.",
+	"settings_ai_hint_groq":         "💡 Groq 무료 API 키 발급: https://console.groq.com/keys (초고속 LPU 엔진, 분당 30회 무료)",
+	"settings_ai_hint_ollama":       "💡 로컬 Ollama 실행: ollama run llama3 (기본: http://127.0.0.1:11434/v1)",
+	"settings_ai_hint_openai":       "💡 OpenAI API 키 발급: https://platform.openai.com/api-keys",
+	"settings_ai_hint_custom":       "💡 OpenAI 호환 규격(/chat/completions)의 사설 엔드포인트를 입력하세요.",
+	"ai_guardrail_refusal_msg":      "Leitstand AI 코파일럿은 리눅스 서버 운영 및 인프라 진단 전용입니다.",
+	"ai_btn_edit_cmd_manual":        "%s (수동 확인)",
+	"ai_btn_cancel_esc":             "[Esc: 취소]",
+	"ai_btn_close_esc":              "[Esc: 닫기]",
+	"ai_msg_cmd_executed":           "🚀 AI 명령어 실행: %s",
+	"ai_msg_cmd_copied":             "✏️ 명령어 복사 완료: %s",
+	"ai_history_badge":              "[기록 %d/%d • ↑/↓]",
 }
+

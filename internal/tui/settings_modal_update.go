@@ -25,6 +25,7 @@ type SettingsResult struct {
 	AIModel      string
 	AIRetention  int
 	AIMaxHistory int
+	Profiles     map[string]*AIProviderProfile
 }
 
 
@@ -70,26 +71,27 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		isInput := s.inputIndexForField(s.focusField) >= 0
 		switch msg.String() {
 		case "esc":
 			return SettingsResult{Done: true, SaveReq: false}, nil
 		case "f1", "alt+1", "1":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "1" {
+			if !isInput || msg.String() != "1" {
 				s.switchTab(TabGeneral)
 				return SettingsResult{}, nil
 			}
 		case "f2", "alt+2", "2":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "2" {
+			if !isInput || msg.String() != "2" {
 				s.switchTab(TabTelemetry)
 				return SettingsResult{}, nil
 			}
 		case "f3", "alt+3", "3":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "3" {
+			if !isInput || msg.String() != "3" {
 				s.switchTab(TabLogs)
 				return SettingsResult{}, nil
 			}
 		case "f4", "alt+4", "4":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "4" {
+			if !isInput || msg.String() != "4" {
 				s.switchTab(TabDatabase)
 				if s.dbStats == nil && s.store != nil {
 					s.dbStats, _ = s.store.GetDBStats()
@@ -97,12 +99,12 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 				return SettingsResult{}, nil
 			}
 		case "f5", "alt+5", "5":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "5" {
+			if !isInput || msg.String() != "5" {
 				s.switchTab(TabAI)
 				return SettingsResult{}, nil
 			}
 		case "f6", "alt+6", "6":
-			if s.inputIndexForField(s.focusField) < 0 || msg.String() != "6" {
+			if !isInput || msg.String() != "6" {
 				s.switchTab(TabAbout)
 				return SettingsResult{}, nil
 			}
@@ -124,6 +126,9 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			return SettingsResult{}, textinput.Blink
 
 		case "down", "j", "pgdn":
+			if isInput && msg.String() == "j" {
+				break
+			}
 			if s.activeTab == TabLogs && s.focusField == FieldLogPreset {
 				s.selectedLogPreset = (s.selectedLogPreset + 1) % len(s.logDirPresets)
 				return SettingsResult{}, nil
@@ -134,6 +139,9 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			}
 
 		case "up", "k", "pgup":
+			if isInput && msg.String() == "k" {
+				break
+			}
 			if s.activeTab == TabLogs && s.focusField == FieldLogPreset {
 				s.selectedLogPreset--
 				if s.selectedLogPreset < 0 {
@@ -147,51 +155,25 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 			}
 
 		case "left", "h":
-			if s.activeTab == TabGeneral && s.focusField == FieldLanguage {
-				s.selectedLangIndex--
-				if s.selectedLangIndex < 0 {
-					s.selectedLangIndex = len(i18n.SupportedLangs) - 1
-				}
-				i18n.SetLang(i18n.SupportedLangs[s.selectedLangIndex].Code)
-				return SettingsResult{}, nil
-			} else if s.focusField == FieldInterval {
-				s.intervalIndex--
-				if s.intervalIndex < 0 {
-					s.intervalIndex = len(intervalOptions) - 1
-				}
-				return SettingsResult{}, nil
-			} else if s.activeTab == TabLogs {
-				s.selectedLogPreset--
-				if s.selectedLogPreset < 0 {
-					s.selectedLogPreset = len(s.logDirPresets) - 1
-				}
-				return SettingsResult{}, nil
-			} else if s.activeTab == TabAI && s.focusField == FieldAIProvider {
-				s.aiProviderIndex--
-				if s.aiProviderIndex < 0 {
-					s.aiProviderIndex = len(s.aiProviders) - 1
-				}
+			if isInput {
+				break
+			}
+			if s.handleLeftRight(-1) {
 				return SettingsResult{}, nil
 			}
 
 		case "right", "l":
-			if s.activeTab == TabGeneral && s.focusField == FieldLanguage {
-				s.selectedLangIndex = (s.selectedLangIndex + 1) % len(i18n.SupportedLangs)
-				i18n.SetLang(i18n.SupportedLangs[s.selectedLangIndex].Code)
-				return SettingsResult{}, nil
-			} else if s.focusField == FieldInterval {
-				s.intervalIndex = (s.intervalIndex + 1) % len(intervalOptions)
-				return SettingsResult{}, nil
-			} else if s.activeTab == TabLogs {
-				s.selectedLogPreset = (s.selectedLogPreset + 1) % len(s.logDirPresets)
-				return SettingsResult{}, nil
-			} else if s.activeTab == TabAI && s.focusField == FieldAIProvider {
-				s.aiProviderIndex = (s.aiProviderIndex + 1) % len(s.aiProviders)
+			if isInput {
+				break
+			}
+			if s.handleLeftRight(1) {
 				return SettingsResult{}, nil
 			}
 
-
 		case " ", "space", "b", "B":
+			if isInput {
+				break
+			}
 			if s.activeTab == TabLogs && s.selectedLogPreset == 3 {
 				initDir := strings.TrimSpace(s.inputs[3].Value())
 				if initDir == "" {

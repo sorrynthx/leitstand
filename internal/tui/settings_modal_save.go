@@ -56,6 +56,15 @@ func (s *SettingsModal) executeSave() SettingsResult {
 		aiMaxH = 20
 	}
 
+	if s.providerProfiles == nil {
+		s.providerProfiles = make(map[string]*AIProviderProfile)
+	}
+	s.providerProfiles[aiProv] = &AIProviderProfile{
+		Endpoint: aiEp,
+		APIKey:   aiKey,
+		Model:    aiModel,
+	}
+
 	return SettingsResult{
 		Done:         true,
 		SaveReq:      true,
@@ -71,6 +80,7 @@ func (s *SettingsModal) executeSave() SettingsResult {
 		AIModel:      aiModel,
 		AIRetention:  aiRet,
 		AIMaxHistory: aiMaxH,
+		Profiles:     s.providerProfiles,
 	}
 }
 

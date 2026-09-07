@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"leitstand/internal/ai"
 
 	"github.com/charmbracelet/bubbles/textinput"
 )
@@ -51,7 +52,7 @@ func createSettingsInputs(cpuThresh, ramThresh, diskThresh float64, currLogDir s
 	inputs[5].Width = 42
 
 	inputs[6] = textinput.New()
-	inputs[6].Placeholder = "llama-3.3-70b-versatile"
+	inputs[6].Placeholder = "openai/gpt-oss-20b"
 	inputs[6].Width = 42
 
 	inputs[7] = textinput.New()
@@ -79,19 +80,48 @@ func (s *SettingsModal) initAISettings() {
 			}
 		}
 	}
-	if ep, err := s.store.GetSetting("ai_endpoint"); err == nil && ep != "" {
-		s.inputs[4].SetValue(ep)
+
+	currProvider := s.aiProviders[s.aiProviderIndex]
+
+	// Try provider-specific keys first, fallback to legacy global keys
+	ep, _ := s.store.GetSetting("ai_" + currProvider + "_endpoint")
+	if ep == "" {
+		ep, _ = s.store.GetSetting("ai_endpoint")
 	}
-	if key, err := s.store.GetSetting("ai_api_key"); err == nil && key != "" {
-		s.inputs[5].SetValue(key)
+	if ep == "" {
+		ep = ai.GetDefaultEndpoint(currProvider)
 	}
-	if m, err := s.store.GetSetting("ai_model"); err == nil && m != "" {
-		s.inputs[6].SetValue(m)
+	s.inputs[4].SetValue(ep)
+
+	key, _ := s.store.GetSetting("ai_" + currProvider + "_api_key")
+	if key == "" {
+		key, _ = s.store.GetSetting("ai_api_key")
 	}
+	s.inputs[5].SetValue(key)
+
+	model, _ := s.store.GetSetting("ai_" + currProvider + "_model")
+	if model == "" {
+		model, _ = s.store.GetSetting("ai_model")
+	}
+	if model == "" {
+		model = ai.GetDefaultModel(currProvider)
+	}
+	s.inputs[6].SetValue(model)
+
 	if ret, err := s.store.GetSetting("ai_retention_days"); err == nil && ret != "" {
 		s.inputs[7].SetValue(ret)
 	}
 	if maxH, err := s.store.GetSetting("ai_max_history"); err == nil && maxH != "" {
 		s.inputs[8].SetValue(maxH)
+	}
+
+	// Also cache the initial active provider profile
+	if s.providerProfiles == nil {
+		s.providerProfiles = make(map[string]*AIProviderProfile)
+	}
+	s.providerProfiles[currProvider] = &AIProviderProfile{
+		Endpoint: ep,
+		APIKey:   key,
+		Model:    model,
 	}
 }

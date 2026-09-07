@@ -22,7 +22,20 @@ func (s *SettingsModal) renderAITab() string {
 	}
 	currProvider := s.aiProviders[s.aiProviderIndex]
 	pBtn := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(fmt.Sprintf("◄ %s ►", currProvider))
-	b.WriteString(pBtn + "\n\n")
+	b.WriteString(pBtn + "\n")
+
+	var hintKey string
+	switch currProvider {
+	case "groq":
+		hintKey = "settings_ai_hint_groq"
+	case "ollama":
+		hintKey = "settings_ai_hint_ollama"
+	case "openai":
+		hintKey = "settings_ai_hint_openai"
+	default:
+		hintKey = "settings_ai_hint_custom"
+	}
+	b.WriteString("  " + lipgloss.NewStyle().Foreground(ColorInfo).Render(i18n.T(hintKey)) + "\n\n")
 
 	// 2. Endpoint
 	b.WriteString(s.renderAIInputField(FieldAIEndpoint, 4, i18n.T("settings_ai_endpoint_label")))

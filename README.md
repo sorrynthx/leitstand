@@ -55,14 +55,22 @@ It replaces bulky desktop tools with a **fast, single-binary, keyboard-driven co
   - **Metrics CSV Export**: Dump historical CPU/RAM/Disk/Network measurements to timestamped CSV files.
   - **Hosts JSON Backup & Restore**: Backup registered hosts to portable JSON and safely restore them with deduplication.
 
-### 6. 🌐 Multi-Language Localization (i18n)
+### 6. 🤖 AI Terminal Copilot & Autonomous Diagnostics (`[F4]`)
+- **Multi-Provider Support**: Ultra-fast **Groq Cloud API** (free LPU engine), local **Ollama** (offline/private LLM), and **OpenAI** with isolated profile caching per provider.
+- **Context-Aware Diagnosis**: Automatically feeds real-time telemetry (CPU/RAM/Disk), OS distro, working directory, and last command exit code/stderr into the LLM context.
+- **Dual-Mode Response UX**: Explains root causes for errors in 1-2 clear sentences and provides optimal single-line action commands.
+- **1-Click Execution & Tab Edit**: Press `[Enter]` to instantly execute suggested commands on the target server, or `[Tab]` to copy to console for review.
+- **Bash-Style History Navigation (`↑ / ↓`)**: Recall previous AI queries, explanations, and suggested commands with arrow keys.
+- **Dual-Tier Safety Guardrails**: Strict Linux ops scope enforcement via i18n prompts and hardcoded client-side blocks against destructive commands (`rm -rf`, `shutdown`, etc.).
+
+### 7. 🌐 Multi-Language Localization (i18n)
 - 100% native support across **English (Default)**, **한국어 (Korean)**, and **Deutsch (German)** across all UI views, modals, runbooks, and error banners.
 
-### 7. 📖 Modular Runbook & Keyboard Shortcut Cheat Sheet (`[?]`)
+### 8. 📖 Modular Runbook & Keyboard Shortcut Cheat Sheet (`[?]`)
 - **[1] ⌨️ Shortcuts Guide**: Full-featured in-app shortcut cheat sheet for Server Explorer, Remote Shell, and SFTP File Manager.
 - **[2]~[6] OS Runbooks**: Curated, ready-to-run system diagnostics for Common Linux, Ubuntu, RHEL/Rocky, Alpine, and Docker.
 
-### 8. 🧪 Offline Demo Mode (`--demo`)
+### 9. 🧪 Offline Demo Mode (`--demo`)
 - Run with `.\leitstand.exe --demo` to launch a fully functional mock environment with realistic telemetry and simulated server responses without needing live SSH servers.
 
 ---
@@ -77,6 +85,7 @@ It replaces bulky desktop tools with a **fast, single-binary, keyboard-driven co
 | **`[Tab]`** | Switch focus between Server Explorer and Console |
 | **`[a]`** / **`[e]`** / **`[x]`** | Add Server / Edit Server / Delete Server |
 | **`[f]`**, **`[F6]`** | Open SFTP Dual-Pane File Manager |
+| **`[F4]`** | Open Inline AI Terminal Copilot & Autonomous Diagnostics |
 | **`[t]`** | Launch Fullscreen Interactive PTY Terminal |
 | **`[Ctrl+O]`** | Toggle Fullscreen Console |
 | **`[?]`**, **`[Ctrl+K]`** | Open OS-Aware Quick Command Runbook |

@@ -559,4 +559,16 @@ var dictEN = map[string]string{
 	"ai_warn_dangerous_cmd":         "⛔ Dangerous command detected: Auto-execution is blocked for safety.",
 	"ai_blocked_dangerous_run":     "⛔ Destructive/shutdown commands cannot be auto-executed.",
 	"sftp_err_critical_path":        "⚠️ Cannot delete protected system directory: %s",
+	"settings_ai_hint_groq":         "💡 Free Groq API Key: https://console.groq.com/keys (Ultra-fast LPU, 30 req/min free)",
+	"settings_ai_hint_ollama":       "💡 Local Ollama: ollama run llama3 (Default: http://127.0.0.1:11434/v1)",
+	"settings_ai_hint_openai":       "💡 OpenAI API Key: https://platform.openai.com/api-keys",
+	"settings_ai_hint_custom":       "💡 Enter any OpenAI-compatible /chat/completions endpoint.",
+	"ai_guardrail_refusal_msg":      "Leitstand AI Copilot is exclusively for Linux server administration and infrastructure diagnostics.",
+	"ai_btn_edit_cmd_manual":        "%s (Manual Review)",
+	"ai_btn_cancel_esc":             "[Esc: Cancel]",
+	"ai_btn_close_esc":              "[Esc: Close]",
+	"ai_msg_cmd_executed":           "🚀 AI command executed: %s",
+	"ai_msg_cmd_copied":             "✏️ Command copied: %s",
+	"ai_history_badge":              "[History %d/%d • ↑/↓]",
 }
+

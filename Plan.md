@@ -136,13 +136,16 @@ Phase 4: SSH Port Forwarding & Tunneling Manager [COMPLETED]
 ├── [x] Tunneling modal UI (T/F7) with live status indicators and persistence
 └── [x] Verified with real Docker containers (n8n, Ollama, MySQL)
 
-Phase 5: AI Terminal Copilot & Autonomous Diagnostics [50% PROGRESS]
+Phase 5: AI Terminal Copilot & Autonomous Diagnostics [85% PROGRESS]
 ├── [x] In-app inline AI copilot drawer (F4) & terminal focus recovery
 ├── [x] Local Ollama SSE streaming engine & context-aware prompting (internal/ai)
 ├── [x] Destructive command safety guard (ai_safety.go) & bare rm block
 ├── [x] Externalized prompt template (~/.leitstand/copilot_system_prompt.txt)
 ├── [x] Korean IME & German Umlaut detection for navigation shortcuts
-└── [ ] Cloud LLM API keys (OpenAI, Claude, Gemini) integration & testing (NEXT)
+├── [x] Ultra-fast Groq LPU Cloud API & OpenAI-compatible endpoint pipeline
+├── [x] Settings modal provider presets (groq, ollama, openai, custom) & auto-fill
+├── [x] Real-time telemetry (CPU/RAM/Disk) & recent error context prompt injection
+└── [ ] Custom runbook command export & sync (NEXT - Phase 4-1 integration)
 
 Phase 6: Multi-Platform Distribution & Release [UPCOMING]
 ├── [ ] Cross-platform GoReleaser pipeline (Windows, macOS, Linux)

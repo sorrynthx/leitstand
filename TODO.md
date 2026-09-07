@@ -115,7 +115,7 @@
   - 내가 작성한 명령어들을 `my_runbook.json`으로 내보내기(Export).
   - 팀원이 공유해 준 공통 런북 JSON 파일을 불러와 중복 없이 내 보관함에 안전 병합(Import).
 
-### 🤖 Phase 5: AI 터미널 코파일럿 & 자율 진단 엔진 (AI Terminal Copilot - 50% 진행)
+#### 🤖 Phase 5: AI 터미널 코파일럿 & 자율 진단 엔진 (AI Terminal Copilot - 85% 진행)
 - [x] **인앱 인라인 AI 코파일럿 UI (`[F4]`)**:
   - 하단 인라인 AI 대화창 토글 및 렌더링 (`[F4]`, `[Esc]` 닫기 시 터미널 포커스 자동 복구).
   - 마크다운 스타일링 및 추천 명령어(`[Enter] 즉시 실행`, `[Tab] 입력창 복사`) 버튼 UI.
@@ -130,11 +130,15 @@
   - 코드 재빌드 없이 사용자가 직접 수정 가능한 프롬프트 템플릿 파일 로더 및 자동 생성기.
 - [x] **단축키 모드 한글 IME 및 독일어 특수문자 안내 엔진 (`update_ime.go`)**:
   - 탐색 모드에서 한글(자모/음절) 및 독일어 Umlaut/특수문자(`ä, ö, ü, ß`) 감지 시 상태바 전환 안내 경고 출력.
-- [ ] **클라우드 LLM API 키 연동 및 외부 API 테스트 (Next)**:
-  - 외부 API 대응: OpenAI / Claude / Gemini API 키 입력 지원 및 실서버 진단 테스트.
-- [ ] **서버 텔레메트리 & 최근 로그 컨텍스트 자동 주입 (Context-Aware Prompting)**:
-  - 질문 전송 시 현재 서버 OS, CWD, CPU/RAM/디스크 사용량, 직전 터미널 에러를 시스템 프롬프트에 자동 첨부.
-- [ ] **커스텀 런북 저장 연계**:
+- [x] **클라우드 LLM API 연동 및 초고속 Groq LPU 무료 연동 파이프라인**:
+  - Groq Cloud API(`https://api.groq.com/openai/v1`, `llama-3.3-70b-versatile`) 및 OpenAI 호환 엔드포인트 연동.
+  - HTTP 401(인증 실패), 429(Rate Limit), 404(모델 부재) 정밀 에러 포맷팅 및 한국어 사용자 안내.
+  - 환경설정(`[p] ➔ 5번 AI 탭`) Provider 프리셋(`groq`, `ollama`, `openai`, `custom`) 좌우 전환 시 엔드포인트/모델/플레이스홀더 자동 채움 및 무료 키 발급 힌트 배너 연동.
+- [x] **서버 실시간 텔레메트리 & 최근 로그 컨텍스트 자동 주입 (Context-Aware Prompting)**:
+  - AI 코파일럿(`[F4]`) 호출 시 현재 타깃 서버의 순간 CPU(%), RAM(사용량/총량/비율), 루트 디스크(사용량/총량/비율) 텔레메트리를 프롬프트에 자동 주입.
+  - AI 인라인 타이틀바에 서버 실시간 자원 상태 배지(`• CPU: ... | RAM: ... | Disk: ...`) 동적 렌더링.
+  - 직전 터미널 명령어, 종료 코드 및 에러 출력과 결합하여 맞춤형 장애 진단 명령어 추천 파이프라인 완성.
+- [ ] **커스텀 런북 저장 연계 (Next - Phase 4-1 연계)**:
   - AI가 추천한 유용한 명령어를 커스텀 런북(`custom_commands`)으로 원클릭 저장.
 
 ### 📦 Phase 6: 크로스 플랫폼 자동 빌드 & 글로벌 배포 (Distribution & GoReleaser)
@@ -142,8 +146,8 @@
   - Windows (.exe), macOS (Apple Silicon M-series / Intel), Linux x86_64 바이너리 패키징.
   - GitHub Release 자동 연동 및 단일 실행 파일 릴리스.
 - [ ] **Phase 3-2 공장 초기화 (Factory Reset) 최종 실물 검증**:
-  - 최종 릴리스 전, 4번 탭 `[6] Factory Reset` 2단계 확인 팝업 및 SQLite DB 완전 초기화 최종 점검.
+  - 최종 릴리즈 전, 4번 탭 `[6] Factory Reset` 2단계 확인 팝업 및 SQLite DB 완전 초기화 최종 점검.
 
 ---
 
-*Last Updated: 2026-09-04 (Phase 5 AI Copilot 50% Milestone & IME Navigation Guard Completed)*
+*Last Updated: 2026-09-07 (Phase 5 Groq Cloud API, Provider Presets & Context-Aware Telemetry Prompting Completed)*

@@ -42,10 +42,7 @@ func NewClient(endpoint, apiKey, model string) *Client {
 // and invoking onDone with the aggregated full text when the generation finishes.
 func (c *Client) StreamChat(ctx context.Context, messages []ChatMessage, onChunk func(string), onDone func(string, error)) {
 	go func() {
-		targetURL := c.Endpoint
-		if !strings.HasSuffix(targetURL, "/chat/completions") {
-			targetURL += "/chat/completions"
-		}
+		targetURL := resolveChatURL(c.Endpoint)
 
 		reqBody := ChatRequest{
 			Model:       c.Model,
@@ -80,7 +77,7 @@ func (c *Client) StreamChat(ctx context.Context, messages []ChatMessage, onChunk
 
 		if resp.StatusCode != http.StatusOK {
 			errBytes, _ := io.ReadAll(resp.Body)
-			onDone("", fmt.Errorf("AI provider error (status %d): %s", resp.StatusCode, strings.TrimSpace(string(errBytes))))
+			onDone("", formatAPIError(resp.StatusCode, errBytes, c.Model))
 			return
 		}
 
@@ -130,4 +127,60 @@ func (c *Client) StreamChat(ctx context.Context, messages []ChatMessage, onChunk
 
 		onDone(fullBuilder.String(), nil)
 	}()
+}
+
+func formatAPIError(statusCode int, body []byte, model string) error {
+	trimmed := strings.TrimSpace(string(body))
+	var apiErr struct {
+		Error struct {
+			Message string `json:"message"`
+			Type    string `json:"type"`
+			Code    any    `json:"code"`
+		} `json:"error"`
+	}
+	msg := trimmed
+	if err := json.Unmarshal(body, &apiErr); err == nil && apiErr.Error.Message != "" {
+		msg = apiErr.Error.Message
+	}
+
+	switch statusCode {
+	case http.StatusUnauthorized:
+		return fmt.Errorf("AI 인증 실패 (401): API 키가 올바르지 않거나 만료되었습니다. 설정([p] ➔ AI)을 확인해 주세요. (%s)", msg)
+	case http.StatusForbidden:
+		return fmt.Errorf("AI 접근 거부 (403): 권한이 없습니다. (%s)", msg)
+	case http.StatusNotFound:
+		return fmt.Errorf("AI 모델/경로 없음 (404): 지정한 모델(%s) 또는 엔드포인트를 찾을 수 없습니다. (%s)", model, msg)
+	case http.StatusTooManyRequests:
+		return fmt.Errorf("AI 요청 한도 초과 (429): Rate Limit에 도달했습니다. 잠시 후 다시 시도해 주세요. (%s)", msg)
+	default:
+		return fmt.Errorf("AI 공급자 오류 (상태코드 %d): %s", statusCode, msg)
+	}
+}
+
+// resolveChatURL normalizes various endpoint formats (Groq, OpenAI, Ollama)
+// into the full /chat/completions URL.
+func resolveChatURL(endpoint string) string {
+	ep := strings.TrimRight(strings.TrimSpace(endpoint), "/")
+	if strings.HasSuffix(ep, "/chat/completions") {
+		return ep
+	}
+	// Groq endpoint normalization
+	if strings.Contains(ep, "api.groq.com") {
+		if strings.HasSuffix(ep, "/v1") && !strings.HasSuffix(ep, "/openai/v1") {
+			ep = strings.TrimSuffix(ep, "/v1") + "/openai/v1"
+		} else if !strings.Contains(ep, "/openai/v1") {
+			ep = ep + "/openai/v1"
+		}
+		return ep + "/chat/completions"
+	}
+	// OpenAI endpoint normalization
+	if strings.Contains(ep, "api.openai.com") && !strings.Contains(ep, "/v1") {
+		ep = ep + "/v1"
+		return ep + "/chat/completions"
+	}
+	// General: add /v1 if missing
+	if !strings.HasSuffix(ep, "/v1") {
+		ep = ep + "/v1"
+	}
+	return ep + "/chat/completions"
 }

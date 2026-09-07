@@ -53,6 +53,13 @@ func (m *Model) applyAndPersistSettings(res SettingsResult) {
 		if res.AIModel != "" {
 			_ = m.store.SetSetting("ai_model", res.AIModel)
 		}
+		for prov, prof := range res.Profiles {
+			if prof != nil {
+				_ = m.store.SetSetting("ai_"+prov+"_endpoint", prof.Endpoint)
+				_ = m.store.SetSetting("ai_"+prov+"_api_key", prof.APIKey)
+				_ = m.store.SetSetting("ai_"+prov+"_model", prof.Model)
+			}
+		}
 		if res.AIRetention > 0 {
 			_ = m.store.SetSetting("ai_retention_days", strconv.Itoa(res.AIRetention))
 		}

@@ -88,7 +88,7 @@ func NewDefaultConfig() *AppConfig {
 		AI: AIConfig{
 			Provider:      "groq",
 			Endpoint:      "https://api.groq.com/openai/v1",
-			Model:         "llama-3.3-70b-versatile",
+			Model:         "openai/gpt-oss-20b",
 			RetentionDays: 3,
 			MaxHistory:    20,
 		},

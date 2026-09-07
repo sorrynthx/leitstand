@@ -557,4 +557,16 @@ var dictDE = map[string]string{
 	"ai_warn_dangerous_cmd":         "⛔ Gefährlicher Befehl erkannt: Automatische Ausführung gesperrt.",
 	"ai_blocked_dangerous_run":     "⛔ Zerstörerische Befehle können nicht automatisch ausgeführt werden.",
 	"sftp_err_critical_path":        "⚠️ Geschütztes Systemverzeichnis kann nicht gelöscht werden: %s",
+	"settings_ai_hint_groq":         "💡 Kostenloser Groq API-Schlüssel: https://console.groq.com/keys (LPU, 30 Anfr./Min. kostenlos)",
+	"settings_ai_hint_ollama":       "💡 Lokales Ollama: ollama run llama3 (Standard: http://127.0.0.1:11434/v1)",
+	"settings_ai_hint_openai":       "💡 OpenAI API-Schlüssel: https://platform.openai.com/api-keys",
+	"settings_ai_hint_custom":       "💡 Geben Sie einen OpenAI-kompatiblen /chat/completions-Endpunkt ein.",
+	"ai_guardrail_refusal_msg":      "Leitstand KI-Copilot ist ausschließlich für die Linux-Serververwaltung und Infrastrukturdiagnose vorgesehen.",
+	"ai_btn_edit_cmd_manual":        "%s (Manuelle Prüfung)",
+	"ai_btn_cancel_esc":             "[Esc: Abbrechen]",
+	"ai_btn_close_esc":              "[Esc: Schließen]",
+	"ai_msg_cmd_executed":           "🚀 KI-Befehl ausgeführt: %s",
+	"ai_msg_cmd_copied":             "✏️ Befehl kopiert: %s",
+	"ai_history_badge":              "[Verlauf %d/%d • ↑/↓]",
 }
+

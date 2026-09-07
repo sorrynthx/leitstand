@@ -79,3 +79,71 @@ func TestStreamChatSuccess(t *testing.T) {
 		t.Fatal("timeout waiting for stream to finish")
 	}
 }
+
+func TestFormatAPIError(t *testing.T) {
+	err401 := formatAPIError(http.StatusUnauthorized, []byte(`{"error":{"message":"Invalid API key"}}`), "llama3")
+	if err401 == nil || !testingContains(err401.Error(), "401") || !testingContains(err401.Error(), "Invalid API key") {
+		t.Errorf("unexpected 401 error format: %v", err401)
+	}
+
+	err429 := formatAPIError(http.StatusTooManyRequests, []byte(`{"error":{"message":"Rate limit reached"}}`), "llama3")
+	if err429 == nil || !testingContains(err429.Error(), "429") {
+		t.Errorf("unexpected 429 error format: %v", err429)
+	}
+
+	err404 := formatAPIError(http.StatusNotFound, []byte(`Not found`), "unknown-model")
+	if err404 == nil || !testingContains(err404.Error(), "404") || !testingContains(err404.Error(), "unknown-model") {
+		t.Errorf("unexpected 404 error format: %v", err404)
+	}
+}
+
+func TestProviderDefaults(t *testing.T) {
+	if ep := GetDefaultEndpoint(ProviderGroq); ep != DefaultGroqEndpoint {
+		t.Errorf("expected Groq endpoint %s, got %s", DefaultGroqEndpoint, ep)
+	}
+	if m := GetDefaultModel(ProviderGroq); m != DefaultGroqModel {
+		t.Errorf("expected Groq model %s, got %s", DefaultGroqModel, m)
+	}
+
+	if ep := GetDefaultEndpoint(ProviderOllama); ep != DefaultOllamaEndpoint {
+		t.Errorf("expected Ollama endpoint %s, got %s", DefaultOllamaEndpoint, ep)
+	}
+	if m := GetDefaultModel(ProviderOllama); m != DefaultOllamaModel {
+		t.Errorf("expected Ollama model %s, got %s", DefaultOllamaModel, m)
+	}
+
+	if ep := GetDefaultEndpoint(ProviderOpenAI); ep != DefaultOpenAIEndpoint {
+		t.Errorf("expected OpenAI endpoint %s, got %s", DefaultOpenAIEndpoint, ep)
+	}
+	if m := GetDefaultModel(ProviderOpenAI); m != DefaultOpenAIModel {
+		t.Errorf("expected OpenAI model %s, got %s", DefaultOpenAIModel, m)
+	}
+}
+
+func testingContains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || (len(s) > 0 && len(substr) > 0 && (s[:len(substr)] == substr || testingContains(s[1:], substr))))
+}
+
+func TestResolveChatURL(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"https://api.groq.com", "https://api.groq.com/openai/v1/chat/completions"},
+		{"https://api.groq.com/", "https://api.groq.com/openai/v1/chat/completions"},
+		{"https://api.groq.com/v1", "https://api.groq.com/openai/v1/chat/completions"},
+		{"https://api.groq.com/openai/v1", "https://api.groq.com/openai/v1/chat/completions"},
+		{"https://api.groq.com/openai/v1/chat/completions", "https://api.groq.com/openai/v1/chat/completions"},
+		{"http://127.0.0.1:11434", "http://127.0.0.1:11434/v1/chat/completions"},
+		{"http://127.0.0.1:11434/v1", "http://127.0.0.1:11434/v1/chat/completions"},
+		{"https://api.openai.com", "https://api.openai.com/v1/chat/completions"},
+		{"https://api.openai.com/v1", "https://api.openai.com/v1/chat/completions"},
+	}
+
+	for _, tc := range tests {
+		got := resolveChatURL(tc.input)
+		if got != tc.expected {
+			t.Errorf("resolveChatURL(%q) = %q; expected %q", tc.input, got, tc.expected)
+		}
+	}
+}

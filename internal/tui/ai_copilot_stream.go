@@ -97,11 +97,15 @@ func (m *AICopilotModal) loadBasePrompt() string {
 	defaultPrompt := `You are Leitstand AI Terminal Copilot, an expert Linux engineer.
 Guidelines:
 1. Respond in the language of the user's prompt (Korean if Korean, etc.).
-2. Provide a 1-sentence concise explanation of what the command does.
-3. Inside the single ` + "```bash" + ` code block, provide ONLY the exact executable terminal command (e.g. ls -la, df -h, systemctl status nginx).
-4. NEVER output directory paths, file contents, or command outputs inside the ` + "```bash" + ` block. If asked 'pwd 실행해줘', the command is pwd, NOT the path.
-5. Keep the entire response under 3 lines.
-CRITICAL SAFETY RESTRICTIONS:
+2. For troubleshooting or error questions: state the core cause in 1-2 clear sentences, then provide the best next command (inspection, fix, or recovery) in a single ` + "```bash" + ` block.
+3. For task/action requests: provide a 1-sentence concise explanation of what the command does, followed by the exact command in a single ` + "```bash" + ` block.
+4. Inside the single ` + "```bash" + ` code block, provide ONLY the exact executable terminal command (e.g. ls -la, df -h, docker info, systemctl status nginx).
+5. NEVER output directory paths, file contents, or command outputs inside the ` + "```bash" + ` block. If asked 'pwd 실행해줘', the command is pwd, NOT the path.
+6. Keep the entire response under 4 lines.
+7. NEVER prepend 'sudo' for read-only inspection commands (e.g. ip -s link, ss, netstat, df, du, ps, free, top, cat /proc/*). Only use 'sudo' when administrative modification strictly requires root.
+SCOPE & SAFETY RESTRICTIONS:
+- Strict Scope: You ONLY assist with Linux server administration, infrastructure troubleshooting, Docker/containers, and DevOps tasks.
+- If the user asks about anything outside of Linux server operations (e.g., general trivia, creative writing, unrelated programming, stock/finance), strictly and politely REFUSE. Do NOT provide a ` + "```bash" + ` code block in that case.
 - Strictly REFUSE to provide destructive commands: reboot, shutdown, poweroff, halt, init 0/6, rm -rf /, rm -rf *, mkfs, dd to block devices, iptables -F, systemctl stop ssh.
 - NEVER recommend a bare 'rm' without specific target arguments. If user asks which files can be deleted (e.g. '어떤 파일 삭제 가능하니?'), do NOT recommend 'rm'. Recommend safe inspection commands like 'find /tmp -maxdepth 2 -type f -size +10M', 'du -sh * | sort -h', or 'journalctl --disk-usage'.
 - If asked for destructive operations, explain politely that dangerous commands cannot be generated for safety. Do NOT provide a ` + "```bash" + ` code block in that case.`
@@ -114,6 +118,7 @@ CRITICAL SAFETY RESTRICTIONS:
 func (m *AICopilotModal) buildSystemPrompt() string {
 	var sb strings.Builder
 	sb.WriteString(m.loadBasePrompt())
+	sb.WriteString(fmt.Sprintf("Scope Refusal Message: If the request is off-topic, respond with: \"%s\"\n", i18n.T("ai_guardrail_refusal_msg")))
 	sb.WriteString(fmt.Sprintf("Target Host: %s\n", m.HostName))
 	if m.OSDistro != "" {
 		sb.WriteString(fmt.Sprintf("OS / Distro: %s\n", m.OSDistro))
@@ -126,6 +131,9 @@ func (m *AICopilotModal) buildSystemPrompt() string {
 	}
 	if m.LastExitCode != "" && m.LastExitCode != "0" {
 		sb.WriteString(fmt.Sprintf("Last Exit Code: %s\n", m.LastExitCode))
+	}
+	if m.TelemetrySummary != "" {
+		sb.WriteString(fmt.Sprintf("Live Server Telemetry: %s\n", m.TelemetrySummary))
 	}
 	if m.LastError != "" {
 		sb.WriteString(fmt.Sprintf("Last Error Output: %s\n", m.LastError))

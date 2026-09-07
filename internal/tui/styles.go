@@ -18,6 +18,7 @@ var (
 	ColorText      = lipgloss.Color("#E0E0E0") // Light Gray Text
 	ColorFg        = lipgloss.Color("#ECEFF1") // Bright Off-White Text
 	ColorWhite     = lipgloss.Color("#FFFFFF") // Pure White Text
+	ColorInfo      = lipgloss.Color("#90CAF9") // Soft Sky Blue / Info
 
 	// Styles
 	TitleStyle = lipgloss.NewStyle().

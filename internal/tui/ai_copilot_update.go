@@ -49,6 +49,23 @@ func (m *AICopilotModal) Update(msg tea.Msg) (bool, string, bool, tea.Cmd) {
 			m.StatusMessage = i18n.T("ai_cleared_msg")
 			return false, "", false, nil
 
+		case tea.KeyUp:
+			if !m.IsStreaming {
+				if m.historyNavIndex == -1 {
+					m.draftInput = m.Input.Value()
+				}
+				m.NavigateHistory(1)
+				return false, "", false, nil
+			}
+			return false, "", false, nil
+
+		case tea.KeyDown:
+			if !m.IsStreaming {
+				m.NavigateHistory(-1)
+				return false, "", false, nil
+			}
+			return false, "", false, nil
+
 		case tea.KeyEnter:
 			// If we already have an extracted command, Enter means EXECUTE NOW on server!
 			if m.ExtractedCommand != "" && !m.IsStreaming {
@@ -67,6 +84,8 @@ func (m *AICopilotModal) Update(msg tea.Msg) (bool, string, bool, tea.Cmd) {
 				m.Input.SetValue("")
 				m.ExtractedCommand = ""
 				m.Explanation = ""
+				m.historyNavIndex = -1
+				m.draftInput = ""
 				cmd := m.StartStream(val)
 				return false, "", false, cmd
 			}

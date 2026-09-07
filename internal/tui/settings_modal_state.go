@@ -76,9 +76,16 @@ type SettingsModal struct {
 	vault             *vault.Vault
 
 	// AI Settings State (TabAI)
-	aiProviderIndex   int
-	aiProviders       []string
+	aiProviderIndex  int
+	aiProviders      []string
+	providerProfiles map[string]*AIProviderProfile
+}
 
+// AIProviderProfile caches endpoint, API key, and model per provider.
+type AIProviderProfile struct {
+	Endpoint string
+	APIKey   string
+	Model    string
 }
 
 var intervalOptions = []struct {
@@ -150,6 +157,7 @@ func NewSettingsModal(currLang i18n.Lang, currInterval time.Duration, cpuThresh,
 		store:             store,
 		vault:             v,
 		aiProviders:       providers,
+		providerProfiles:  make(map[string]*AIProviderProfile),
 	}
 	sm.initAISettings()
 	if store != nil {

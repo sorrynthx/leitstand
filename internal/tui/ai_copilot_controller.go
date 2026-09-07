@@ -43,6 +43,11 @@ func (m *Model) ToggleAICopilot() (tea.Model, tea.Cmd) {
 		m.aiCopilot.initClient()
 	}
 	m.aiCopilot.UpdateHostContext(activeTab, distro)
+	if metric, ok := m.metrics[curHost.ID]; ok && metric != nil {
+		m.aiCopilot.UpdateTelemetry(metric)
+	} else {
+		m.aiCopilot.UpdateTelemetry(nil)
+	}
 	m.aiCopilot.ResetForNewQuery()
 	m.activePane = PaneConsole
 	m.showAICopilot = true
@@ -72,7 +77,7 @@ func (m *Model) UpdateAICopilot(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 				m.activePane = PaneConsole
 				m.consoleInput.Focus()
 				m.updateViewportContent()
-				m.statusMessage = fmt.Sprintf("🚀 AI 명령어 실행: %s", injectedCmd)
+				m.statusMessage = fmt.Sprintf(i18n.T("ai_msg_cmd_executed"), injectedCmd)
 				execCmd := m.execRemoteCmd(curHost, injectedCmd)
 				return m, tea.Batch(execCmd, textinput.Blink), true
 			}
@@ -80,7 +85,7 @@ func (m *Model) UpdateAICopilot(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 			// Tab was pressed: copy to input for editing
 			m.consoleInput.SetValue(injectedCmd)
 			m.consoleInput.Focus()
-			m.statusMessage = fmt.Sprintf("✏️ 명령어 복사 완료: %s", injectedCmd)
+			m.statusMessage = fmt.Sprintf(i18n.T("ai_msg_cmd_copied"), injectedCmd)
 			return m, nil, true
 		}
 
