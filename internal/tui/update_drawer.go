@@ -14,6 +14,10 @@ func (m *Model) updateRunbookDrawer(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 	}
 
 	done, chosenCmd, cmd := m.drawer.Update(msg)
+	if m.drawer.toastMessage != "" {
+		m.statusMessage = m.drawer.toastMessage
+		m.drawer.toastMessage = ""
+	}
 	if done {
 		m.showDrawer = false
 		m.drawer = nil

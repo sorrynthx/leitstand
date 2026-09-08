@@ -106,19 +106,25 @@
   - 전역 다국어(KO, EN, DE) 전수 점검 및 AST 정밀 스캔을 통한 잔존 하드코딩 0개(100% Zero-Hardcoding) 달성.
 
 ### ⭐️ Phase 4-1: 커스텀 런북 & 팀 런북 JSON 확장 (Custom Runbooks & JSON Extension)
-- [ ] **`[?]` 런북 내 `[7] ⭐️ Custom (내 명령어)` 탭 신설**:
+- [x] **`[?]` 런북 내 `[7] ⭐️ Custom (내 명령어)` 탭 신설**:
   - 프로젝트 및 실무 전용 자주 쓰는 명령어들을 모아두는 나만의 런북 보관함.
-  - 인앱 추가(`[a]`), 수정(`[e]`), 삭제(`[d]`) 및 방향키 이동 후 `Enter` 즉시 콘솔 입력.
-- [ ] **하이브리드 런북 아키텍처 (Built-in + SQLite Overlay)**:
-  - 기존 OS별 기본 내장 런북(불변의 안정성) + 로컬 SQLite `custom_commands` 테이블의 사용자 명령어 투명 결합.
-- [ ] **팀 런북 JSON Export & Import 파이프라인**:
-  - 내가 작성한 명령어들을 `my_runbook.json`으로 내보내기(Export).
-  - 팀원이 공유해 준 공통 런북 JSON 파일을 불러와 중복 없이 내 보관함에 안전 병합(Import).
+  - 인앱 추가(`[a]`), 수정(`[e]`), 삭제(`[d]`) 및 방향키 이동 후 `Enter` 즉시 콘솔 입력 연동 완료.
+- [x] **하이브리드 런북 아키텍처 (Built-in + SQLite Overlay)**:
+  - 기존 OS별 기본 내장 런북(불변의 안정성) + 로컬 SQLite `custom_commands` 테이블의 사용자 명령어 투명 결합 완료.
+  - 250줄 규칙 100% 준수 모듈 분리(`drawer_custom.go`, `drawer_custom_view.go`, `drawer_view_list.go`) 및 한/영/독 i18n 100% 일치.
+- [x] **팀 런북 JSON Export & Import 파이프라인**:
+  - 내가 작성한 명령어들을 `runbook_export_<timestamp>.json`으로 안전 내보내기(`[x]`).
+  - `SetEscapeHTML(false)` 적용으로 `&, <, >, awk, 따옴표` 등 쉘 특수문자 왜곡/깨짐 0% 무결성 보장.
+  - 팀원이 공유해 준 공통 런북 JSON 파일을 불러와 중복 없이 내 보관함에 안전 병합(`[i]`).
+  - 특수문자 전용 단위 테스트(`TestStorageCustomCommandsExportImport`) 100% 통과.
+- [x] **스마트 우선순위 탭 포커스 (Plan A)**:
+  - 등록된 커스텀 명령어가 1개 이상 존재할 경우 런북 실행 시 `[7] ⭐️ Custom` 탭으로 즉시 자동 진입.
+  - 커스텀 명령어가 0개일 경우 기존 호스트 OS 감지 탭(Ubuntu/RHEL/Alpine/Common)으로 자동 진입하여 편의성 극대화.
 
-#### 🤖 Phase 5: AI 터미널 코파일럿 & 자율 진단 엔진 (AI Terminal Copilot - 85% 진행)
+#### 🤖 Phase 5: AI 터미널 코파일럿 & 자율 진단 엔진 (AI Terminal Copilot - 100% 완료)
 - [x] **인앱 인라인 AI 코파일럿 UI (`[F4]`)**:
   - 하단 인라인 AI 대화창 토글 및 렌더링 (`[F4]`, `[Esc]` 닫기 시 터미널 포커스 자동 복구).
-  - 마크다운 스타일링 및 추천 명령어(`[Enter] 즉시 실행`, `[Tab] 입력창 복사`) 버튼 UI.
+  - 마크다운 스타일링 및 추천 명령어(`[Enter] 즉시 실행`, `[Tab] 입력창 복사`, `[s] 런북 저장`) 버튼 UI.
 - [x] **로컬 Ollama 스트리밍 엔진 & 최근 컨텍스트 주입 (`internal/ai`)**:
   - 로컬 Ollama REST API(`http://localhost:11434/api/chat`) 순수 Go `net/http` 실시간 SSE 스트리밍.
   - 대화 내역(`ai_chat_history`) SQLite 영구 저장 및 최근 2턴 컨텍스트 격리 주입 (과거 명령 혼동 차단).
@@ -138,8 +144,22 @@
   - AI 코파일럿(`[F4]`) 호출 시 현재 타깃 서버의 순간 CPU(%), RAM(사용량/총량/비율), 루트 디스크(사용량/총량/비율) 텔레메트리를 프롬프트에 자동 주입.
   - AI 인라인 타이틀바에 서버 실시간 자원 상태 배지(`• CPU: ... | RAM: ... | Disk: ...`) 동적 렌더링.
   - 직전 터미널 명령어, 종료 코드 및 에러 출력과 결합하여 맞춤형 장애 진단 명령어 추천 파이프라인 완성.
-- [ ] **커스텀 런북 저장 연계 (Next - Phase 4-1 연계)**:
-  - AI가 추천한 유용한 명령어를 커스텀 런북(`custom_commands`)으로 원클릭 저장.
+- [x] **커스텀 런북 저장 연계 (Phase 4-1 연계 완성)**:
+  - AI가 진단 후 추천한 유용한 명령어를 `[Ctrl+S]` 단축키 1클릭으로 커스텀 런북(`custom_commands`)에 안전 저장.
+  - 텍스트 입력창 타이핑 중 실수 저장 방지 및 중복 명령어 자동 감지/안내(`ℹ️ 이미 런북에 등록되어 있는 명령어입니다.`).
+  - 질문 내용이 제목(Title)으로, AI 진단 요약이 설명(Description)으로 자동 매핑.
+- [x] **앱 종료 안전 확인 다이얼로그 (Graceful Quit Confirmation)**:
+  - `q` 또는 `Ctrl+C` 입력 시 즉시 종료되지 않고 `[y/Enter] 종료`, `[n/Esc] 취소` 2단계 확인 팝업 탑재.
+
+### 📚 Phase 5-1: 내장 런북 카탈로그 실무 강화 (Built-in Runbooks Expansion - 내일 진행 예정)
+- [ ] **공통 및 배포판별 실무 필수 명령어 대폭 보강 (`internal/quickcmd/tab_*.go`)**:
+  - **네트워크 & 트래픽 진단**: `ss`, `netstat`, `tcpdump`, `mtr`, `iperf3`, `curl -Iv`, `dig/nslookup` 실전 명령
+  - **스토리지 & 디스크 I/O**: `iostat -xz 1`, `iotop -o`, `lsof +D`, `fuser`, 마운트 점검 및 디스크 부하 추적
+  - **보안 & 감사**: 실시간 접속자 추적(`w`, `last -n 10`), 실패한 SSH 접근(`journalctl -u ssh | grep Failed`), 포트 리슨 점검
+  - **웹 & 프록시 / DB 기본 점검**: Nginx/Apache 설정 검증(`nginx -t`), SSL 인증서 만료일 확인, 로그 분석(`awk/sort/uniq`)
+  - **Docker & 컨테이너 실무**: 컨테이너 리소스 탑랭킹(`docker stats --no-stream`), 죽은 컨테이너 원인 분석, 볼륨/네트워크 정리
+- [ ] **신규 카테고리/탭 신설 검토**:
+  - 예: `Kubernetes/k3s` 또는 `Web/SSL/DB` 전용 탭 분리 검토
 
 ### 📦 Phase 6: 크로스 플랫폼 자동 빌드 & 글로벌 배포 (Distribution & GoReleaser)
 - [ ] **크로스 플랫폼 자동 빌드 파이프라인 (GoReleaser)**:
@@ -150,4 +170,5 @@
 
 ---
 
-*Last Updated: 2026-09-07 (Phase 5 Groq Cloud API, Provider Presets & Context-Aware Telemetry Prompting Completed)*
+*Last Updated: 2026-09-08 (Phase 4-1 & Phase 5 100% Completed, Next: Phase 5-1 Built-in Runbook Expansion)*
+

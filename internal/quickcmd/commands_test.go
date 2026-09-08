@@ -28,6 +28,9 @@ func TestDetectOSTab(t *testing.T) {
 
 func TestCatalogIntegrity(t *testing.T) {
 	for tab, items := range Catalog {
+		if tab == OSTabCustom {
+			continue
+		}
 		if len(items) == 0 {
 			t.Errorf("Catalog tab %v has no commands", tab)
 		}

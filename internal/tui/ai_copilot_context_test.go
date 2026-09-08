@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"leitstand/internal/config"
 	"leitstand/internal/storage"
 	"strings"
@@ -104,5 +105,92 @@ func TestSettingsModalAPIKeyPasteNoProviderChange(t *testing.T) {
 	}
 	if sm.inputs[5].Value() != "gsk_live_key_123" {
 		t.Errorf("expected input value 'gsk_live_key_123', got %q", sm.inputs[5].Value())
+	}
+}
+
+func TestAICopilotSaveToRunbook(t *testing.T) {
+	tempDB := t.TempDir() + "/test_leitstand.db"
+	store, err := storage.Open(tempDB)
+	if err != nil {
+		t.Fatalf("failed to create test storage: %v", err)
+	}
+	defer store.Close()
+
+	cfg := config.NewDefaultConfig()
+	modal := NewAICopilotModal(1, "test-server", "Ubuntu 24.04", cfg, store, nil)
+	modal.Messages = []*storage.AIChatMessage{
+		{HostID: 1, Role: "user", Content: "How do I check memory usage?"},
+		{HostID: 1, Role: "assistant", Content: "Use free command:\n```bash\nfree -h\n```"},
+	}
+	modal.refreshExtractedCommand()
+
+	if modal.ExtractedCommand != "free -h" {
+		t.Fatalf("expected extracted command 'free -h', got %q", modal.ExtractedCommand)
+	}
+
+	// Trigger Ctrl+S key to save into runbook
+	closeModal, injectedCmd, runNow, _ := modal.Update(tea.KeyMsg{Type: tea.KeyCtrlS})
+	if closeModal || injectedCmd != "" || runNow {
+		t.Errorf("expected modal to stay open on save, got closeModal=%v, injectedCmd=%q", closeModal, injectedCmd)
+	}
+
+	cmds, err := store.GetCustomCommands()
+	if err != nil {
+		t.Fatalf("failed to query custom commands: %v", err)
+	}
+	if len(cmds) != 1 {
+		t.Fatalf("expected 1 custom command saved, got %d", len(cmds))
+	}
+	if cmds[0].Command != "free -h" {
+		t.Errorf("expected command 'free -h', got %q", cmds[0].Command)
+	}
+	if cmds[0].Category != "AI Copilot" {
+		t.Errorf("expected category 'AI Copilot', got %q", cmds[0].Category)
+	}
+	if cmds[0].Title != "How do I check memory usage?" {
+		t.Errorf("expected title from user query, got %q", cmds[0].Title)
+	}
+
+	// Trigger Ctrl+S again -> should NOT duplicate
+	modal.Update(tea.KeyMsg{Type: tea.KeyCtrlS})
+	cmdsAfter, _ := store.GetCustomCommands()
+	if len(cmdsAfter) != 1 {
+		t.Fatalf("expected command not to be duplicated, got %d", len(cmdsAfter))
+	}
+	if !strings.Contains(modal.StatusMessage, "already saved") && !strings.Contains(modal.StatusMessage, "이미") {
+		t.Errorf("expected already in runbook status message, got %q", modal.StatusMessage)
+	}
+}
+
+func TestQuitConfirmationModal(t *testing.T) {
+	m := &Model{
+		activePane: PaneHostList,
+	}
+
+	// Press 'q' -> should open quit confirmation modal instead of quitting
+	m.updateHostListNavigation("q")
+	if !m.showQuitModal {
+		t.Errorf("expected showQuitModal to be true when 'q' is pressed")
+	}
+
+	// Press 'n' -> should cancel quit confirmation modal
+	_, _, handled := m.updateActiveModals(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	if !handled || m.showQuitModal {
+		t.Errorf("expected quit modal to be closed on 'n'")
+	}
+
+	// Press 'ctrl+c' -> should open quit confirmation modal
+	m.updateHostListNavigation("ctrl+c")
+	if !m.showQuitModal {
+		t.Errorf("expected showQuitModal to be true when 'ctrl+c' is pressed")
+	}
+
+	// Press 'enter' -> should quit
+	ctx, cancel := context.WithCancel(context.Background())
+	m.cancel = cancel
+	_ = ctx
+	_, cmd, handled := m.updateActiveModals(tea.KeyMsg{Type: tea.KeyEnter})
+	if !handled || cmd == nil {
+		t.Errorf("expected enter to be handled with tea.Quit cmd")
 	}
 }

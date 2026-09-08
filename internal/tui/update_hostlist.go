@@ -67,8 +67,8 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 
 	switch keyStr {
 	case "q", "ctrl+c":
-		m.cancel()
-		return m, tea.Quit, true
+		m.showQuitModal = true
+		return m, nil, true
 
 	case "esc":
 		m.activePane = PaneHostList
@@ -181,7 +181,7 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 			}
 			m.showTelemetryDrawer = false
 			m.showDrawer = true
-			m.drawer = NewRunbookDrawer(distro)
+			m.drawer = NewRunbookDrawer(distro, m.store)
 			return m, nil, true
 		}
 		return m, nil, true

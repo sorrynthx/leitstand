@@ -103,7 +103,23 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 		}
 	}
 
-	// 4. Delete Host Confirmation Modal
+	// 4. Quit Confirmation Modal
+	if m.showQuitModal {
+		if isKey {
+			switch keyStr {
+			case "y", "Y", "enter":
+				m.cancel()
+				return m, tea.Quit, true
+			case "n", "N", "esc", "q":
+				m.showQuitModal = false
+				m.statusMessage = ""
+				return m, nil, true
+			}
+		}
+		return m, nil, true
+	}
+
+	// 5. Delete Host Confirmation Modal
 	if m.showDeleteModal {
 		if isKey {
 			switch keyStr {

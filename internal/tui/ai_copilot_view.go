@@ -82,8 +82,9 @@ func (m *AICopilotModal) ViewInline(width int) string {
 			cmdCode := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(" " + m.ExtractedCommand)
 			b.WriteString(warnBadge + "\n" + cmdCode + "\n")
 			btnEdit := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(fmt.Sprintf(i18n.T("ai_btn_edit_cmd_manual"), i18n.T("ai_btn_edit_cmd")))
+			btnSave := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("   " + i18n.T("ai_btn_save_runbook"))
 			btnEsc := lipgloss.NewStyle().Foreground(ColorMuted).Render("   " + i18n.T("ai_btn_cancel_esc"))
-			b.WriteString(btnEdit + btnEsc + "\n")
+			b.WriteString(btnEdit + btnSave + btnEsc + "\n")
 		} else {
 			cmdBadge := lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(ColorSuccess).Padding(0, 1).Render("🚀 " + i18n.T("ai_cmd_prefix"))
 			cmdCode := lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Background(lipgloss.Color("#1B382B")).Padding(0, 1).Render(m.ExtractedCommand)
@@ -91,7 +92,12 @@ func (m *AICopilotModal) ViewInline(width int) string {
 
 			btnRun := lipgloss.NewStyle().Bold(true).Foreground(ColorBg).Background(ColorSuccess).Padding(0, 1).Render(i18n.T("ai_btn_run_now"))
 			btnEdit := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Padding(0, 1).Render("   " + i18n.T("ai_btn_edit_cmd"))
-			b.WriteString(btnRun + btnEdit + "\n")
+			btnSave := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Padding(0, 1).Render("   " + i18n.T("ai_btn_save_runbook"))
+			b.WriteString(btnRun + btnEdit + btnSave + "\n")
+		}
+		if m.StatusMessage != "" {
+			statusLine := lipgloss.NewStyle().Foreground(ColorSuccess).Bold(true).Render("\n" + m.StatusMessage)
+			b.WriteString(statusLine + "\n")
 		}
 	} else if m.Explanation != "" {
 		exp := lipgloss.NewStyle().
@@ -100,6 +106,9 @@ func (m *AICopilotModal) ViewInline(width int) string {
 			Render("💡 " + m.Explanation)
 		btnEsc := lipgloss.NewStyle().Foreground(ColorMuted).Render("\n  " + i18n.T("ai_btn_close_esc"))
 		b.WriteString(exp + btnEsc + "\n")
+		if m.StatusMessage != "" {
+			b.WriteString(lipgloss.NewStyle().Foreground(ColorWarning).Render("\n"+m.StatusMessage) + "\n")
+		}
 	} else if m.StatusMessage != "" {
 		b.WriteString(lipgloss.NewStyle().Foreground(ColorWarning).Render(m.StatusMessage) + "\n")
 	}

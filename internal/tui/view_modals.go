@@ -87,6 +87,24 @@ func (m *Model) renderDeleteConfirmationModal() string {
 	return RenderModalContainer(b.String(), 65, ColorDanger, m.width, m.height)
 }
 
+// renderQuitConfirmationModal renders the quit confirmation prompt dialog.
+func (m *Model) renderQuitConfirmationModal() string {
+	var b strings.Builder
+
+	title := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("modal_quit_title"))
+	b.WriteString(title + "\n\n")
+
+	msg := lipgloss.NewStyle().Foreground(ColorWhite).Render(i18n.T("modal_quit_warn"))
+	b.WriteString(msg + "\n\n")
+
+	actions := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render("[y / Enter] "+i18n.T("btn_quit")) +
+		"    " +
+		lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render("[n / Esc] "+i18n.T("btn_cancel"))
+	b.WriteString(actions)
+
+	return RenderModalContainer(b.String(), 55, ColorWarning, m.width, m.height)
+}
+
 // renderResolutionGuard renders a warning when the terminal dimensions are too small.
 func (m *Model) renderResolutionGuard() string {
 	minCols := m.cfg.TUI.MinCols

@@ -82,6 +82,7 @@ type Model struct {
 	hostToEdit        *storage.Host
 	hostToDelete      *storage.Host
 	showDeleteModal   bool
+	showQuitModal     bool
 	showFormModal     bool
 	formModal         *HostForm
 	showVaultModal    bool

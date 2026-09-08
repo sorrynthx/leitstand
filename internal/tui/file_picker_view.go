@@ -103,7 +103,9 @@ func (fp *FilePickerModal) View(termWidth, termHeight int) string {
 	var b strings.Builder
 
 	title := i18n.T("picker_title_key")
-	if fp.PickDir {
+	if fp.CustomTitle != "" {
+		title = fp.CustomTitle
+	} else if fp.PickDir {
 		title = i18n.T("picker_title_dir")
 	}
 	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(title) + "\n")
@@ -163,7 +165,9 @@ func (fp *FilePickerModal) View(termWidth, termHeight int) string {
 
 	b.WriteString("\n")
 	hintsText := i18n.T("picker_hints_file")
-	if fp.PickDir {
+	if fp.CustomHints != "" {
+		hintsText = fp.CustomHints
+	} else if fp.PickDir {
 		hintsText = i18n.T("picker_hints_dir")
 	}
 	hints := lipgloss.NewStyle().Foreground(ColorMuted).Render(hintsText)

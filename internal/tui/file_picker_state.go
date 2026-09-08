@@ -23,6 +23,8 @@ type FilePickerModal struct {
 	height        int
 	errMessage    string
 	PickDir       bool
+	CustomTitle   string
+	CustomHints   string
 }
 
 // NewDirPickerModal creates a file picker configured specifically for picking directories.

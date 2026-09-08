@@ -9,6 +9,7 @@ const (
 	OSTabRHEL
 	OSTabAlpine
 	OSTabDocker
+	OSTabCustom
 	OSTabCount
 )
 
@@ -33,6 +34,7 @@ var Tabs = []TabInfo{
 	{Tab: OSTabRHEL, LabelKey: "drawer_tab_rhel", Badge: "🔴 RHEL/Rocky"},
 	{Tab: OSTabAlpine, LabelKey: "drawer_tab_alpine", Badge: "🏔️ Alpine"},
 	{Tab: OSTabDocker, LabelKey: "drawer_tab_docker", Badge: "🐳 Docker"},
+	{Tab: OSTabCustom, LabelKey: "drawer_tab_custom", Badge: "⭐️ Custom"},
 }
 
 var Catalog = map[OSTab][]CommandItem{
@@ -42,4 +44,5 @@ var Catalog = map[OSTab][]CommandItem{
 	OSTabRHEL:      RHELCommands,
 	OSTabAlpine:    AlpineCommands,
 	OSTabDocker:    DockerCommands,
+	OSTabCustom:    {},
 }

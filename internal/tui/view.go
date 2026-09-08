@@ -28,6 +28,10 @@ func (m *Model) View() string {
 		}
 	}
 
+	if m.showQuitModal {
+		return m.renderQuitConfirmationModal()
+	}
+
 	if m.showDeleteModal && m.hostToDelete != nil {
 		return m.renderDeleteConfirmationModal()
 	}

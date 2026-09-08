@@ -41,6 +41,41 @@ func (m *AICopilotModal) Update(msg tea.Msg) (bool, string, bool, tea.Cmd) {
 			}
 			return false, "", false, nil
 
+		case tea.KeyCtrlS:
+			if m.ExtractedCommand != "" && !m.IsStreaming {
+				if m.store != nil {
+					// Check for duplicates
+					existing, err := m.store.GetCustomCommands()
+					if err == nil {
+						for _, ec := range existing {
+							if strings.TrimSpace(ec.Command) == strings.TrimSpace(m.ExtractedCommand) {
+								m.StatusMessage = i18n.T("ai_already_in_runbook")
+								return false, "", false, nil
+							}
+						}
+					}
+
+					title := m.ExtractedCommand
+					for i := len(m.Messages) - 1; i >= 0; i-- {
+						if m.Messages[i].Role == "user" {
+							title = strings.TrimSpace(m.Messages[i].Content)
+							if len(title) > 60 {
+								title = title[:57] + "..."
+							}
+							break
+						}
+					}
+					_, err = m.store.AddCustomCommand(title, m.ExtractedCommand, "AI Copilot", m.Explanation)
+					if err == nil {
+						m.StatusMessage = fmt.Sprintf(i18n.T("ai_saved_to_runbook"), m.ExtractedCommand)
+					} else {
+						m.StatusMessage = fmt.Sprintf("⚠️ %v", err)
+					}
+				}
+				return false, "", false, nil
+			}
+			return false, "", false, nil
+
 		case tea.KeyCtrlL:
 			if m.store != nil {
 				_ = m.store.ClearAIChatHistory(m.HostID)

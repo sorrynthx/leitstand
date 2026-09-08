@@ -41,3 +41,13 @@ func DefaultSessionLogDir() string {
 	}
 	return filepath.Join(".", "logs")
 }
+
+// DefaultRunbookDir returns the platform-appropriate directory for exporting and sharing runbooks.
+func DefaultRunbookDir() string {
+	home, err := os.UserHomeDir()
+	if err == nil {
+		return filepath.Join(home, "Documents", "leitstand", "runbooks")
+	}
+	return filepath.Join(".", "runbooks")
+}
+

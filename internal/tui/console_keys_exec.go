@@ -88,7 +88,7 @@ func (m *Model) updateConsoleKeys(msg tea.KeyMsg, keyStr string) (tea.Model, tea
 		}
 		m.showTelemetryDrawer = false
 		m.showDrawer = true
-		m.drawer = NewRunbookDrawer(distro)
+		m.drawer = NewRunbookDrawer(distro, m.store)
 		return m, nil
 
 	case "?":
@@ -99,7 +99,7 @@ func (m *Model) updateConsoleKeys(msg tea.KeyMsg, keyStr string) (tea.Model, tea
 			}
 			m.showTelemetryDrawer = false
 			m.showDrawer = true
-			m.drawer = NewRunbookDrawer(distro)
+			m.drawer = NewRunbookDrawer(distro, m.store)
 			return m, nil
 		}
 
