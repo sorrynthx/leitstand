@@ -100,4 +100,16 @@ func TestMaintenance(t *testing.T) {
 	if imported != 0 || skipped != 1 {
 		t.Errorf("Expected 0 imported, 1 skipped, got imported=%d, skipped=%d", imported, skipped)
 	}
+
+	// 7. Test FactoryReset
+	if err := s.FactoryReset(); err != nil {
+		t.Fatalf("FactoryReset failed: %v", err)
+	}
+	resetStats, _ := s.GetDBStats()
+	if resetStats.HostCount != 0 {
+		t.Errorf("Expected 0 hosts after reset, got %d", resetStats.HostCount)
+	}
+	if resetStats.MetricCount != 0 {
+		t.Errorf("Expected 0 metrics after reset, got %d", resetStats.MetricCount)
+	}
 }

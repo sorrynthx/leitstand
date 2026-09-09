@@ -1,4 +1,4 @@
-﻿package quickcmd
+package quickcmd
 
 var CommonCommands = []CommandItem{
 	{
@@ -44,6 +44,27 @@ var CommonCommands = []CommandItem{
 		Command:     "free -h",
 	},
 	{
+		ID:          "com_oom_killer",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_oom_killer_title",
+		DescKey:     "cmd_oom_killer_desc",
+		Command:     "dmesg -T 2>/dev/null | grep -i -E \"oom[- ]killer|out of memory\" | tail -10",
+	},
+	{
+		ID:          "com_zombie_ps",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_zombie_ps_title",
+		DescKey:     "cmd_zombie_ps_desc",
+		Command:     "ps aux | awk '$8 ~ /^[Zz]/'",
+	},
+	{
+		ID:          "com_top_threads",
+		CategoryKey: "cat_resources",
+		TitleKey:    "cmd_top_threads_title",
+		DescKey:     "cmd_top_threads_desc",
+		Command:     "ps -eo nlwp,pid,user,args --sort=-nlwp | head -6",
+	},
+	{
 		ID:          "com_open_ports",
 		CategoryKey: "cat_network",
 		TitleKey:    "cmd_ports_title",
@@ -58,6 +79,27 @@ var CommonCommands = []CommandItem{
 		Command:     "ip -br a",
 	},
 	{
+		ID:          "com_estab_ips",
+		CategoryKey: "cat_network",
+		TitleKey:    "cmd_estab_ips_title",
+		DescKey:     "cmd_estab_ips_desc",
+		Command:     "ss -ant | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nr | head -10",
+	},
+	{
+		ID:          "com_curl_timing",
+		CategoryKey: "cat_network",
+		TitleKey:    "cmd_curl_timing_title",
+		DescKey:     "cmd_curl_timing_desc",
+		Command:     "curl -w \"DNS: %{time_namelookup}s | TCP: %{time_connect}s | TLS: %{time_appconnect}s | TTFB: %{time_starttransfer}s | Total: %{time_total}s\\n\" -o /dev/null -s https://google.com",
+	},
+	{
+		ID:          "com_ssl_expiry",
+		CategoryKey: "cat_network",
+		TitleKey:    "cmd_ssl_expiry_title",
+		DescKey:     "cmd_ssl_expiry_desc",
+		Command:     "echo | openssl s_client -connect localhost:443 -servername localhost 2>/dev/null | openssl x509 -noout -dates",
+	},
+	{
 		ID:          "com_df_h",
 		CategoryKey: "cat_disk",
 		TitleKey:    "cmd_df_title",
@@ -70,6 +112,41 @@ var CommonCommands = []CommandItem{
 		TitleKey:    "cmd_du_top_title",
 		DescKey:     "cmd_du_top_desc",
 		Command:     "du -h --max-depth=1 /var 2>/dev/null | sort -hr | head -10",
+	},
+	{
+		ID:          "com_find_large_files",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_find_large_files_title",
+		DescKey:     "cmd_find_large_files_desc",
+		Command:     "find / -type f -size +50M -exec ls -lh {} + 2>/dev/null | awk '{ print $5, $9 }' | sort -hr | head -10",
+	},
+	{
+		ID:          "com_lsof_deleted",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_lsof_deleted_title",
+		DescKey:     "cmd_lsof_deleted_desc",
+		Command:     "lsof +L1 2>/dev/null | head -15",
+	},
+	{
+		ID:          "com_who_active",
+		CategoryKey: "cat_security",
+		TitleKey:    "cmd_who_active_title",
+		DescKey:     "cmd_who_active_desc",
+		Command:     "w",
+	},
+	{
+		ID:          "com_last_logins",
+		CategoryKey: "cat_security",
+		TitleKey:    "cmd_last_logins_title",
+		DescKey:     "cmd_last_logins_desc",
+		Command:     "last -n 10",
+	},
+	{
+		ID:          "com_ssh_failed_ips",
+		CategoryKey: "cat_security",
+		TitleKey:    "cmd_ssh_failed_ips_title",
+		DescKey:     "cmd_ssh_failed_ips_desc",
+		Command:     "journalctl -u ssh -u sshd --no-pager -n 500 2>/dev/null | grep -i \"Failed password\" | awk '{print $(NF-3)}' | sort | uniq -c | sort -nr | head -10",
 	},
 	{
 		ID:          "com_dmesg_err",

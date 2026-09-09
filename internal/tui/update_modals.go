@@ -24,22 +24,7 @@ func (m *Model) updateActiveModals(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 	// 1. Settings / Preferences Modal
 	if m.showSettingsModal && m.settingsModal != nil {
 		res, cmd := m.settingsModal.Update(msg)
-		if res.Done && !res.SaveReq {
-			m.showSettingsModal = false
-			m.settingsModal = nil
-			m.statusMessage = "Settings closed."
-			return m, nil, true
-		}
-		if res.SaveReq {
-			m.applyAndPersistSettings(res)
-			m.showSettingsModal = false
-			m.settingsModal = nil
-			m.statusMessage = "✨ " + i18n.T("settings_saved_msg")
-			m.updateViewportContent()
-			return m, nil, true
-		}
-
-		return m, cmd, true
+		return m.handleSettingsModalResult(res, cmd)
 	}
 	// 2. In-app File Editor Modal
 	if m.showEditorModal && m.editorModal != nil {

@@ -222,3 +222,21 @@ func (s *Storage) ImportHostsJSON(sourcePath string) (int, int, error) {
 
 	return imported, skipped, nil
 }
+
+// FactoryReset wipes all hosts, metrics, tunnels, AI chats, custom commands, app settings, and vault_meta.
+func (s *Storage) FactoryReset() error {
+	tables := []string{
+		"metrics_raw",
+		"metrics_hourly",
+		"ai_chat_history",
+		"ssh_tunnels",
+		"custom_commands",
+		"hosts",
+		"app_settings",
+		"vault_meta",
+	}
+	for _, table := range tables {
+		_, _ = s.db.Exec(fmt.Sprintf("DELETE FROM %s;", table))
+	}
+	return s.Vacuum()
+}

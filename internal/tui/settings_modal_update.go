@@ -11,21 +11,23 @@ import (
 )
 
 type SettingsResult struct {
-	Done         bool
-	SaveReq      bool
-	Lang         i18n.Lang
-	Interval     time.Duration
-	CPUThresh    float64
-	RAMThresh    float64
-	DiskThresh   float64
-	LogDir       string
-	AIProvider   string
-	AIEndpoint   string
-	AIKey        string
-	AIModel      string
-	AIRetention  int
-	AIMaxHistory int
-	Profiles     map[string]*AIProviderProfile
+	Done             bool
+	SaveReq          bool
+	FactoryResetDone bool
+	HostsImported    bool
+	Lang             i18n.Lang
+	Interval         time.Duration
+	CPUThresh        float64
+	RAMThresh        float64
+	DiskThresh       float64
+	LogDir           string
+	AIProvider       string
+	AIEndpoint       string
+	AIKey            string
+	AIModel          string
+	AIRetention      int
+	AIMaxHistory     int
+	Profiles         map[string]*AIProviderProfile
 }
 
 
@@ -63,6 +65,13 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 	if s.activeTab == TabDatabase {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
 			cmd, handled := s.updateSettingsDatabaseTab(keyMsg)
+			if s.factoryResetDone {
+				return SettingsResult{
+					Done:             true,
+					SaveReq:          false,
+					FactoryResetDone: true,
+				}, nil
+			}
 			if handled {
 				return SettingsResult{}, cmd
 			}
@@ -74,7 +83,12 @@ func (s *SettingsModal) Update(msg tea.Msg) (SettingsResult, tea.Cmd) {
 		isInput := s.inputIndexForField(s.focusField) >= 0
 		switch msg.String() {
 		case "esc":
-			return SettingsResult{Done: true, SaveReq: false}, nil
+			return SettingsResult{
+				Done:             true,
+				SaveReq:          false,
+				FactoryResetDone: s.factoryResetDone,
+				HostsImported:    s.hostsImported,
+			}, nil
 		case "f1", "alt+1", "1":
 			if !isInput || msg.String() != "1" {
 				s.switchTab(TabGeneral)

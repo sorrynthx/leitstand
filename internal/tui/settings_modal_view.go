@@ -74,7 +74,7 @@ func (s *SettingsModal) View(width, height int) string {
 	case TabAI:
 		b.WriteString(s.renderAITab())
 	case TabAbout:
-		b.WriteString(s.renderAboutTab())
+		b.WriteString(s.renderAboutTab(modalWidth))
 	}
 
 
@@ -126,24 +126,6 @@ func (s *SettingsModal) renderGeneralTab() string {
 	hints := lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("settings_footer_gen"))
 	b.WriteString(hints)
 
-	return b.String()
-}
-
-func (s *SettingsModal) renderAboutTab() string {
-	var b strings.Builder
-
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("🚀 "+i18n.T("about_app_name")) + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("about_tagline")) + "\n\n")
-
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("👤 "+i18n.T("about_creator_title")) + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render("  • Author: "+i18n.T("about_creator_name")) + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render("  • Engine: Go 1.22 + Bubbletea TUI + SQLite Encrypted Storage") + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorText).Render("  • License: MIT Open Source License") + "\n\n")
-
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render("🎯 "+i18n.T("about_vision_title")) + "\n")
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render("  "+i18n.T("about_vision_desc")) + "\n\n")
-
-	b.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(i18n.T("settings_footer_about")))
 	return b.String()
 }
 

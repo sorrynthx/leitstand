@@ -1,4 +1,4 @@
-# ⚡ LEITSTAND - Project Roadmap & Master TODO
+﻿# ⚡ LEITSTAND - Project Roadmap & Master TODO
 
 > **Modern, Agentless, High-Performance Terminal Server Cockpit & Telemetry Engine**  
 > *Developed by Kyunggon Kim (김경곤 / Interpass Inc.)*
@@ -151,24 +151,98 @@
 - [x] **앱 종료 안전 확인 다이얼로그 (Graceful Quit Confirmation)**:
   - `q` 또는 `Ctrl+C` 입력 시 즉시 종료되지 않고 `[y/Enter] 종료`, `[n/Esc] 취소` 2단계 확인 팝업 탑재.
 
-### 📚 Phase 5-1: 내장 런북 카탈로그 실무 강화 (Built-in Runbooks Expansion - 내일 진행 예정)
-- [ ] **공통 및 배포판별 실무 필수 명령어 대폭 보강 (`internal/quickcmd/tab_*.go`)**:
-  - **네트워크 & 트래픽 진단**: `ss`, `netstat`, `tcpdump`, `mtr`, `iperf3`, `curl -Iv`, `dig/nslookup` 실전 명령
-  - **스토리지 & 디스크 I/O**: `iostat -xz 1`, `iotop -o`, `lsof +D`, `fuser`, 마운트 점검 및 디스크 부하 추적
-  - **보안 & 감사**: 실시간 접속자 추적(`w`, `last -n 10`), 실패한 SSH 접근(`journalctl -u ssh | grep Failed`), 포트 리슨 점검
-  - **웹 & 프록시 / DB 기본 점검**: Nginx/Apache 설정 검증(`nginx -t`), SSL 인증서 만료일 확인, 로그 분석(`awk/sort/uniq`)
-  - **Docker & 컨테이너 실무**: 컨테이너 리소스 탑랭킹(`docker stats --no-stream`), 죽은 컨테이너 원인 분석, 볼륨/네트워크 정리
-- [ ] **신규 카테고리/탭 신설 검토**:
-  - 예: `Kubernetes/k3s` 또는 `Web/SSL/DB` 전용 탭 분리 검토
+### ⏳ Phase 5-1: 명령어 실시간 로딩 인디케이터 & 내장 런북 실무 대폭 강화 (100% 완료)
+- [x] **명령어 비동기 실행 실시간 로딩 인디케이터 & 경과 시간 타이머 (`internal/tui`)**:
+  - `Enter` 실행 즉시 터미널 뷰포트 및 상태바에 100ms 틱 회전 스피너(`⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏`) 애니메이션 작동.
+  - 0.1초 단위 실시간 경과 시간(`⏱️ 1.2s...`) 카운팅 및 장시간 명령(`du`, `find`, `curl`, `apt`) 실행 시 시각적 안도감 제공.
+  - 실행 완료 시 `[⏱️ 2.4s 소요]` 메타데이터 자동 삽입 및 초록색 성공 상태바 배너 동적 연동.
+- [x] **공통 및 배포판별 실무 필수 런북 대폭 보강 (`internal/quickcmd/tab_*.go`)**:
+  - **자원 & 긴급 장애**: `OOM-Killer` 처형 기록 검색, `좀비 프로세스` 색출, `스레드 다배체 Top 5`.
+  - **스토리지 & 디스크**: `50MB+ 대용량 파일 Top 10`, `삭제되었으나 프로세스가 잡고 있는 유령 파일(lsof +L1)`, `/var` 디렉토리 용량 분석.
+  - **네트워크 & 웹**: `ESTABLISHED 접속 IP 순위 Top 10`, `curl 응답 지연 구간(DNS/TCP/TLS/TTFB) 분해`, `SSL/TLS 인증서 만료일`.
+  - **보안 & 감사**: `실시간 접속자(w)`, `최근 로그인 이력(last 10)`, `SSH 공격 실패 IP 순위 Top 10`.
+  - **Docker 컨테이너 실무**: `비정상 종료(Exited) 컨테이너 확인`, `최근 에러 로그 필터`, `컨테이너 내부 IP 조회`, `시스템/볼륨 안전 정리(prune)`.
+  - **배포판별 시스템 도구**: `부팅 지연 서비스 분석(systemd-analyze blame)`, `최근 1시간 시스템 저널`, `패키지 캐시 청소(clean)`.
+- [x] **전역 다국어 사전(KO, EN, DE) 100% 동기화 (0 Missing Keys)**:
+  - 7대 런북 카테고리 헤더 및 모든 신규/기존 명령어 번역 전수 등록 및 `TestDictionaryParity` 통과.
 
-### 📦 Phase 6: 크로스 플랫폼 자동 빌드 & 글로벌 배포 (Distribution & GoReleaser)
-- [ ] **크로스 플랫폼 자동 빌드 파이프라인 (GoReleaser)**:
-  - Windows (.exe), macOS (Apple Silicon M-series / Intel), Linux x86_64 바이너리 패키징.
-  - GitHub Release 자동 연동 및 단일 실행 파일 릴리스.
-- [ ] **Phase 3-2 공장 초기화 (Factory Reset) 최종 실물 검증**:
-  - 최종 릴리즈 전, 4번 탭 `[6] Factory Reset` 2단계 확인 팝업 및 SQLite DB 완전 초기화 최종 점검.
+### 🍺 Phase 5-2: 이스터에그 암호화 프로필 & 50:50 맥주 아스키 아트 About 개편 (100% 완료)
+- [x] **난독화 분산 키 기반 이스터에그 암호화 프로필 파이프라인 (`internal/profile`)**:
+  - 공개 깃허브 크롤러/스팸 봇 방지를 위해 `profile.enc` Base64 AES-256-GCM 암호화 파일 분리.
+  - 코드 상 키 변수명 위장(`layoutGlyphMetrics*`) 및 바이트 분산 난독화 적용.
+- [x] **언어별(KO, EN, DE) 맞춤 50:50 분할 레이아웃 (`settings_modal_view_about.go`)**:
+  - 상단: 시원한 거품이 넘치는 독일 바이젠 맥주(Bier Mug) ASCII 아트 렌더링.
+  - 좌측 (50%): 삶과 사람에 대한 이야기 (암으로 세상을 떠난 이에 대한 추모, 후회 없는 삶, 'No Problem', 거절의 의미, Retry.Day).
+  - 우측 (50%): 기술 철학(Zero-Agent, Pure Go, Zero-Knowledge), 공통 링크(retry.day, GitHub, LinkedIn), 및 언어별 맞춤 메시지:
+    - 한국어: `🤝 문제 해결 & 팀 동료 (도메인의 본질적 문제를 깊이 파악하고 함께 푸는 동료)`
+    - 영어: `🤝 Problem Solver & Trusted Teammate`
+    - 독일어: `🇩🇪 Karriere & Vor-Ort-Team in Deutschland (학센과 바이젠 맥주를 함께 즐길 현지 팀 이직 제안 환영 🍺)`
+- [x] **250줄 모듈화 규칙 100% 준수**:
+  - `types.go`(29줄), `cipher.go`(65줄), `profile.go`(76줄), `profile_test.go`(25줄), `settings_modal_view_about.go`(123줄).
+
+### 🛡️ Phase 5-3: 공장 초기화(Factory Reset) 2차 패스워드 검증 및 핫 리로드 (100% 완료)
+- [x] **공장 초기화 시 마스터 비밀번호 2차 검증 모달 (`settings_modal_reset.go`)**:
+  - `[p]` ➔ 4번 Database ➔ `[6] Factory Reset` 시 단순 Enter 실수 방지를 위한 전용 팝업 모달 탑재.
+  - 마스터 비밀번호 입력 대조 검증 및 불일치 시 붉은색 경고 차단 (`⚠️ 마스터 비밀번호가 올바르지 않습니다`).
+  - Caps Lock 감지 배지 및 `[Esc]` 안전 취소 지원.
+- [x] **초기화 집행 시 `vault_meta` 완전 삭제 및 초기 비밀번호 설정 화면 전환**:
+  - `vault_meta` 테이블까지 영구 삭제하여 완전 무결한 클린 초기 상태 복원.
+  - 인메모리 호스트/탭/세션/SSH풀/터널 즉시 파기 및 앱 최초 실행 마스터 비밀번호 생성(`VaultModalInit`) 화면으로 즉시 전환.
+- [x] **JSON 호스트 임포트 핫 리로드**:
+  - 4번 탭에서 호스트 JSON 복원 시 메인 콕핏 복귀와 동시에 인메모리 호스트 목록 즉시 갱신(`m.loadHostsCmd()`).
+- [x] **250줄 엄격 모듈화 & 다국어 Parity 100% 통과**:
+  - `settings_modal_reset.go`(95줄), `update_modal_settings.go`(54줄) 분리 및 `dict_*.go` 전수 동기화.
 
 ---
 
-*Last Updated: 2026-09-08 (Phase 4-1 & Phase 5 100% Completed, Next: Phase 5-1 Built-in Runbook Expansion)*
+## 🎬 3. Video Showcase & Social Media Launch Checklist (영상 촬영 및 SNS 릴리즈 기획)
+
+### 📹 Video Showcase Guidelines (영상 촬영 가이드)
+- [ ] **영상 규격**: 60초 ~ 90초 내외 (LinkedIn & Threads 숏폼 포맷 최적화, 1080p 60fps).
+- [ ] **Scene 1 (00:00~00:08) - Intro & Vault Unlock**:
+  - 터미널에서 `./leitstand` 실행 ➔ 암호화 보관함 언락 (Caps Lock 배지 노출).
+  - *"Zero-Agent, 100% Pure Go 터미널 콕핏"*
+- [ ] **Scene 2 (00:08~00:20) - Live Cockpit & Telemetry**:
+  - 방향키 탐색 후 `Enter` 즉시 연결 ➔ `F5` 텔레메트리 덱 토글 (실시간 CPU/RAM/Disk/Net 게이지).
+  - *"원격 서버 실시간 자원 상태 한눈에 파악"*
+- [ ] **Scene 3 (00:20~00:35) - Multi-Tab Shell & Spinner**:
+  - `Ctrl+N` 새 탭 생성 ➔ 대용량 검색 or `du` 실행 ➔ **100ms 틱 브레일 스피너 + 경과 시간(`⏱️ 1.4s...`)**.
+  - *"독립 세션 멀티탭 + 비동기 실행 스피너"*
+- [ ] **Scene 4 (00:35~00:50) - SFTP Dual-Pane & In-App Editor**:
+  - `[f]` 키로 90% 2분할 SFTP 진입 ➔ 원격 설정파일 `Enter`로 열어 수정 후 `F2` 저장 (선명한 성공 배너).
+  - *"별도 도구(FileZilla 등) 없는 인앱 파일 탐색 & 실시간 편집"*
+- [ ] **Scene 5 (00:50~01:05) - AI Terminal Copilot**:
+  - `[F4]` AI 코파일럿 호출 ➔ 장애 진단 질문 ➔ 추천 명령어 `[Enter]` 즉시 콘솔 실행 ➔ `[Ctrl+S]`로 런북 원클릭 저장.
+  - *"서버 텔레메트리 연동 AI 자율 진단 & 나만의 런북 보관"*
+- [ ] **Scene 6 (01:05~01:15) - SSH Port Forwarding & Runbooks**:
+  - `[?]` 런북 7대 카탈로그 ➔ `[T]` 원클릭 SSH 터널링 (사설 DB/Docker 로컬 바인딩).
+  - *"클릭 한 번으로 끝나는 사설 포트포워딩"*
+- [ ] **Scene 7 (01:15~01:25) - Outro & German Beer ASCII**:
+  - 설정(`[p]`) ➔ 6번 탭 전환 ➔ **시원한 바이젠 맥주 ASCII 아트** + Retry.Day 및 개발자 철학 안내.
+  - *"독일 현지 팀 이직 제안 및 피드백 환영 🍺"*
+
+### 📱 Social Media Posting Checklist (SNS 업로드 준비)
+- [ ] **LinkedIn 포스팅**:
+  - 기술 스택(Pure Go, TUI, Bubbletea, SSH Mux) 및 아키텍처 중심 릴리즈 노트 공유.
+  - 링크: GitHub 저장소 + Retry.Day 블로그 링크.
+- [ ] **Threads 포스팅**:
+  - 가볍고 임팩트 있는 비디오 클립 + 핵심 기능 요약 (에이전트 0%, 맥주 아스키).
+
+---
+
+## 📦 4. Distribution & Release (배포 파이프라인)
+- [x] **크로스 플랫폼 무의존성(Zero-CGO Pure Go) 단일 바이너리 빌드**:
+  - Windows (`leitstand-windows-amd64.exe`), Linux (`leitstand-linux-amd64`), macOS (`leitstand-darwin-arm64`) 컴파일 완료.
+- [x] **즉시 실행용 배포 아카이브 패키징 (`dist/`)**:
+  - `leitstand-v1.0.0-windows-amd64.zip` (압축률 50%, 약 14.2MB)
+  - `leitstand-v1.0.0-linux-amd64.tar.gz` & `.zip` (약 14.0MB)
+  - `leitstand-v1.0.0-darwin-arm64.tar.gz` & `.zip` (약 13.5MB)
+  - `dist/README.md` 다운로드 및 즉시 실행 가이드 탑재.
+  - 3개 국어 README(`README.md`, `README.ko.md`, `README.de.md`)에 OS별 원클릭 다운로드 표 반영.
+- [ ] **GitHub Release 연동**: 저장소 릴리즈 시 `dist/` 아카이브 바이너리 에셋 등록.
+
+---
+
+*Last Updated: 2026-09-09 (Phase 5-3 Factory Reset 2FA Completed, Video & SNS Launch Planning Finalized)*
+
 

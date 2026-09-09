@@ -1,4 +1,4 @@
-﻿package quickcmd
+package quickcmd
 
 var AlpineCommands = []CommandItem{
 	{
@@ -14,6 +14,13 @@ var AlpineCommands = []CommandItem{
 		TitleKey:    "cmd_rc_status_title",
 		DescKey:     "cmd_rc_status_desc",
 		Command:     "rc-status",
+	},
+	{
+		ID:          "alp_apk_clean",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_pkg_clean_title",
+		DescKey:     "cmd_pkg_clean_desc",
+		Command:     "apk cache clean && rm -rf /var/cache/apk/*",
 	},
 	{
 		ID:          "alp_dmesg",

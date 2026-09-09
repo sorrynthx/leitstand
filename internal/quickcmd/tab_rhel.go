@@ -1,4 +1,4 @@
-﻿package quickcmd
+package quickcmd
 
 var RHELCommands = []CommandItem{
 	{
@@ -16,6 +16,20 @@ var RHELCommands = []CommandItem{
 		Command:     "systemctl list-units --type=service --state=failed",
 	},
 	{
+		ID:          "rhel_blame",
+		CategoryKey: "cat_system",
+		TitleKey:    "cmd_systemd_blame_title",
+		DescKey:     "cmd_systemd_blame_desc",
+		Command:     "systemd-analyze blame | head -5",
+	},
+	{
+		ID:          "rhel_journal_recent",
+		CategoryKey: "cat_logs",
+		TitleKey:    "cmd_journal_recent_title",
+		DescKey:     "cmd_journal_recent_desc",
+		Command:     "journalctl -p 3 --since \"1 hour ago\" --no-pager",
+	},
+	{
 		ID:          "rhel_firewall",
 		CategoryKey: "cat_network",
 		TitleKey:    "cmd_firewall_title",
@@ -28,5 +42,12 @@ var RHELCommands = []CommandItem{
 		TitleKey:    "cmd_selinux_title",
 		DescKey:     "cmd_selinux_desc",
 		Command:     "sestatus",
+	},
+	{
+		ID:          "rhel_dnf_clean",
+		CategoryKey: "cat_disk",
+		TitleKey:    "cmd_pkg_clean_title",
+		DescKey:     "cmd_pkg_clean_desc",
+		Command:     "dnf clean all",
 	},
 }

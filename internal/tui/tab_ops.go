@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // AppendLog adds a log line to a tab and updates its viewport.
@@ -44,13 +45,27 @@ func (tab *ConsoleTab) StopScreenApp(cmdName string) {
 
 // UpdateViewportContent refreshes the tab's viewport content while respecting current scroll position.
 func (tab *ConsoleTab) UpdateViewportContent() {
-	if len(tab.Logs) == 0 {
+	if len(tab.Logs) == 0 && !tab.IsRunning {
 		welcomeMsg := fmt.Sprintf("Terminal Session Tab [%s]\nType remote commands below and press Enter to execute.\n[Ctrl+N] New Tab  [Ctrl+W] Close Tab  [Alt+1~9] Switch Tab", tab.Title)
 		tab.Viewport.SetContent(welcomeMsg)
 		return
 	}
 	wasAtBottom := tab.Viewport.AtBottom()
-	tab.Viewport.SetContent(strings.Join(tab.Logs, "\n"))
+	content := strings.Join(tab.Logs, "\n")
+	if tab.IsRunning {
+		spinner := "⠋"
+		if len(SpinnerFrames) > 0 {
+			spinner = SpinnerFrames[tab.SpinnerFrame%len(SpinnerFrames)]
+		}
+		elapsed := time.Since(tab.RunningStart).Seconds()
+		runningIndicator := fmt.Sprintf("%s ⏳ 원격 서버에서 실행 중... [⏱️ %.1fs] (Ctrl+C로 취소)", spinner, elapsed)
+		if len(tab.Logs) == 0 {
+			content = runningIndicator
+		} else {
+			content = content + "\n" + runningIndicator
+		}
+	}
+	tab.Viewport.SetContent(content)
 	if wasAtBottom {
 		tab.Viewport.GotoBottom()
 	}

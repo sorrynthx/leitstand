@@ -31,6 +31,10 @@ type ConsoleTab struct {
 	LastExitCode int
 	LastError    string
 	CreatedAt    time.Time
+	IsRunning    bool
+	RunningCmd   string
+	RunningStart time.Time
+	SpinnerFrame int
 }
 
 

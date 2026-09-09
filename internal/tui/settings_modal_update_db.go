@@ -14,6 +14,9 @@ func (s *SettingsModal) updateSettingsDatabaseTab(msg tea.KeyMsg) (tea.Cmd, bool
 	if s.showRekeyModal {
 		return s.updateRekeyModal(msg)
 	}
+	if s.showResetModal {
+		return s.updateResetModal(msg)
+	}
 
 	if s.dbConfirmAction > 0 {
 		switch msg.String() {
@@ -85,7 +88,9 @@ func (s *SettingsModal) triggerDatabaseActionConfirm(action int) {
 		s.showRekeyModal = true
 		s.initRekeyInputs()
 	case 6:
-		s.dbConfirmPrompt = i18n.T("db_confirm_reset")
+		s.dbConfirmAction = 0
+		s.showResetModal = true
+		s.initResetInputs()
 	}
 }
 
@@ -121,10 +126,6 @@ func (s *SettingsModal) executeDatabaseAction(action int) (tea.Cmd, bool) {
 		s.pendingExportType = 3
 		initDir := s.getSafeInitialDir()
 		s.filePicker = NewFilePickerModal(initDir, 80, 24)
-		return nil, true
-
-	case 6: // Factory Reset
-		s.successMessage = "⚠️ Factory Reset scheduled (skipped in development)"
 		return nil, true
 	}
 
@@ -183,6 +184,9 @@ func (s *SettingsModal) handleDatabaseFilePicked(pickedPath string) {
 			s.errMessage = err.Error()
 			s.successMessage = ""
 			return
+		}
+		if imported > 0 {
+			s.hostsImported = true
 		}
 		s.dbStats, _ = s.store.GetDBStats()
 		s.errMessage = ""

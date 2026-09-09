@@ -136,7 +136,13 @@ Phase 4: SSH Port Forwarding & Tunneling Manager [COMPLETED]
 ├── [x] Tunneling modal UI (T/F7) with live status indicators and persistence
 └── [x] Verified with real Docker containers (n8n, Ollama, MySQL)
 
-Phase 5: AI Terminal Copilot & Autonomous Diagnostics [85% PROGRESS]
+Phase 4-1: Custom Runbooks & JSON Extension [COMPLETED]
+├── [x] Dedicated [7] ⭐️ Custom runbook drawer tab with in-app add/edit/delete
+├── [x] Hybrid architecture (built-in catalog + SQLite custom_commands overlay)
+├── [x] Team JSON Export/Import pipeline with HTML-unescaped shell character safety
+└── [x] Smart priority tab focus based on custom command presence
+
+Phase 5: AI Terminal Copilot & Autonomous Diagnostics [COMPLETED]
 ├── [x] In-app inline AI copilot drawer (F4) & terminal focus recovery
 ├── [x] Local Ollama SSE streaming engine & context-aware prompting (internal/ai)
 ├── [x] Destructive command safety guard (ai_safety.go) & bare rm block
@@ -145,11 +151,19 @@ Phase 5: AI Terminal Copilot & Autonomous Diagnostics [85% PROGRESS]
 ├── [x] Ultra-fast Groq LPU Cloud API & OpenAI-compatible endpoint pipeline
 ├── [x] Settings modal provider presets (groq, ollama, openai, custom) & auto-fill
 ├── [x] Real-time telemetry (CPU/RAM/Disk) & recent error context prompt injection
-└── [ ] Custom runbook command export & sync (NEXT - Phase 4-1 integration)
+├── [x] One-click save AI diagnosis command into Custom Runbook (Ctrl+S)
+└── [x] Graceful quit confirmation dialog (q / Ctrl+C -> y/n)
 
-Phase 6: Multi-Platform Distribution & Release [UPCOMING]
-├── [ ] Cross-platform GoReleaser pipeline (Windows, macOS, Linux)
-└── [ ] Automated GitHub Releases & binary packaging
+Phase 5-1: Command Loading Indicator & Built-in Runbooks Expansion [COMPLETED]
+├── [x] Real-time 100ms Braille spinner animation & 0.1s elapsed timer for long-running commands
+├── [x] Immediate prompt echoing with execution time metadata ([⏱️ 2.4s]) upon completion
+├── [x] Comprehensive practical runbook catalog expansion (OOM-killer, zombies, threads, disk/lsof, network, security, docker, OS)
+└── [x] 100% dictionary parity across English, German, and Korean (Zero missing keys)
+
+Phase 6: Multi-Platform Distribution & Release [NEXT]
+├── [ ] Cross-platform GoReleaser pipeline (Windows, macOS Apple Silicon/Intel, Linux x86_64)
+├── [ ] Automated GitHub Releases & single binary packaging
+└── [ ] Final validation of [6] Factory Reset (SQLite data purge) in Settings Tab 4
 ```
 
 ---

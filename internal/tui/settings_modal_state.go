@@ -71,7 +71,12 @@ type SettingsModal struct {
 	rekeyInputs       []textinput.Model
 	rekeyFocus        int
 	rekeyError        string
+	showResetModal    bool
+	resetInput        textinput.Model
+	resetError        string
 	pendingExportType int
+	factoryResetDone  bool
+	hostsImported     bool
 	store             *storage.Storage
 	vault             *vault.Vault
 
@@ -213,4 +218,13 @@ func (s *SettingsModal) focusCurrent() {
 		s.inputs[idx].Focus()
 	}
 }
+
+func (s *SettingsModal) IsFactoryResetDone() bool {
+	return s.factoryResetDone
+}
+
+func (s *SettingsModal) IsHostsImported() bool {
+	return s.hostsImported
+}
+
 

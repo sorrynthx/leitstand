@@ -26,6 +26,9 @@ func (s *SettingsModal) renderDatabaseTab() string {
 	if s.showRekeyModal {
 		return s.renderRekeyModal()
 	}
+	if s.showResetModal {
+		return s.renderResetModal()
+	}
 
 	var b strings.Builder
 

@@ -100,7 +100,18 @@ func (m *Model) execSudoCmd(host *storage.Host, cmdText string, password string)
 
 	elevMode := ElevationMode(m.sudoModeCache[host.ID])
 
-	return func() tea.Msg {
+	if tab.IsRoot {
+		tab.AppendLog(fmt.Sprintf("[root@%s:%s]# %s", host.Name, cwd, cmdText))
+	} else {
+		tab.AppendLog(fmt.Sprintf("[%s] ❯ %s", cwd, cmdText))
+	}
+	tab.IsRunning = true
+	tab.RunningCmd = cmdText
+	tab.RunningStart = time.Now()
+	tab.SpinnerFrame = 0
+	m.updateViewportContent()
+
+	runCmd := func() tea.Msg {
 		logger.Infof("execSudoCmd: host='%s', cwd='%s', cmd='%s', mode=%d", host.Name, cwd, cmdText, elevMode)
 
 		if m.isDemo {
@@ -177,4 +188,6 @@ func (m *Model) execSudoCmd(host *storage.Host, cmdText string, password string)
 			Err:     err,
 		}
 	}
+
+	return tea.Batch(runCmd, tickExecCommand(host.ID, tabID))
 }

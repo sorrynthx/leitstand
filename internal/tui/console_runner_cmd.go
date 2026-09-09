@@ -28,7 +28,14 @@ func (m *Model) execRemoteCmd(host *storage.Host, cmdText string) tea.Cmd {
 		return m.execStreamingCmdInTab(host, tab, cmdText)
 	}
 
-	return func() tea.Msg {
+	tab.AppendLog(fmt.Sprintf("[%s] ❯ %s", cwd, cmdText))
+	tab.IsRunning = true
+	tab.RunningCmd = cmdText
+	tab.RunningStart = time.Now()
+	tab.SpinnerFrame = 0
+	m.updateViewportContent()
+
+	runCmd := func() tea.Msg {
 		if m.isDemo {
 			out := SimulateDemoCmd(cmdText, host.Name)
 			return CmdResultMsg{
@@ -87,6 +94,8 @@ func (m *Model) execRemoteCmd(host *storage.Host, cmdText string) tea.Cmd {
 			Err:     err,
 		}
 	}
+
+	return tea.Batch(runCmd, tickExecCommand(host.ID, tabID))
 }
 
 func isValidCWD(p string) bool {

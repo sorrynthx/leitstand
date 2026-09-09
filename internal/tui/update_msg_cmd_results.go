@@ -28,9 +28,10 @@ func (m *Model) handleCommandResultMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 
 					if targetTab != nil {
-						cwdDisplay := msg.CWD
-						if cwdDisplay == "" {
-							cwdDisplay = "~"
+						var elapsedSec float64
+						if targetTab.IsRunning {
+							elapsedSec = time.Since(targetTab.RunningStart).Seconds()
+							targetTab.IsRunning = false
 						}
 
 						if msg.NewCWD != "" {
@@ -45,15 +46,15 @@ func (m *Model) handleCommandResultMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if isGrepNoMatch {
 							targetTab.LastError = ""
 							targetTab.LastExitCode = 0
-							targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n(일치하는 항목 없음 / No matches found)", cwdDisplay, msg.Command))
-							m.statusMessage = fmt.Sprintf("ℹ️ '%s': 일치하는 결과 없음", msg.Command)
+							targetTab.AppendLog(fmt.Sprintf("(일치하는 항목 없음 / No matches found) [⏱️ %.1fs]", elapsedSec))
+							m.statusMessage = fmt.Sprintf("ℹ️ '%s': 결과 없음 (⏱️ %.1fs)", msg.Command, elapsedSec)
 						} else if msg.Err != nil {
 							targetTab.LastError = fmt.Sprintf("%v: %s", msg.Err, strings.TrimSpace(msg.Stderr))
 							targetTab.LastExitCode = 1
 							if strings.Contains(fmt.Sprintf("%v", msg.Err), "127") {
 								targetTab.LastExitCode = 127
 							}
-							logText := fmt.Sprintf("[%s] ❯ %s\n❌ Error: %v", cwdDisplay, msg.Command, msg.Err)
+							logText := fmt.Sprintf("❌ Error (⏱️ %.1fs): %v", elapsedSec, msg.Err)
 							if strings.TrimSpace(msg.Stderr) != "" {
 								logText += "\n" + strings.TrimSpace(msg.Stderr)
 							}
@@ -61,17 +62,17 @@ func (m *Model) handleCommandResultMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 								logText += "\n" + strings.TrimSpace(msg.Stdout)
 							}
 							targetTab.AppendLog(logText)
-							m.statusMessage = fmt.Sprintf("⚠️ Error executing '%s'", msg.Command)
+							m.statusMessage = fmt.Sprintf("⚠️ Error executing '%s' (⏱️ %.1fs)", msg.Command, elapsedSec)
 						} else {
 							targetTab.LastError = ""
 							targetTab.LastExitCode = 0
 							out := msg.Stdout
 							if out != "" {
-								targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n%s", cwdDisplay, msg.Command, out))
+								targetTab.AppendLog(fmt.Sprintf("%s\n[⏱️ %.1fs 소요]", out, elapsedSec))
 							} else {
-								targetTab.AppendLog(fmt.Sprintf("[%s] ❯ %s\n(no output)", cwdDisplay, msg.Command))
+								targetTab.AppendLog(fmt.Sprintf("(결과 없음 / no output) [⏱️ %.1fs 소요]", elapsedSec))
 							}
-							m.statusMessage = fmt.Sprintf("✅ Executed '%s' successfully (%s)", msg.Command, time.Now().Format("15:04:05"))
+							m.statusMessage = fmt.Sprintf("✅ Executed '%s' (⏱️ %.1fs at %s)", msg.Command, elapsedSec, time.Now().Format("15:04:05"))
 						}
 					}
 					break
@@ -141,6 +142,9 @@ func (m *Model) handleCommandResultMessage(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusMessage = "(no completion matches)"
 		}
 		return m, nil
+
+	case ExecTickMsg:
+		return m.handleExecTickMessage(msg)
 
 	case TickMsg:
 		return m, tea.Batch(
