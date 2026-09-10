@@ -112,12 +112,13 @@ func (s *SettingsModal) renderAboutRightCol(prof profile.LangProfile, links prof
 	sb.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(prof.TechP2) + "\n")
 	sb.WriteString(lipgloss.NewStyle().Foreground(ColorMuted).Render(prof.TechP3) + "\n\n")
 
-	// Links & Projects
-	linkHead := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("🔗 Connect & Web Services")
+	// Links & Feedback
+	linkHead := lipgloss.NewStyle().Bold(true).Foreground(ColorSecondary).Render("🔗 Connect & Feedback")
 	sb.WriteString(linkHead + "\n")
-	sb.WriteString(fmt.Sprintf("  • Web    : %s\n", lipgloss.NewStyle().Foreground(ColorSuccess).Render(links.Web)))
-	sb.WriteString(fmt.Sprintf("  • GitHub : %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#64B5F6")).Render(links.Git)))
-	sb.WriteString(fmt.Sprintf("  • In     : %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#4FC3F7")).Render(links.LinkedIn)))
+	sb.WriteString(fmt.Sprintf("  • Web      : %s\n", lipgloss.NewStyle().Foreground(ColorSuccess).Render(links.Web)))
+	sb.WriteString(fmt.Sprintf("  • GitHub   : %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#64B5F6")).Render(links.Git)))
+	sb.WriteString(fmt.Sprintf("  • LinkedIn : %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#4FC3F7")).Render(links.LinkedIn)))
+	sb.WriteString(fmt.Sprintf("  • Feedback : %s\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFD54F")).Render("sorrynthx@gmail.com")))
 
 	return boxStyle.Render(sb.String())
 }

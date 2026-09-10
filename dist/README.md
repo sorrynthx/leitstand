@@ -1,15 +1,16 @@
-﻿# 📦 LEITSTAND Pre-built Binaries (v1.0.0)
+# 📦 LEITSTAND Pre-built Binaries (v1.0.0)
 
 This directory contains standalone, zero-dependency pre-compiled release packages of **LEITSTAND**.  
 You do **not** need to install Go or any runtime dependencies to run them.
 
 ## 🚀 Available Packages
 
-| Target OS | Architecture | Package Archive | Contents |
+| Target OS | Architecture | Package Archive | Executable |
 |---|---|---|---|
-| **Windows** | x86_64 (`amd64`) | `leitstand-v1.0.0-windows-amd64.zip` | `leitstand-windows-amd64.exe` |
-| **Linux** | x86_64 (`amd64`) | `leitstand-v1.0.0-linux-amd64.tar.gz` / `.zip` | `leitstand-linux-amd64` |
-| **macOS** | Apple Silicon (`arm64`) | `leitstand-v1.0.0-darwin-arm64.tar.gz` / `.zip` | `leitstand-darwin-arm64` |
+| **Windows** | x86_64 (`amd64`) | `leitstand-v1.0.0-windows-amd64.zip` | `leitstand.exe` |
+| **Linux** | x86_64 (`amd64`) | `leitstand-v1.0.0-linux-amd64.tar.gz` / `.zip` | `leitstand` |
+| **macOS** | Apple Silicon (`arm64`) | `leitstand-v1.0.0-darwin-arm64.tar.gz` / `.zip` | `leitstand` |
+| **macOS** | Intel (`amd64`) | `leitstand-v1.0.0-darwin-amd64.tar.gz` / `.zip` | `leitstand` |
 
 ---
 
@@ -17,25 +18,31 @@ You do **not** need to install Go or any runtime dependencies to run them.
 
 ### Windows:
 1. Download `leitstand-v1.0.0-windows-amd64.zip` and extract it.
-2. Double-click `leitstand-windows-amd64.exe` or run inside **Windows Terminal**:
+2. **Double-click `leitstand.exe`** directly from Windows Explorer, or run inside **PowerShell / Terminal**:
    ```powershell
-   .\leitstand-windows-amd64.exe
-   # or test offline demo
-   .\leitstand-windows-amd64.exe --demo
+   # Normal execution
+   .\leitstand.exe
+
+   # Offline demo mode (instant showcase)
+   .\leitstand.exe --demo
    ```
 
 ### Linux / macOS:
 1. Download and extract the archive:
    ```bash
+   # Linux
    tar -zxvf leitstand-v1.0.0-linux-amd64.tar.gz
-   chmod +x leitstand-linux-amd64
-   ./leitstand-linux-amd64
-   ```
-2. For Apple Silicon macOS:
-   ```bash
+
+   # macOS (Apple Silicon or Intel)
    tar -zxvf leitstand-v1.0.0-darwin-arm64.tar.gz
-   chmod +x leitstand-darwin-arm64
-   ./leitstand-darwin-arm64
+
+   chmod +x leitstand
+   
+   # Normal execution
+   ./leitstand
+
+   # Offline demo mode
+   ./leitstand --demo
    ```
 
 ---

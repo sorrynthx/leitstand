@@ -115,9 +115,15 @@ type Model struct {
 func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector *telemetry.Collector, isDemo bool) *Model {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	if isDemo {
+		i18n.SetLang(i18n.LangEN)
+	}
+
 	if s != nil {
-		if savedLang, err := s.GetSetting("language"); err == nil && savedLang != "" {
-			i18n.SetLang(i18n.Lang(savedLang))
+		if !isDemo {
+			if savedLang, err := s.GetSetting("language"); err == nil && savedLang != "" {
+				i18n.SetLang(i18n.Lang(savedLang))
+			}
 		}
 		if savedInterval, err := s.GetSetting("polling_interval"); err == nil && savedInterval != "" {
 			if dur, parseErr := time.ParseDuration(savedInterval); parseErr == nil && c != nil {
@@ -197,7 +203,7 @@ func NewModel(c *config.AppConfig, s *storage.Storage, v *vault.Vault, collector
 		sudoModeCache:     make(map[int64]int),
 		activePane:        PaneHostList,
 		selectedIndex:     0,
-		userHasNavigated:  false,
+		userHasNavigated:  isDemo,
 		consoleInput:      cInput,
 		viewport:          vp,
 		statusMessage:     "Press [Tab] to switch panes, [Enter] to select/connect server.",

@@ -2,6 +2,7 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
 # Binaries for programs and plugins
+bin/
 *.exe
 *.exe~
 *.dll
@@ -35,6 +36,13 @@ go.work.sum
 *.db
 *.db-shm
 *.db-wal
+*.log
+leitstand.log
 .leitstand/
 leitstand
 leitstand.exe
+
+# Local export/import test artifacts
+runbook_export_*.json
+leitstand_*.json
+leitstand_*.csv

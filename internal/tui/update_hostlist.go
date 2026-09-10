@@ -23,10 +23,8 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 		switch m.activePane {
 		case PaneHostList:
 			m.activePane = PaneConsole
+			m.userHasNavigated = true
 			m.consoleInput.Focus()
-		case PaneConsole:
-			m.activePane = PaneHostList
-			m.consoleInput.Blur()
 		default:
 			m.activePane = PaneHostList
 			m.consoleInput.Blur()
@@ -54,6 +52,7 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 	}
 
 	onHostNav := func(oldIdx int) (tea.Model, tea.Cmd, bool) {
+		m.userHasNavigated = true
 		syncHostInput(oldIdx)
 		curHost := m.hosts[m.selectedIndex]
 		m.updateViewportContent()
@@ -217,6 +216,7 @@ func (m *Model) updateHostListNavigation(keyStr string) (tea.Model, tea.Cmd, boo
 			m.statusMessage = "⚠️ " + strings.ReplaceAll(i18n.T("no_hosts"), "\n", " ")
 			return m, nil, true
 		}
+		m.userHasNavigated = true
 		m.activePane = PaneConsole
 		m.consoleInput.Focus()
 		if m.selectedIndex < 0 {

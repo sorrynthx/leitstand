@@ -1,6 +1,7 @@
-﻿# ⚡ LEITSTAND (라이트슈탄트)
+# ⚡ LEITSTAND (라이트슈탄트)
 
 <p align="center">
+  <img src="assets/icon_256.png" width="140" alt="LEITSTAND Logo"><br>
   <a href="README.md"><b>English</b></a> •
   <a href="README.ko.md"><b>한국어</b></a> •
   <a href="README.de.md"><b>Deutsch</b></a>
@@ -150,17 +151,19 @@ You can download pre-compiled, zero-dependency single binaries directly from the
 
 | Platform | Architecture | Package Archive | Quick Run |
 |---|---|---|---|
-| **Windows** | x86_64 (`amd64`) | [**leitstand-v1.0.0-windows-amd64.zip**](dist/leitstand-v1.0.0-windows-amd64.zip) | Extract & run `leitstand-windows-amd64.exe` |
-| **Linux** | x86_64 (`amd64`) | [**leitstand-v1.0.0-linux-amd64.tar.gz**](dist/leitstand-v1.0.0-linux-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-linux-amd64.zip)) | `tar -xvf ... && ./leitstand-linux-amd64` |
-| **macOS** | Apple Silicon (`arm64`) | [**leitstand-v1.0.0-darwin-arm64.tar.gz**](dist/leitstand-v1.0.0-darwin-arm64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-arm64.zip)) | `tar -xvf ... && ./leitstand-darwin-arm64` |
+| **Windows** | x86_64 (`amd64`) | [**leitstand-v1.0.0-windows-amd64.zip**](dist/leitstand-v1.0.0-windows-amd64.zip) | Double-click `leitstand.exe` or `.\leitstand.exe` |
+| **Linux** | x86_64 (`amd64`) | [**leitstand-v1.0.0-linux-amd64.tar.gz**](dist/leitstand-v1.0.0-linux-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-linux-amd64.zip)) | `tar -xvf ... && ./leitstand` |
+| **macOS** | Apple Silicon (`arm64`) | [**leitstand-v1.0.0-darwin-arm64.tar.gz**](dist/leitstand-v1.0.0-darwin-arm64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-arm64.zip)) | `tar -xvf ... && ./leitstand` |
+| **macOS** | Intel (`amd64`) | [**leitstand-v1.0.0-darwin-amd64.tar.gz**](dist/leitstand-v1.0.0-darwin-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-amd64.zip)) | `tar -xvf ... && ./leitstand` |
 
 > [!TIP]
 > Try the instant offline demo without connecting to real servers:  
-> `./leitstand --demo`
+> **Windows (PowerShell)**: `.\leitstand.exe --demo`  
+> **Linux / macOS**: `./leitstand --demo`
 
 ---
 
-## 🛠️ Installation & Cross-Platform Building
+## 🛠️ Installation & Building from Source
 
 ### Prerequisites
 - **Go 1.22+** installed.
@@ -175,8 +178,11 @@ cd leitstand
 # Run automated unit tests
 go test -v ./...
 
-# Build binary
-go build -o bin/leitstand ./cmd/leitstand
+# Build binary (Linux / macOS)
+go build -o leitstand ./cmd/leitstand
+
+# Build binary (Windows PowerShell)
+go build -o leitstand.exe ./cmd/leitstand
 ```
 
 ### 2. Cross-Platform Compilation (Zero-CGO Pure Go)
@@ -184,22 +190,24 @@ Because LEITSTAND uses a pure Go SQLite engine and zero external C dependencies,
 
 ```bash
 # Linux (amd64)
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/leitstand-linux-amd64 ./cmd/leitstand
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dist/leitstand-linux ./cmd/leitstand
 
 # macOS Apple Silicon (arm64)
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/leitstand-darwin-arm64 ./cmd/leitstand
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dist/leitstand-darwin-arm64 ./cmd/leitstand
 
 # Windows (amd64)
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/leitstand-windows-amd64.exe ./cmd/leitstand
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o dist/leitstand.exe ./cmd/leitstand
 ```
 
 ### 3. Run
 ```bash
-# Normal mode
-./bin/leitstand
+# Windows (PowerShell)
+.\leitstand.exe
+.\leitstand.exe --demo
 
-# Offline demo mode (instant showcase without real servers)
-./bin/leitstand --demo
+# Linux / macOS
+./leitstand
+./leitstand --demo
 ```
 
 ---

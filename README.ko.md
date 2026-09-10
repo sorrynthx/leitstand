@@ -1,6 +1,7 @@
-﻿# ⚡ LEITSTAND (라이트슈탄트)
+# ⚡ LEITSTAND (라이트슈탄트)
 
 <p align="center">
+  <img src="assets/icon_256.png" width="140" alt="LEITSTAND Logo"><br>
   <a href="README.md"><b>English</b></a> •
   <a href="README.ko.md"><b>한국어</b></a> •
   <a href="README.de.md"><b>Deutsch</b></a>
@@ -150,17 +151,19 @@ Go 언어나 별도의 개발 도구를 설치할 필요 없이, [`dist/`](dist/
 
 | 플랫폼 (OS) | 아키텍처 | 다운로드 패키지 | 실행 방법 |
 |---|---|---|---|
-| **Windows** | x86_64 (`amd64`) | [**leitstand-v1.0.0-windows-amd64.zip**](dist/leitstand-v1.0.0-windows-amd64.zip) | 압축 해제 후 `leitstand-windows-amd64.exe` 더블 클릭 또는 터미널 실행 |
-| **Linux** | x86_64 (`amd64`) | [**leitstand-v1.0.0-linux-amd64.tar.gz**](dist/leitstand-v1.0.0-linux-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-linux-amd64.zip)) | `tar -xvf ... && ./leitstand-linux-amd64` |
-| **macOS** | Apple Silicon (`arm64`) | [**leitstand-v1.0.0-darwin-arm64.tar.gz**](dist/leitstand-v1.0.0-darwin-arm64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-arm64.zip)) | `tar -xvf ... && ./leitstand-darwin-arm64` |
+| **Windows** | x86_64 (`amd64`) | [**leitstand-v1.0.0-windows-amd64.zip**](dist/leitstand-v1.0.0-windows-amd64.zip) | `leitstand.exe` 더블 클릭 또는 `.\leitstand.exe` 실행 |
+| **Linux** | x86_64 (`amd64`) | [**leitstand-v1.0.0-linux-amd64.tar.gz**](dist/leitstand-v1.0.0-linux-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-linux-amd64.zip)) | `tar -xvf ... && ./leitstand` |
+| **macOS** | Apple Silicon (`arm64`) | [**leitstand-v1.0.0-darwin-arm64.tar.gz**](dist/leitstand-v1.0.0-darwin-arm64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-arm64.zip)) | `tar -xvf ... && ./leitstand` |
+| **macOS** | Intel (`amd64`) | [**leitstand-v1.0.0-darwin-amd64.tar.gz**](dist/leitstand-v1.0.0-darwin-amd64.tar.gz) ([`.zip`](dist/leitstand-v1.0.0-darwin-amd64.zip)) | `tar -xvf ... && ./leitstand` |
 
 > [!TIP]
 > 실제 서버 연결 없이 가상 콕핏을 체험하려면 데모 모드로 실행해 보세요:  
-> `./leitstand --demo`
+> **Windows (PowerShell)**: `.\leitstand.exe --demo`  
+> **Linux / macOS**: `./leitstand --demo`
 
 ---
 
-## 🛠️ 설치 및 크로스 플랫폼 빌드 가이드
+## 🛠️ 설치 및 소스코드 직접 빌드 가이드
 
 ### 사전 요구사항
 - **Go 1.22 이상** 설치.
@@ -175,8 +178,11 @@ cd leitstand
 # 단위 테스트 실행
 go test -v ./...
 
-# 실행 바이너리 빌드
-go build -o bin/leitstand ./cmd/leitstand
+# 실행 바이너리 빌드 (Linux / macOS)
+go build -o leitstand ./cmd/leitstand
+
+# 실행 바이너리 빌드 (Windows PowerShell)
+go build -o leitstand.exe ./cmd/leitstand
 ```
 
 ### 2. 크로스 플랫폼 컴파일 (Zero-CGO Pure Go)
@@ -184,22 +190,24 @@ LEITSTAND는 순수 Go 기반 SQLite 드라이버를 탑재하여 외부 C 라�
 
 ```bash
 # 리눅스 (Linux amd64)
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/leitstand-linux-amd64 ./cmd/leitstand
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dist/leitstand-linux ./cmd/leitstand
 
 # 맥 (macOS Apple Silicon arm64)
-CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o bin/leitstand-darwin-arm64 ./cmd/leitstand
+CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o dist/leitstand-darwin-arm64 ./cmd/leitstand
 
 # 윈도우 (Windows amd64)
-CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/leitstand-windows-amd64.exe ./cmd/leitstand
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o dist/leitstand.exe ./cmd/leitstand
 ```
 
 ### 3. 실행 방법
 ```bash
-# 일반 모드
-./bin/leitstand
+# 윈도우 (PowerShell / Windows Terminal)
+.\leitstand.exe
+.\leitstand.exe --demo
 
-# 오프라인 데모 모드 (실제 서버 없이 즉시 시연)
-./bin/leitstand --demo
+# 리눅스 / 맥 (Linux / macOS)
+./leitstand
+./leitstand --demo
 ```
 
 ---

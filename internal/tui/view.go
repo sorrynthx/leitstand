@@ -92,7 +92,7 @@ func (m *Model) View() string {
 		leftPane := m.renderHostListPane(leftWidth, availableHeight-2)
 
 		var rightSide string
-		if !m.userHasNavigated {
+		if !m.userHasNavigated && m.activePane != PaneConsole {
 			rightSide = m.renderWelcomePanel(rightWidth, availableHeight-2)
 		} else {
 			rightSide = m.renderConsoleOrCopilotSplit(rightWidth, availableHeight-2)
