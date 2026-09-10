@@ -1,4 +1,3 @@
-````markdown
 # Leitstand: Architectural Blueprint & Implementation Plan
 
 > **Leitstand** (`leitstand` / [ˈlaɪt.ʃtant]): A lightweight, agentless server control center and telemetry cockpit written in Go.

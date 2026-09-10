@@ -53,10 +53,15 @@ func BuildClientConfig(username string, authMethod string, secretPayload []byte,
 		return nil, fmt.Errorf("%w: %s", ErrUnsupportedAuthMethod, authMethod)
 	}
 
+	hostKeyCb, err := GetHostKeyCallback("", "accept-new")
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize host key verification: %w", err)
+	}
+
 	return &ssh.ClientConfig{
 		User:            username,
 		Auth:            authMethods,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCb,
 		Timeout:         timeout,
 	}, nil
 }

@@ -1,4 +1,4 @@
-﻿# Leitstand System Architecture
+# Leitstand System Architecture
 
 `Leitstand` (라이트슈탄트) is a modern, lightweight, agentless server control center, telemetry cockpit, and AI troubleshooting assistant built in Go using the Charmbracelet Bubbletea & Lipgloss ecosystem.
 
@@ -69,6 +69,7 @@ leitstand/
   - `ai_safety.go`: Proactive command interception blocking destructive calls (`rm -rf /`, `shutdown`, `reboot`, `swapoff`).
 - **`internal/ssh`**:
   - `pool.go`: Reusable SSH client pool (1 TCP socket per host, multiplexed channels).
+  - `hostkey.go`: OpenSSH standard `known_hosts` Host Key Verification engine with TOFU (Trust-On-First-Use) policy to block MITM attacks.
   - `client.go`: Thread-safe `GetSFTPClient()` caching to eliminate OpenSSH `MaxSessions 10` exhaustion.
   - `tunnel.go`, `tunnel_manager.go`: Local port forwarding via SSH channel dialing (`net.Listener` ➔ `ssh.Channel`).
 - **`internal/storage`**:

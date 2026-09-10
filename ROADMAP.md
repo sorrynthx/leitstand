@@ -190,8 +190,16 @@
   - 인메모리 호스트/탭/세션/SSH풀/터널 즉시 파기 및 앱 최초 실행 마스터 비밀번호 생성(`VaultModalInit`) 화면으로 즉시 전환.
 - [x] **JSON 호스트 임포트 핫 리로드**:
   - 4번 탭에서 호스트 JSON 복원 시 메인 콕핏 복귀와 동시에 인메모리 호스트 목록 즉시 갱신(`m.loadHostsCmd()`).
-- [x] **250줄 엄격 모듈화 & 다국어 Parity 100% 통과**:
-  - `settings_modal_reset.go`(95줄), `update_modal_settings.go`(54줄) 분리 및 `dict_*.go` 전수 동기화.
+### 🔐 Phase 5-4: OpenSSH 호스트 키 검증 & 중간자 공격(MITM) 방어 엔진 (100% 완료)
+- [x] **OpenSSH 표준 `~/.ssh/known_hosts` 기반 TOFU (Trust On First Use) 파이프라인 (`internal/ssh/hostkey.go`)**:
+  - `InsecureIgnoreHostKey()` 전면 탈피 및 상용 등급의 호스트 키 검증 엔진 탑재.
+  - 최초 접속 서버: OpenSSH 표준 규격(`knownhosts.Line`)으로 `~/.ssh/known_hosts`에 호스트 공개키 안전 자동 등록.
+  - 기등록 서버 재접속: 호스트 공개키 정밀 대조 및 세션 무결성 보장.
+  - **호스트 키 변조(MITM 공격) 감지 시 즉시 차단**: 공격/위조 감지 시 접속을 원천 차단하고 `🚨 HOST KEY MISMATCH DETECTED` 보안 경고 반환.
+  - 키 파기(`RevokedError`) 감지 시 즉시 차단 파이프라인 탑재.
+- [x] **단위 테스트 검증 완료 (`internal/ssh/hostkey_test.go`)**:
+  - 첫 접속 TOFU 등록, 동일 키 재접속 통과, 공격 시뮬레이션(키 변조) 차단 100% 검증.
+- [x] **250줄 엄격 모듈화 준수**: `hostkey.go` 121줄, `hostkey_test.go` 78줄.
 
 ---
 

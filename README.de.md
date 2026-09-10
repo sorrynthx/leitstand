@@ -39,9 +39,9 @@ Es ersetzt überladene Desktop-Tools durch ein **schnelles, tastaturgesteuertes 
 - **Unabhängige Zustandserhaltung**: Jeder Tab behält sein eigenes Arbeitsverzeichnis (`CWD`), seine Befehlshistorie (`↑/↓`) und seinen Scroll-Viewport bei.
 - **Asynchrones Live-Streaming**: Ausführung von Streaming-Befehlen (`tail -f /var/log/syslog`, `docker logs -f`, `ping`) im Hintergrund mit blinkenden `🔴 LIVE`-Badges. Das Abbrechen eines Streams (`Ctrl+C`) beendet nur diesen spezifischen Job, ohne den Tab zu trennen.
 
-### 3. 🛡️ SSH Bastion / Jump-Host-Tunneling
+### 3. 🛡️ SSH-Bastion-Tunneling & OpenSSH-Host-Key-Verifikation
 - **Zugriff auf private Subnetze**: Nahtloser Zugriff auf isolierte Server hinter Unternehmens-Firewalls über standardmäßige SSH-ProxyJump-Bastion-Hosts.
-- **Automatische Host-Fingerprint-Verifikation**: Echtzeit-SSH-Schlüsselaustausch und strikte Fingerprint-Prüfung zur Gewährleistung manipulationssicherer Tunnel.
+- **OpenSSH TOFU Host-Key-Verifikation (`~/.ssh/known_hosts`)**: Enterprise-Host-Key-Verifikation nach dem Standard Trust-On-First-Use (TOFU). Automatische Registrierung von Server-Fingerprints und sofortiger Verbindungsabbruch bei Schlüsseländerungen zum Schutz vor Man-in-the-Middle-Angriffen (MITM).
 
 ### 4. 📂 SFTP Dual-Pane-Dateimanager & Zwischenablage-Bewegung (`[f]`)
 - **90 % breite Dual-Pane-Ansicht**: Lokaler PC (Links) ↔ Remote-Server (Rechts) mit sofortigem Fokuswechsel (`[Tab]`).
