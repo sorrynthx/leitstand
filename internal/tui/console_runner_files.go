@@ -16,6 +16,7 @@ type OpenFileMsg struct {
 	HostName string
 	FilePath string
 	Content  string
+	IsLocal  bool
 	Err      error
 }
 
@@ -23,6 +24,7 @@ type FileSavedMsg struct {
 	HostID   int64
 	HostName string
 	FilePath string
+	IsLocal  bool
 	Err      error
 }
 

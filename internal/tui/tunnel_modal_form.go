@@ -15,6 +15,8 @@ func (tm *TunnelModal) handleAddFormKeys(keyStr string) (bool, string, tea.Cmd) 
 	switch keyStr {
 	case "esc":
 		tm.isAdding = false
+		tm.isEditing = false
+		tm.editingTunnelID = 0
 		tm.errMessage = ""
 		return false, "", nil
 
@@ -44,7 +46,7 @@ func (tm *TunnelModal) handleAddFormKeys(keyStr string) (bool, string, tea.Cmd) 
 		return false, "", nil
 
 	case "enter":
-		return tm.submitAddForm()
+		return tm.submitForm()
 	}
 
 	// Update text inputs
@@ -53,7 +55,7 @@ func (tm *TunnelModal) handleAddFormKeys(keyStr string) (bool, string, tea.Cmd) 
 	return false, "", cmd
 }
 
-func (tm *TunnelModal) submitAddForm() (bool, string, tea.Cmd) {
+func (tm *TunnelModal) submitForm() (bool, string, tea.Cmd) {
 	name := strings.TrimSpace(tm.inputs[0].Value())
 	localPortStr := strings.TrimSpace(tm.inputs[1].Value())
 	remoteHost := strings.TrimSpace(tm.inputs[2].Value())
@@ -78,6 +80,11 @@ func (tm *TunnelModal) submitAddForm() (bool, string, tea.Cmd) {
 		return false, "", nil
 	}
 
+	// If modifying an active tunnel, stop it first
+	if tm.isEditing && tm.editingTunnelID > 0 && tm.tunnelMgr.IsActive(tm.editingTunnelID) {
+		_ = tm.tunnelMgr.StopTunnel(tm.editingTunnelID)
+	}
+
 	// Test if local port is available
 	testListener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", localPort))
 	if err != nil {
@@ -87,6 +94,7 @@ func (tm *TunnelModal) submitAddForm() (bool, string, tea.Cmd) {
 	_ = testListener.Close()
 
 	tun := &storage.SSHTunnel{
+		ID:         tm.editingTunnelID,
 		HostID:     tm.host.ID,
 		Name:       name,
 		LocalPort:  localPort,
@@ -99,10 +107,18 @@ func (tm *TunnelModal) submitAddForm() (bool, string, tea.Cmd) {
 		return false, "", nil
 	}
 
+	wasEditing := tm.isEditing
 	tm.tunnels, _ = tm.store.GetTunnelsByHost(tm.host.ID)
-	tm.selectedIndex = len(tm.tunnels) - 1
+	if !wasEditing {
+		tm.selectedIndex = len(tm.tunnels) - 1
+	}
 	tm.isAdding = false
+	tm.isEditing = false
+	tm.editingTunnelID = 0
 	tm.errMessage = ""
 
+	if wasEditing {
+		return false, fmt.Sprintf(i18n.T("tunnel_updated_success"), name), nil
+	}
 	return false, fmt.Sprintf(i18n.T("tunnel_added_success"), name), nil
 }

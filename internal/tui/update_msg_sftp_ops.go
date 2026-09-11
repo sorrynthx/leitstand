@@ -15,7 +15,6 @@ import (
 
 func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 	switch msg := msg.(type) {
-
 	case TransferActionMsg:
 		if m.fileManager != nil {
 			m.fileManager.IsTransferring = true
@@ -237,6 +236,9 @@ func (m *Model) tryHandleSFTPMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool) {
 			}
 		}
 		return m, nil, true
+
+	case SFTPRequestEditMsg:
+		return m.handleSFTPRequestEdit(msg)
 	}
 
 	return m, nil, false

@@ -90,7 +90,7 @@ func (tm *TunnelManager) GetActiveSummary() string {
 
 	if len(tm.tunnels) == 1 {
 		for _, at := range tm.tunnels {
-			return fmt.Sprintf("%d➔%d", at.Tunnel.LocalPort, at.Tunnel.RemotePort)
+			return fmt.Sprintf("%d->%d", at.Tunnel.LocalPort, at.Tunnel.RemotePort)
 		}
 	}
 

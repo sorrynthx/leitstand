@@ -19,6 +19,8 @@ type TunnelModal struct {
 	store            *storage.Storage
 	sshPool          *ssh.Pool
 	isAdding         bool
+	isEditing        bool
+	editingTunnelID  int64
 	isDeleting       bool
 	focusedInput     int
 	inputs           []textinput.Model
@@ -62,7 +64,7 @@ func (tm *TunnelModal) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 	}
 	keyStr := keyMsg.String()
 
-	if tm.isAdding {
+	if tm.isAdding || tm.isEditing {
 		return tm.handleAddFormKeys(keyStr)
 	}
 
@@ -105,6 +107,8 @@ func (tm *TunnelModal) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 
 	case "a", "n":
 		tm.isAdding = true
+		tm.isEditing = false
+		tm.editingTunnelID = 0
 		tm.isDeleting = false
 		tm.errMessage = ""
 		tm.focusedInput = 0
@@ -114,6 +118,23 @@ func (tm *TunnelModal) Update(msg tea.Msg) (bool, string, tea.Cmd) {
 			}
 		}
 		tm.inputs[0].Focus()
+		return false, "", nil
+
+	case "e":
+		if len(tm.tunnels) > 0 && tm.selectedIndex >= 0 && tm.selectedIndex < len(tm.tunnels) {
+			tun := tm.tunnels[tm.selectedIndex]
+			tm.isEditing = true
+			tm.isAdding = false
+			tm.editingTunnelID = tun.ID
+			tm.isDeleting = false
+			tm.errMessage = ""
+			tm.focusedInput = 0
+			tm.inputs[0].SetValue(tun.Name)
+			tm.inputs[1].SetValue(fmt.Sprintf("%d", tun.LocalPort))
+			tm.inputs[2].SetValue(tun.RemoteHost)
+			tm.inputs[3].SetValue(fmt.Sprintf("%d", tun.RemotePort))
+			tm.inputs[0].Focus()
+		}
 		return false, "", nil
 
 	case "d", "x", "delete":

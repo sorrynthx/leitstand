@@ -134,3 +134,20 @@ func (m *Model) executeRemoteQuickCmd(cmdMsg FileManagerQuickCmdMsg) tea.Msg {
 		Output:  output,
 	}
 }
+
+func (m *Model) handleSFTPRequestEdit(msg SFTPRequestEditMsg) (tea.Model, tea.Cmd, bool) {
+	if msg.IsLocal {
+		return m, m.openLocalFileCmd(msg.FilePath), true
+	}
+	var curHost *storage.Host
+	for _, h := range m.hosts {
+		if h.ID == msg.HostID {
+			curHost = h
+			break
+		}
+	}
+	if curHost != nil {
+		return m, m.openRemoteFileCmd(curHost, msg.FilePath), true
+	}
+	return m, nil, true
+}

@@ -143,7 +143,7 @@ func (m *Model) renderHeader() string {
 		} else {
 			badgeText = fmt.Sprintf(i18n.T("tunnel_badge_plural"), count, summary)
 		}
-		tunnelBadge = " " + BadgeStyle.Copy().Background(ColorSuccess).Foreground(lipgloss.Color("#000000")).Render(badgeText)
+		tunnelBadge = " " + BadgeStyle.Copy().Background(ColorSuccess).Foreground(lipgloss.Color("#000000")).Render(badgeText+" ")
 	}
 
 	timeStr := lipgloss.NewStyle().Foreground(ColorMuted).Render(time.Now().Format("2006-01-02 15:04:05 MST"))

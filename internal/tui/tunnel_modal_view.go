@@ -41,8 +41,8 @@ func (tm *TunnelModal) View(width, height int) string {
 		b.WriteString(errStyle.Render(tm.errMessage) + "\n\n")
 	}
 
-	// 3. Main Content: Table or Add Form
-	if tm.isAdding {
+	// 3. Main Content: Table or Add/Edit Form
+	if tm.isAdding || tm.isEditing {
 		b.WriteString(tm.renderAddForm(modalWidth - 4))
 	} else {
 		b.WriteString(tm.renderTunnelList(modalWidth - 4))
@@ -117,7 +117,12 @@ func (tm *TunnelModal) renderTunnelList(width int) string {
 func (tm *TunnelModal) renderAddForm(width int) string {
 	var b strings.Builder
 
-	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("tunnel_form_title_add")) + "\n\n")
+	formTitle := i18n.T("tunnel_form_title_add")
+	if tm.isEditing {
+		formTitle = i18n.T("tunnel_form_title_edit")
+	}
+
+	b.WriteString(lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(formTitle) + "\n\n")
 
 	labels := []string{
 		i18n.T("tunnel_form_name"),
@@ -142,7 +147,7 @@ func (tm *TunnelModal) renderAddForm(width int) string {
 }
 
 func (tm *TunnelModal) renderFooter(width int) string {
-	if tm.isAdding {
+	if tm.isAdding || tm.isEditing {
 		return ""
 	}
 
@@ -155,10 +160,11 @@ func (tm *TunnelModal) renderFooter(width int) string {
 
 	btnToggle := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render(i18n.T("tunnel_btn_toggle"))
 	btnAdd := lipgloss.NewStyle().Bold(true).Foreground(ColorSuccess).Render(i18n.T("tunnel_btn_add"))
+	btnEdit := lipgloss.NewStyle().Bold(true).Foreground(ColorWarning).Render(i18n.T("tunnel_btn_edit"))
 	btnDel := lipgloss.NewStyle().Bold(true).Foreground(ColorDanger).Render(i18n.T("tunnel_btn_delete"))
 	btnClose := lipgloss.NewStyle().Bold(true).Foreground(ColorMuted).Render(i18n.T("tunnel_btn_close"))
 
-	line := lipgloss.JoinHorizontal(lipgloss.Left, btnToggle, "    ", btnAdd, "    ", btnDel, "    ", btnClose)
+	line := lipgloss.JoinHorizontal(lipgloss.Left, btnToggle, "   ", btnAdd, "   ", btnEdit, "   ", btnDel, "   ", btnClose)
 	return lipgloss.NewStyle().Foreground(ColorBorder).Render(strings.Repeat("─", width)) + "\n" + line
 }
 

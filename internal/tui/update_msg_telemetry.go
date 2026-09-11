@@ -38,7 +38,7 @@ func (m *Model) tryHandleTelemetryMessage(msg tea.Msg) (tea.Model, tea.Cmd, bool
 			m.statusMessage = "❌ " + msg.Err.Error()
 			return m, nil, true
 		}
-		m.editorModal = NewEditorModal(msg.HostID, msg.HostName, msg.FilePath, msg.Content, m.width, m.height)
+		m.editorModal = NewEditorModal(msg.HostID, msg.HostName, msg.FilePath, msg.Content, msg.IsLocal, m.width, m.height)
 		m.showEditorModal = true
 		return m, nil, true
 

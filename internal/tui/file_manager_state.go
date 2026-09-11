@@ -51,6 +51,13 @@ type NavigateRemoteMsg struct {
 	OldPath string
 }
 
+type SFTPRequestEditMsg struct {
+	HostID   int64
+	HostName string
+	FilePath string
+	IsLocal  bool
+}
+
 type FileTransferProgressMsg struct {
 	HostID       int64
 	FileName     string

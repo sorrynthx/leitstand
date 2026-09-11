@@ -13,13 +13,14 @@ type EditorModal struct {
 	HostID    int64
 	HostName  string
 	FilePath  string
+	IsLocal   bool
 	textarea  textarea.Model
 	isSaving  bool
 	err       error
 	StatusMsg string
 }
 
-func NewEditorModal(hostID int64, hostName string, filePath string, initialContent string, width, height int) *EditorModal {
+func NewEditorModal(hostID int64, hostName string, filePath string, initialContent string, isLocal bool, width, height int) *EditorModal {
 	ta := textarea.New()
 	ta.Placeholder = "Empty file. Start typing..."
 	ta.Focus()
@@ -42,6 +43,7 @@ func NewEditorModal(hostID int64, hostName string, filePath string, initialConte
 		HostID:   hostID,
 		HostName: hostName,
 		FilePath: filePath,
+		IsLocal:  isLocal,
 		textarea: ta,
 	}
 }

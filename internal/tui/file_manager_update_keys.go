@@ -195,6 +195,18 @@ func (m *FileManagerModal) Update(msg tea.Msg) (bool, tea.Cmd) {
 							return NavigateRemoteMsg{HostID: m.HostID, NewPath: item.Path, OldPath: oldP}
 						}
 					}
+				} else {
+					// Open file in built-in editor
+					isLocal := (m.ActivePanel == PanelLocal)
+					filePath := item.Path
+					return false, func() tea.Msg {
+						return SFTPRequestEditMsg{
+							HostID:   m.HostID,
+							HostName: m.HostName,
+							FilePath: filePath,
+							IsLocal:  isLocal,
+						}
+					}
 				}
 			}
 			return false, nil

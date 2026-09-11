@@ -165,3 +165,42 @@ func copyLocalDir(src, dst string) error {
 	}
 	return nil
 }
+
+func (m *Model) openLocalFileCmd(filePath string) tea.Cmd {
+	return func() tea.Msg {
+		f, err := os.Open(filePath)
+		if err != nil {
+			return OpenFileMsg{FilePath: filePath, IsLocal: true, Err: err}
+		}
+		defer f.Close()
+
+		stat, err := f.Stat()
+		if err == nil && stat.Size() > 2*1024*1024 {
+			return OpenFileMsg{FilePath: filePath, IsLocal: true, Err: fmt.Errorf("file size (%.1f MB) exceeds 2MB edit limit", float64(stat.Size())/(1024*1024))}
+		}
+
+		buf := make([]byte, 2*1024*1024)
+		n, err := f.Read(buf)
+		if err != nil && err.Error() != "EOF" {
+			return OpenFileMsg{FilePath: filePath, IsLocal: true, Err: err}
+		}
+
+		content := string(buf[:n])
+		return OpenFileMsg{
+			HostName: "Local PC",
+			FilePath: filePath,
+			Content:  content,
+			IsLocal:  true,
+		}
+	}
+}
+
+func (m *Model) saveLocalFileCmd(filePath, newContent string) tea.Cmd {
+	return func() tea.Msg {
+		err := os.WriteFile(filePath, []byte(newContent), 0644)
+		if err != nil {
+			return FileSavedMsg{FilePath: filePath, IsLocal: true, Err: err}
+		}
+		return FileSavedMsg{HostName: "Local PC", FilePath: filePath, IsLocal: true}
+	}
+}
